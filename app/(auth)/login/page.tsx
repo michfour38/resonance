@@ -7,7 +7,6 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createBrowserSupabaseClient } from '@/lib/supabase/browser';
 
 type Mode = 'password' | 'magic_link';
 
@@ -22,8 +21,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-
-  const supabase = createBrowserSupabaseClient();
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
