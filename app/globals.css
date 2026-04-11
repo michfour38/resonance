@@ -1,0 +1,46 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand:       36 74 62;   /* #2D4A3E — deep forest green */
+    --brand-mid:   74 124 111; /* #4A7C6F — mid green */
+    --brand-light: 209 231 224;/* #D1E7E0 — soft green tint */
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply text-stone-800;
+  }
+
+  /* Focus ring — accessible and on-brand */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-offset-2;
+    ring-color: rgb(var(--brand));
+  }
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+body[data-auth-page="true"] {
+  overflow: hidden;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}

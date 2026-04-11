@@ -1,0 +1,583 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model circle_members {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circle_id String     @db.Uuid
+  user_id   String
+  role      CircleRole @default(member)
+  joined_at DateTime   @default(now()) @db.Timestamptz(6)
+  circles   circles    @relation(fields: [circle_id], references: [id])
+  profiles  profiles   @relation(fields: [user_id], references: [id])
+
+  @@unique([circle_id, user_id])
+  @@index([circle_id])
+  @@index([user_id])
+}
+
+model prompt_analyses {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  completion_id      String             @db.Uuid
+  author_id          String
+  content            String
+  created_at         DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime           @updatedAt @db.Timestamptz(6)
+  status             AnalysisStatus     @default(private)
+  profiles           profiles           @relation(fields: [author_id], references: [id])
+  prompt_completions prompt_completions @relation(fields: [completion_id], references: [id])
+
+  @@unique([completion_id, author_id])
+  @@index([completion_id])
+  @@index([author_id])
+}
+
+model prompt_reactions {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  completion_id      String             @db.Uuid
+  user_id            String
+  type               ReactionType
+  created_at         DateTime           @default(now()) @db.Timestamptz(6)
+  prompt_completions prompt_completions @relation(fields: [completion_id], references: [id])
+  profiles           profiles           @relation(fields: [user_id], references: [id])
+
+  @@unique([completion_id, user_id, type])
+  @@index([completion_id])
+  @@index([user_id])
+}
+
+model mirror_feedback {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String
+  week_number Int
+  day_number  Int
+  feedback    String
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+  note        String?
+
+  @@unique([user_id, week_number, day_number])
+  @@index([user_id])
+}
+
+model circle_posts {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circle_id          String           @db.Uuid
+  user_id            String
+  room_id            String?          @db.Uuid
+  prompt_id          String?          @db.Uuid
+  parent_id          String?          @db.Uuid
+  content            String
+  created_at         DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime         @db.Timestamptz(6)
+  deleted_at         DateTime?        @db.Timestamptz(6)
+  categories         String[]         @default([])
+  risk_score         Int              @default(0)
+  severity           String?
+  circles            circles          @relation(fields: [circle_id], references: [id])
+  circle_posts       circle_posts?    @relation("circle_postsTocircle_posts", fields: [parent_id], references: [id])
+  other_circle_posts circle_posts[]   @relation("circle_postsTocircle_posts")
+  circle_prompts     circle_prompts?  @relation(fields: [prompt_id], references: [id])
+  rooms              rooms?           @relation(fields: [room_id], references: [id])
+  profiles           profiles         @relation(fields: [user_id], references: [id])
+  post_witnesses     post_witnesses[]
+  reports            reports[]
+
+  @@index([circle_id, created_at])
+}
+
+model post_witnesses {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post_id      String       @db.Uuid
+  user_id      String
+  created_at   DateTime     @default(now()) @db.Timestamptz(6)
+  circle_posts circle_posts @relation(fields: [post_id], references: [id])
+  profiles     profiles     @relation(fields: [user_id], references: [id])
+
+  @@unique([post_id, user_id])
+  @@index([post_id])
+  @@index([user_id])
+}
+
+model circle_prompts {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circle_id    String         @db.Uuid
+  room_id      String?        @db.Uuid
+  author_id    String
+  content      String
+  is_intro     Boolean        @default(false)
+  is_pinned    Boolean        @default(false)
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  circle_posts circle_posts[]
+  profiles     profiles       @relation(fields: [author_id], references: [id])
+  circles      circles        @relation(fields: [circle_id], references: [id])
+  rooms        rooms?         @relation(fields: [room_id], references: [id])
+
+  @@index([circle_id])
+}
+
+model circles {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cohort_id      String           @db.Uuid
+  name           String
+  facilitator_id String?
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  circle_members circle_members[]
+  circle_posts   circle_posts[]
+  circle_prompts circle_prompts[]
+  cohorts        cohorts          @relation(fields: [cohort_id], references: [id])
+  profiles       profiles?        @relation(fields: [facilitator_id], references: [id])
+
+  @@index([cohort_id])
+}
+
+model cohort_members {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cohort_id    String       @db.Uuid
+  user_id      String
+  status       MemberStatus @default(enrolled)
+  enrolled_at  DateTime     @default(now()) @db.Timestamptz(6)
+  activated_at DateTime?    @db.Timestamptz(6)
+  withdrawn_at DateTime?    @db.Timestamptz(6)
+  cohorts      cohorts      @relation(fields: [cohort_id], references: [id])
+  profiles     profiles     @relation(fields: [user_id], references: [id])
+
+  @@unique([cohort_id, user_id])
+  @@index([cohort_id])
+  @@index([user_id])
+}
+
+model cohorts {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  pathway          Pathway?
+  start_at         DateTime           @db.Timestamptz(6)
+  status           CohortStatus       @default(draft)
+  max_members      Int?
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @db.Timestamptz(6)
+  timezone         String             @default("Africa/Johannesburg")
+  circles          circles[]
+  cohort_members   cohort_members[]
+  journey_progress journey_progress[]
+}
+
+model inquiry_sessions {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reflection_session_id String              @unique @db.Uuid
+  current_layer         Int                 @default(1)
+  completed             Boolean             @default(false)
+  abandoned             Boolean             @default(false)
+  layer_responses       Json                @default("{}")
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime            @db.Timestamptz(6)
+  reflection_sessions   reflection_sessions @relation(fields: [reflection_session_id], references: [id])
+}
+
+model insight_definitions {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug            String          @unique
+  name            String
+  description     String
+  unlock_criteria Json
+  user_insights   user_insights[]
+}
+
+model journal_entries {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String
+  room_id     String?    @db.Uuid
+  entry_phase EntryPhase @default(in_journey)
+  content     String
+  word_count  Int        @default(0)
+  is_private  Boolean    @default(true)
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime   @db.Timestamptz(6)
+  rooms       rooms?     @relation(fields: [room_id], references: [id])
+  profiles    profiles   @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, entry_phase])
+}
+
+model journey_weeks {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  room_id      String         @unique @db.Uuid
+  week_number  Int            @unique
+  title        String
+  theme        String
+  is_published Boolean        @default(false)
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  journey_days journey_days[]
+  rooms        rooms          @relation(fields: [room_id], references: [id])
+
+  @@index([week_number])
+}
+
+model journey_days {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  week_id       String        @db.Uuid
+  day_number    Int
+  created_at    DateTime      @default(now()) @db.Timestamptz(6)
+  day_prompts   day_prompts[]
+  journey_weeks journey_weeks @relation(fields: [week_id], references: [id])
+
+  @@unique([week_id, day_number])
+  @@index([week_id])
+}
+
+model day_prompts {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  day_id             String               @db.Uuid
+  type               PromptType
+  prompt_order       Int
+  label              String?
+  content            String
+  is_published       Boolean              @default(true)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  journey_days       journey_days         @relation(fields: [day_id], references: [id])
+  prompt_completions prompt_completions[]
+
+  @@index([day_id, prompt_order])
+}
+
+model prompt_completions {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prompt_id        String             @db.Uuid
+  user_id          String
+  response         String
+  is_shared        Boolean            @default(false)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @updatedAt @db.Timestamptz(6)
+  prompt_analyses  prompt_analyses[]
+  day_prompts      day_prompts        @relation(fields: [prompt_id], references: [id])
+  profiles         profiles           @relation(fields: [user_id], references: [id])
+  prompt_reactions prompt_reactions[]
+
+  @@unique([prompt_id, user_id])
+  @@index([prompt_id])
+  @@index([user_id])
+}
+
+model journey_progress {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String
+  cohort_id           String         @db.Uuid
+  room_id             String         @db.Uuid
+  status              ProgressStatus @default(locked)
+  scheduled_unlock_at DateTime       @db.Timestamptz(6)
+  unlocked_at         DateTime?      @db.Timestamptz(6)
+  completed_at        DateTime?      @db.Timestamptz(6)
+  admin_override      Boolean        @default(false)
+  cohorts             cohorts        @relation(fields: [cohort_id], references: [id])
+  rooms               rooms          @relation(fields: [room_id], references: [id])
+  profiles            profiles       @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, cohort_id, room_id])
+  @@index([cohort_id])
+  @@index([scheduled_unlock_at])
+  @@index([user_id])
+}
+
+model notifications {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String
+  type       String
+  payload    Json     @default("{}")
+  read       Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  profiles   profiles @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+}
+
+model mirror_responses {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String
+  week_number       Int
+  day_number        Int
+  input_snapshot    Json
+  output            String
+  patterns_detected String[]
+  contradictions    String[]
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  tier              String   @default("lite")
+  profiles          profiles @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, week_number, day_number])
+  @@index([user_id])
+  @@index([user_id, week_number, day_number])
+}
+
+model profiles {
+  id                                         String                @id
+  display_name                               String
+  pathway                                    Pathway
+  worldview_tags                             String[]              @default([])
+  value_themes                               String[]              @default([])
+  journey_status                             JourneyStatus         @default(waiting)
+  onboarding_done                            Boolean               @default(false)
+  is_admin                                   Boolean               @default(false)
+  invited_by                                 String?
+  timezone                                   String?
+  created_at                                 DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                                 DateTime              @db.Timestamptz(6)
+  circle_members                             circle_members[]
+  circle_posts                               circle_posts[]
+  circle_prompts                             circle_prompts[]
+  circles                                    circles[]
+  cohort_members                             cohort_members[]
+  journal_entries                            journal_entries[]
+  journey_progress                           journey_progress[]
+  mirror_responses                           mirror_responses[]
+  notifications                              notifications[]
+  post_witnesses                             post_witnesses[]
+  profiles                                   profiles?             @relation("profilesToprofiles", fields: [invited_by], references: [id])
+  other_profiles                             profiles[]            @relation("profilesToprofiles")
+  prompt_analyses                            prompt_analyses[]
+  prompt_completions                         prompt_completions[]
+  prompt_reactions                           prompt_reactions[]
+  reflection_sessions                        reflection_sessions[]
+  reports_reports_reported_user_idToprofiles reports[]             @relation("reports_reported_user_idToprofiles")
+  reports_reports_reporter_idToprofiles      reports[]             @relation("reports_reporter_idToprofiles")
+  reports_reports_reviewed_byToprofiles      reports[]             @relation("reports_reviewed_byToprofiles")
+  user_insights                              user_insights[]
+}
+
+model reflection_messages {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id          String              @db.Uuid
+  role                MessageRole
+  content             String
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  reflection_sessions reflection_sessions @relation(fields: [session_id], references: [id])
+
+  @@index([session_id, created_at])
+}
+
+model reflection_sessions {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String
+  room_id             String                @db.Uuid
+  session_type        SessionType
+  status              SessionStatus         @default(active)
+  summary             String?
+  started_at          DateTime              @default(now()) @db.Timestamptz(6)
+  ended_at            DateTime?             @db.Timestamptz(6)
+  inquiry_sessions    inquiry_sessions?
+  reflection_messages reflection_messages[]
+  rooms               rooms                 @relation(fields: [room_id], references: [id])
+  profiles            profiles              @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, room_id])
+}
+
+model reports {
+  id                                          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporter_id                                 String
+  reported_user_id                            String?
+  reported_post_id                            String?       @db.Uuid
+  reason                                      String
+  status                                      ReportStatus  @default(pending)
+  admin_notes                                 String?
+  created_at                                  DateTime      @default(now()) @db.Timestamptz(6)
+  reviewed_at                                 DateTime?     @db.Timestamptz(6)
+  reviewed_by                                 String?
+  circle_posts                                circle_posts? @relation(fields: [reported_post_id], references: [id])
+  profiles_reports_reported_user_idToprofiles profiles?     @relation("reports_reported_user_idToprofiles", fields: [reported_user_id], references: [id])
+  profiles_reports_reporter_idToprofiles      profiles      @relation("reports_reporter_idToprofiles", fields: [reporter_id], references: [id])
+  profiles_reports_reviewed_byToprofiles      profiles?     @relation("reports_reviewed_byToprofiles", fields: [reviewed_by], references: [id])
+
+  @@index([reported_post_id])
+  @@index([status])
+}
+
+model rooms {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                String                @unique
+  name                String
+  week_number         Int
+  theme               String
+  is_integration      Boolean               @default(false)
+  circle_posts        circle_posts[]
+  circle_prompts      circle_prompts[]
+  journal_entries     journal_entries[]
+  journey_progress    journey_progress[]
+  journey_weeks       journey_weeks?
+  reflection_sessions reflection_sessions[]
+}
+
+model user_insights {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String
+  insight_id          String              @db.Uuid
+  status              InsightStatus       @default(locked)
+  content             Json?
+  unlocked_at         DateTime?           @db.Timestamptz(6)
+  insight_definitions insight_definitions @relation(fields: [insight_id], references: [id])
+  profiles            profiles            @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, insight_id])
+}
+
+model mirror_unlocks {
+  id          String    @id @default(uuid())
+  user_id     String
+  week_number Int
+  day_number  Int
+  tier        String
+  is_paid     Boolean   @default(false)
+  unlocked_at DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@unique([user_id, week_number, day_number, tier])
+}
+
+model wave_name_votes {
+  id         String   @id @default(uuid())
+  user_id    String
+  cohort_id  String
+  wave_name  String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([user_id, cohort_id])
+  @@index([cohort_id])
+}
+
+model prewave_responses {
+  id             String   @id @default(uuid())
+  user_id        String
+  cohort_id      String
+  question_index Int
+  response       String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@unique([user_id, cohort_id, question_index])
+  @@index([cohort_id])
+}
+
+model entry_leads {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String    @unique
+  first_name          String?
+  source              String?
+  pathway             Pathway?
+  intro_started_at    DateTime? @db.Timestamptz(6)
+  last_seen_panel     Int?
+  last_seen_panel_key String?
+  last_seen_panel_at  DateTime? @db.Timestamptz(6)
+  intro_completed_at  DateTime? @db.Timestamptz(6)
+  entered_journey_at  DateTime? @db.Timestamptz(6)
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@index([email])
+  @@index([source])
+  @@index([pathway])
+  @@index([last_seen_panel])
+}
+
+enum AnalysisStatus {
+  private
+  requested_public
+  public
+}
+
+enum ReactionType {
+  witness
+  resonated
+}
+
+enum CircleRole {
+  member
+  facilitator
+}
+
+enum CohortStatus {
+  draft
+  open_enrollment
+  waiting
+  active
+  completed
+}
+
+enum EntryPhase {
+  pre_journey
+  in_journey
+}
+
+enum InsightStatus {
+  locked
+  discoverable
+  unlocked
+}
+
+enum JourneyStatus {
+  waiting
+  active
+  completed
+  withdrawn
+}
+
+enum MemberStatus {
+  enrolled
+  active
+  completed
+  withdrawn
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum Pathway {
+  discover
+  relate
+  harmonize
+}
+
+enum ProgressStatus {
+  locked
+  active
+  completed
+}
+
+enum PromptType {
+  thread_prompt
+  mirror_exercise
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  action_taken
+  dismissed
+}
+
+enum SessionStatus {
+  active
+  completed
+  abandoned
+}
+
+enum SessionType {
+  room_reflection
+  inquiry
+  check_in
+}
+
+enum CohortMembershipState {
+  PRE_WAVE
+  ACTIVE
+  COMPLETED
+  WITHDRAWN
+}

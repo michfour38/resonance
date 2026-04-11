@@ -1,0 +1,485 @@
+// =============================================================================
+// Resonance — prisma/schema.prisma
+// Domain Model v2 — Cohort-Locked Progression
+//
+// Key design decisions (do not change without updating the implementation doc):
+//
+// 1. is_admin on profiles (not a roles table). Checked server-side from DB on
+//    every admin request — never trust the JWT for admin status.
+//
+// 2. JourneyProgress uniqueness is @@unique([userId, cohortId, roomId]).
+//    MVP enforces one active cohort per user in application logic (adminProc
+//    assignUserToCohort blocks assignment to a second active cohort).
+//    The schema allows future re-enrollment without a breaking migration.
+//
+// 3. Room unlock status is authoritative server-side. journey.syncUnlocks
+//    runs on dashboard load (server action) and via cron. Client reads
+//    status from DB — never computes unlock from timestamps client-side.
+//
+// 4. journey_progress rows are created at ENROLLMENT, not at activation.
+//    All 10 rows exist immediately after admin assigns user to a cohort,
+//    with status=locked and scheduledUnlockAt pre-computed.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum Pathway {
+  discover
+  relate
+  harmonize
+}
+
+enum JourneyStatus {
+  waiting
+  active
+  completed
+  withdrawn
+}
+
+enum CohortStatus {
+  draft
+  open_enrollment
+  waiting
+  active
+  completed
+}
+
+enum MemberStatus {
+  enrolled
+  active
+  completed
+  withdrawn
+}
+
+enum CircleRole {
+  member
+  facilitator
+}
+
+enum ProgressStatus {
+  locked
+  active
+  completed
+}
+
+enum SessionType {
+  room_reflection
+  inquiry
+  check_in
+}
+
+enum SessionStatus {
+  active
+  completed
+  abandoned
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum EntryPhase {
+  pre_journey
+  in_journey
+}
+
+enum InsightStatus {
+  locked
+  discoverable
+  unlocked
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  actioned
+  dismissed
+}
+
+// =============================================================================
+// Models
+// =============================================================================
+
+// Profile is the application-level mirror of Clerk's user identity.
+//
+// Profile.id === Clerk userId (e.g. user_xxxxxxxxxxxxxxxxxxxx) for every row.
+// This is the single join point between Clerk Auth and all application data.
+//
+// Lifecycle:
+//   - Profile row is created when the Clerk user.created webhook fires, OR
+//     lazily on first authenticated API request. Never created by the client.
+//   - No foreign key to an external auth table is needed — Clerk manages
+//     auth identity externally. Prisma owns the profiles table fully.
+//   - On user deletion: handle via Clerk user.deleted webhook to delete
+//     the profile row (and cascade to all related data) server-side.
+model Profile {
+  // id is the Clerk userId (e.g. user_xxxxxxxxxxxxxxxxxxxx).
+  // Clerk IDs are NOT UUIDs — @db.Uuid must not be used here.
+  id             String        @id
+  displayName    String        @map("display_name")
+  pathway        Pathway
+  worldviewTags  String[]      @default([]) @map("worldview_tags")
+  valueThemes    String[]      @default([]) @map("value_themes")
+  journeyStatus  JourneyStatus @default(waiting) @map("journey_status")
+  onboardingDone Boolean       @default(false) @map("onboarding_done")
+  isAdmin        Boolean       @default(false) @map("is_admin")
+  invitedBy      String?       @map("invited_by") // Clerk userId, not a UUID
+  timezone       String?
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Self-referential referral (deferred feature, field captured now)
+  inviter  Profile?  @relation("Referrals", fields: [invitedBy], references: [id])
+  invitees Profile[] @relation("Referrals")
+
+  cohortMemberships  CohortMember[]
+  circleMembers      CircleMember[]
+  journeyProgress    JourneyProgress[]
+  reflectionSessions ReflectionSession[]
+  journalEntries     JournalEntry[]
+  circlePosts        CirclePost[]
+  circlePrompts      CirclePrompt[]
+  userInsights       UserInsight[]
+  notifications      Notification[]
+  reportsFiled       Report[]            @relation("Reporter")
+  reportsAgainst     Report[]            @relation("ReportedUser")
+  reportsReviewed    Report[]            @relation("ReviewedBy")
+
+  // Named relation to avoid Prisma ambiguity with CircleMember.user on Profile.
+  facilitatingCircles Circle[] @relation("FacilitatedCircles")
+
+  @@map("profiles")
+}
+
+model Cohort {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  pathway    Pathway?
+  // Full timestamptz — single canonical unlock moment for the entire cohort.
+  // All journey_progress.scheduled_unlock_at values derive from this field.
+  // If this value is ever corrected, a migration must recompute all dependent rows.
+  startAt    DateTime     @map("start_at") @db.Timestamptz
+  status     CohortStatus @default(draft)
+  maxMembers Int?         @map("max_members")
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  members         CohortMember[]
+  circles         Circle[]
+  journeyProgress JourneyProgress[]
+
+  @@map("cohorts")
+}
+
+model CohortMember {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cohortId    String       @map("cohort_id") @db.Uuid
+  userId      String       @map("user_id")
+  status      MemberStatus @default(enrolled)
+  enrolledAt  DateTime     @default(now()) @map("enrolled_at") @db.Timestamptz
+  activatedAt DateTime?    @map("activated_at") @db.Timestamptz
+  withdrawnAt DateTime?    @map("withdrawn_at") @db.Timestamptz
+
+  cohort Cohort  @relation(fields: [cohortId], references: [id])
+  user   Profile @relation(fields: [userId], references: [id])
+
+  @@unique([cohortId, userId])
+  @@index([userId])
+  @@index([cohortId])
+  @@map("cohort_members")
+}
+
+model Circle {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cohortId      String   @map("cohort_id") @db.Uuid
+  name          String
+  facilitatorId String?  @map("facilitator_id")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  cohort    Cohort @relation(fields: [cohortId], references: [id])
+  // Named relation — disambiguates from CircleMember.user on Profile.
+  facilitator Profile?       @relation("FacilitatedCircles", fields: [facilitatorId], references: [id])
+  members     CircleMember[]
+  posts       CirclePost[]
+  prompts     CirclePrompt[]
+
+  @@index([cohortId])
+  @@map("circles")
+}
+
+model CircleMember {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circleId String     @map("circle_id") @db.Uuid
+  userId   String     @map("user_id")
+  role     CircleRole @default(member)
+  joinedAt DateTime   @default(now()) @map("joined_at") @db.Timestamptz
+
+  circle Circle  @relation(fields: [circleId], references: [id])
+  user   Profile @relation(fields: [userId], references: [id])
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+  @@map("circle_members")
+}
+
+// Static seed data. Never modified after initial deployment.
+// Content (prompts, signal phrases, pathway overlays) lives in config/rooms.json.
+model Room {
+  id            String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug          String  @unique
+  name          String
+  weekNumber    Int     @map("week_number")
+  theme         String
+  isIntegration Boolean @default(false) @map("is_integration")
+
+  journeyProgress    JourneyProgress[]
+  reflectionSessions ReflectionSession[]
+  journalEntries     JournalEntry[]
+  circlePosts        CirclePost[]
+  circlePrompts      CirclePrompt[]
+
+  @@map("rooms")
+}
+
+// CRITICAL: rows created at enrollment time, not at activation.
+// uniqueness: [userId, cohortId, roomId] — allows future re-enrollment.
+// MVP enforces one active cohort per user in application logic only.
+//
+// Room unlock is AUTHORITATIVE SERVER-SIDE via journey.syncUnlocks.
+// The client reads status from this table — never derives it from timestamps.
+model JourneyProgress {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String         @map("user_id")
+  cohortId          String         @map("cohort_id") @db.Uuid
+  roomId            String         @map("room_id") @db.Uuid
+  status            ProgressStatus @default(locked)
+  // Pre-computed at enrollment: cohort.startAt + (room.weekNumber - 1) * 7 days.
+  // Stored so syncUnlocks can do a single indexed query without joining cohorts.
+  scheduledUnlockAt DateTime       @map("scheduled_unlock_at") @db.Timestamptz
+  // Set by syncUnlocks when status transitions locked → active.
+  unlockedAt        DateTime?      @map("unlocked_at") @db.Timestamptz
+  completedAt       DateTime?      @map("completed_at") @db.Timestamptz
+  // True if an admin manually overrode the lock outside the schedule.
+  adminOverride     Boolean        @default(false) @map("admin_override")
+
+  user   Profile @relation(fields: [userId], references: [id])
+  cohort Cohort  @relation(fields: [cohortId], references: [id])
+  room   Room    @relation(fields: [roomId], references: [id])
+
+  // Future re-enrollment: a user can have rows for the same room in different cohorts.
+  @@unique([userId, cohortId, roomId])
+  @@index([userId])
+  @@index([cohortId])
+  // Partial index for syncUnlocks — only locked rows that still need checking.
+  // Applied via raw SQL in migration 003 (Prisma cannot express partial indexes).
+  @@index([scheduledUnlockAt])
+  @@map("journey_progress")
+}
+
+model ReflectionSession {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String        @map("user_id")
+  roomId      String        @map("room_id") @db.Uuid
+  sessionType SessionType   @map("session_type")
+  status      SessionStatus @default(active)
+  // AI-generated 2–3 sentence summary written at session close.
+  // Injected as context into subsequent sessions for the same room.
+  summary     String?
+  startedAt   DateTime      @default(now()) @map("started_at") @db.Timestamptz
+  endedAt     DateTime?     @map("ended_at") @db.Timestamptz
+
+  user     Profile             @relation(fields: [userId], references: [id])
+  room     Room                @relation(fields: [roomId], references: [id])
+  messages ReflectionMessage[]
+  inquiry  InquirySession?
+
+  // Composite index: covers the common query pattern
+  //   WHERE userId = ? AND roomId = ?
+  // used by reflection history and AI session context loading.
+  @@index([userId, roomId])
+  @@map("reflection_sessions")
+}
+
+model ReflectionMessage {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId String      @map("session_id") @db.Uuid
+  role      MessageRole
+  content   String
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  session ReflectionSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, createdAt])
+  @@map("reflection_messages")
+}
+
+// At most one inquiry session per reflection session.
+// Partial responses are preserved if the user abandons mid-flow.
+model InquirySession {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reflectionSessionId String   @unique @map("reflection_session_id") @db.Uuid
+  currentLayer        Int      @default(1) @map("current_layer")
+  completed           Boolean  @default(false)
+  abandoned           Boolean  @default(false)
+  // Keys "1"–"7", values are user response text per layer.
+  layerResponses      Json     @default("{}") @map("layer_responses")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  reflectionSession ReflectionSession @relation(fields: [reflectionSessionId], references: [id])
+
+  @@map("inquiry_sessions")
+}
+
+// entryPhase = pre_journey: room_id is NULL, written before cohort activates.
+// entryPhase = in_journey: room_id is set, room must be unlocked at write time.
+// Both fields must be checked in any query separating pre-journey from room-linked entries.
+model JournalEntry {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String     @map("user_id")
+  roomId     String?    @map("room_id") @db.Uuid
+  entryPhase EntryPhase @default(in_journey) @map("entry_phase")
+  content    String
+  wordCount  Int        @default(0) @map("word_count")
+  isPrivate  Boolean    @default(true) @map("is_private")
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  user Profile @relation(fields: [userId], references: [id])
+  room Room?   @relation(fields: [roomId], references: [id])
+
+  @@index([userId, entryPhase])
+  @@map("journal_entries")
+}
+
+// Soft-deleted via deletedAt. Content replaced with [removed] in UI when set.
+// Threading: one level deep only. parentId must reference a top-level post.
+model CirclePost {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circleId  String    @map("circle_id") @db.Uuid
+  userId    String    @map("user_id")
+  roomId    String?   @map("room_id") @db.Uuid
+  promptId  String?   @map("prompt_id") @db.Uuid
+  parentId  String?   @map("parent_id") @db.Uuid
+  content   String
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+
+  circle  Circle        @relation(fields: [circleId], references: [id])
+  user    Profile       @relation(fields: [userId], references: [id])
+  room    Room?         @relation(fields: [roomId], references: [id])
+  prompt  CirclePrompt? @relation(fields: [promptId], references: [id])
+  parent  CirclePost?   @relation("Thread", fields: [parentId], references: [id])
+  replies CirclePost[]  @relation("Thread")
+
+  // Partial index (deletedAt IS NULL) applied via raw SQL in migration 003.
+  @@index([circleId, createdAt])
+  @@map("circle_posts")
+}
+
+// is_intro: exactly one per circle, enforced via partial unique index in migration 003.
+// Pre-start access: only the is_intro prompt is readable before cohort activation.
+model CirclePrompt {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circleId  String   @map("circle_id") @db.Uuid
+  roomId    String?  @map("room_id") @db.Uuid
+  authorId  String   @map("author_id")
+  content   String
+  isIntro   Boolean  @default(false) @map("is_intro")
+  isPinned  Boolean  @default(false) @map("is_pinned")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  circle Circle       @relation(fields: [circleId], references: [id])
+  room   Room?        @relation(fields: [roomId], references: [id])
+  author Profile      @relation(fields: [authorId], references: [id])
+  posts  CirclePost[]
+
+  // Standard index for prompt retrieval by circle (e.g. load all prompts for a circle).
+  // Partial unique index (is_intro = true) is enforced in migration 003 via raw SQL
+  // since Prisma cannot express partial unique indexes.
+  @@index([circleId])
+  @@map("circle_prompts")
+}
+
+// Static seed data. Unlock criteria evaluated by insight service on session completion.
+model InsightDefinition {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String @unique
+  name           String
+  description    String
+  // e.g. { "min_sessions": 3, "rooms": ["mirror", "shadow"] }
+  unlockCriteria Json   @map("unlock_criteria")
+
+  userInsights UserInsight[]
+
+  @@map("insight_definitions")
+}
+
+// Seeded at enrollment (all locked). Progresses to discoverable/unlocked
+// as the user completes reflection sessions meeting the criteria.
+model UserInsight {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String        @map("user_id")
+  insightId  String        @map("insight_id") @db.Uuid
+  status     InsightStatus @default(locked)
+  // Populated at unlock. Static content in MVP; personalised generation deferred.
+  content    Json?
+  unlockedAt DateTime?     @map("unlocked_at") @db.Timestamptz
+
+  user    Profile           @relation(fields: [userId], references: [id])
+  insight InsightDefinition @relation(fields: [insightId], references: [id])
+
+  @@unique([userId, insightId])
+  @@map("user_insights")
+}
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id")
+  // type values: room_unlock | circle_post | insight_unlocked | cohort_starting | journey_complete
+  type      String
+  payload   Json     @default("{}")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user Profile @relation(fields: [userId], references: [id])
+
+  // Partial index (read = false) applied via raw SQL in migration 003.
+  @@index([userId])
+  @@map("notifications")
+}
+
+model Report {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId     String       @map("reporter_id")
+  reportedUserId String?      @map("reported_user_id")
+  reportedPostId String?      @map("reported_post_id") @db.Uuid
+  reason         String
+  status         ReportStatus @default(pending)
+  adminNotes     String?      @map("admin_notes")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  reviewedAt     DateTime?    @map("reviewed_at") @db.Timestamptz
+  reviewedBy     String?      @map("reviewed_by")
+
+  reporter     Profile  @relation("Reporter",     fields: [reporterId],     references: [id])
+  reportedUser Profile? @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reviewer     Profile? @relation("ReviewedBy",   fields: [reviewedBy],     references: [id])
+
+  @@index([status])
+  @@map("reports")
+}
