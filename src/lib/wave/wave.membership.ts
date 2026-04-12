@@ -43,20 +43,17 @@ export async function findOpenMembershipForUser(userId: string) {
 
   // Second preference:
   // otherwise fall back to any currently open membership.
-  return prisma.cohort_members.findFirst({
-    where: {
-      user_id: userId,
-      status: {
-        in: ["enrolled", "active"],
-      },
+return prisma.cohort_members.findFirst({
+  where: {
+    user_id: userId,
+    status: {
+      in: ["enrolled", "active"],
     },
-    include: {
-      cohorts: true,
-    },
-    orderBy: {
-      enrolled_at: "desc",
-    },
-  });
+  },
+  include: {
+    cohorts: true,
+  },
+});
 }
 
 export async function findOrCreateAssignedWaveForUser(
