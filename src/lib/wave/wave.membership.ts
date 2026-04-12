@@ -15,8 +15,6 @@ function formatWaveDateLabel(date: Date, timezone: string): string {
 export async function findOpenMembershipForUser(userId: string) {
   const now = new Date();
 
-  // First preference:
-  // if the user already has an enrolled future wave, use that.
   const enrolledFutureMembership = await prisma.cohort_members.findFirst({
     where: {
       user_id: userId,
@@ -31,9 +29,7 @@ export async function findOpenMembershipForUser(userId: string) {
       cohorts: true,
     },
     orderBy: {
-      cohorts: {
-        start_at: "asc",
-      },
+      id: "desc",
     },
   });
 
@@ -41,19 +37,20 @@ export async function findOpenMembershipForUser(userId: string) {
     return enrolledFutureMembership;
   }
 
-  // Second preference:
-  // otherwise fall back to any currently open membership.
-return prisma.cohort_members.findFirst({
-  where: {
-    user_id: userId,
-    status: {
-      in: ["enrolled", "active"],
+  return prisma.cohort_members.findFirst({
+    where: {
+      user_id: userId,
+      status: {
+        in: ["enrolled", "active", "completed"],
+      },
     },
-  },
-  include: {
-    cohorts: true,
-  },
-});
+    include: {
+      cohorts: true,
+    },
+    orderBy: {
+      id: "desc",
+    },
+  });
 }
 
 export async function findOrCreateAssignedWaveForUser(
@@ -78,15 +75,14 @@ export async function findOrCreateAssignedWaveForUser(
   if (!cohort) {
     const label = `Wave ${formatWaveDateLabel(nextStart, timezone)}`;
 
-cohort = await prisma.cohorts.create({
-  data: {
-    name: label,
-    start_at: nextStart,
-    timezone,
-    status: "waiting",
-    updated_at: new Date(),
-  },
-});
+    cohort = await prisma.cohorts.create({
+      data: {
+        name: label,
+        start_at: nextStart,
+        timezone,
+        updated_at: new Date(),
+      },
+    });
   }
 
   return prisma.cohort_members.create({
@@ -94,7 +90,6 @@ cohort = await prisma.cohorts.create({
       user_id: userId,
       cohort_id: cohort.id,
       status: "enrolled",
-      enrolled_at: new Date(),
     },
     include: {
       cohorts: true,
@@ -127,7 +122,6 @@ export async function activateMembershipIfWaveStarted(
     where: { id: membership.id },
     data: {
       status: "active",
-      activated_at: membership.activated_at ?? membership.cohorts.start_at,
     },
     include: {
       cohorts: true,
