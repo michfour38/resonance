@@ -1,12 +1,14 @@
-// app/(auth)/sign-up/[[...sign-up]]/page.tsx
-// Clerk hosted sign-up component.
+"use client";
 
-import { SignUp } from '@clerk/nextjs';
+import { ClerkProvider, SignUp } from "@clerk/nextjs";
 
-export default function SignUpPage() {
+const clerkPublishableKey =
+  "pk_test_cmFwaWQtc2VydmFsLTk2LmNsZXJrLmFjY291bnRzLmRldiQ";
+
+export default function Page() {
   return (
-    <div className="flex justify-center">
-      <SignUp />
-    </div>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+    </ClerkProvider>
   );
 }
