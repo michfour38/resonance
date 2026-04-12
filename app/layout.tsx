@@ -10,13 +10,16 @@ export const metadata: Metadata = {
   description: "A guided relational development journey.",
 };
 
+const clerkPublishableKey =
+  "pk_test_cmFwaWQtc2VydmFsLTk2LmNsZXJrLmFjY291bnRzLmRldiQ";
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <html lang="en" className={inter.variable}>
         <body className="bg-black text-white antialiased">{children}</body>
       </html>
