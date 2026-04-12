@@ -42,24 +42,7 @@ export default async function PreWavePage({
   const user = await currentUser();
   const email = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() ?? null;
 
-  if (email) {
-    try {
-      await prisma.entry_leads.upsert({
-        where: { email },
-        update: {
-          entered_journey_at: new Date(),
-          ...(requestedPathway ? { pathway: requestedPathway } : {}),
-        },
-        create: {
-          email,
-          entered_journey_at: new Date(),
-          ...(requestedPathway ? { pathway: requestedPathway } : {}),
-        },
-      });
-    } catch (error) {
-      console.error("Prewave entry tracking failed:", error);
-    }
-  }
+// TEMP: disable entry_leads tracking (causing production crash)
 
   const context = await getMemberWaveContext(userId);
 
