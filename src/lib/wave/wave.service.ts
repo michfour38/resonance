@@ -22,17 +22,16 @@ export async function getMemberWaveContext(
   );
 
   const membershipPathway =
-    activeMembership.pathway === "discover" || activeMembership.pathway === "relate"
-      ? activeMembership.pathway
+    activeMembership.cohorts.pathway === "discover" ||
+    activeMembership.cohorts.pathway === "relate"
+      ? activeMembership.cohorts.pathway
       : null;
 
-  if (activeMembership.state === "ACTIVE" && progression.phase === "COMPLETED") {
+  if (activeMembership.status === "active" && progression.phase === "COMPLETED") {
     await prisma.cohort_members.update({
       where: { id: activeMembership.id },
       data: {
-        state: "COMPLETED",
         status: "completed",
-        completed_at: activeMembership.completed_at ?? new Date(),
       },
     });
 
@@ -40,9 +39,9 @@ export async function getMemberWaveContext(
       membership: {
         id: activeMembership.id,
         state: "COMPLETED",
-        joinedAt: activeMembership.joined_at,
+        joinedAt: activeMembership.activated_at ?? activeMembership.cohorts.start_at,
         activatedAt: activeMembership.activated_at,
-        completedAt: activeMembership.completed_at ?? new Date(),
+        completedAt: new Date(),
         pathway: membershipPathway,
       },
       wave: {
@@ -57,10 +56,15 @@ export async function getMemberWaveContext(
   return {
     membership: {
       id: activeMembership.id,
-      state: activeMembership.state,
-      joinedAt: activeMembership.joined_at,
+      state:
+        activeMembership.status === "active"
+          ? "ACTIVE"
+          : activeMembership.status === "completed"
+            ? "COMPLETED"
+            : "PRE_WAVE",
+      joinedAt: activeMembership.activated_at ?? activeMembership.cohorts.start_at,
       activatedAt: activeMembership.activated_at,
-      completedAt: activeMembership.completed_at,
+      completedAt: activeMembership.status === "completed" ? new Date() : null,
       pathway: membershipPathway,
     },
     wave: {

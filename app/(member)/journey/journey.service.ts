@@ -36,6 +36,16 @@ export interface PromptWithGatingDTO {
   } | null;
 }
 
+export interface DayContentDTO {
+  weekId: string;
+  weekNumber: number;
+  weekTitle: string;
+  weekTheme: string;
+  dayId: string;
+  dayNumber: number;
+  prompts: DayPromptDTO[];
+}
+
 export interface ReactionSummary {
   witnessCount: number;
   resonatedCount: number;

@@ -9,12 +9,12 @@ export async function requireAdminPage(): Promise<{ clerkUserId: string }> {
     redirect("/sign-in");
   }
 
-  const profile = await prisma.profile.findUnique({
+  const profile = await prisma.profiles.findUnique({
     where: { id: userId },
-    select: { isAdmin: true },
+    select: { is_admin: true },
   });
 
-  if (!profile?.isAdmin) {
+  if (!profile?.is_admin) {
     redirect("/");
   }
 
@@ -28,12 +28,12 @@ export async function requireAdminAction(): Promise<{ clerkUserId: string }> {
     throw new Error("Unauthorized");
   }
 
-  const profile = await prisma.profile.findUnique({
+  const profile = await prisma.profiles.findUnique({
     where: { id: userId },
-    select: { isAdmin: true },
+    select: { is_admin: true },
   });
 
-  if (!profile?.isAdmin) {
+  if (!profile?.is_admin) {
     throw new Error("Forbidden");
   }
 

@@ -163,20 +163,6 @@ export default async function JourneyPage({
 
   const context = await getMemberWaveContext(userId);
 
-  if (
-    requestedPathway &&
-    context.membership.pathway !== requestedPathway
-  ) {
-    try {
-      await prisma.cohort_members.update({
-        where: { id: context.membership.id },
-        data: { pathway: requestedPathway },
-      });
-    } catch (error) {
-      console.error("Journey pathway persistence failed:", error);
-    }
-  }
-
   const currentPathway =
     (context.membership.pathway === "discover" ||
     context.membership.pathway === "relate"

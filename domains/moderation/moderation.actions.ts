@@ -4,28 +4,27 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAction } from "@/lib/auth/require-admin";
 import { revalidatePath } from "next/cache";
 
-const ADMIN_ID = "seed-admin-profile";
-
 async function getPostIdFromReport(reportId: string): Promise<string | null> {
-  const report = await prisma.report.findUnique({
+  const report = await prisma.reports.findUnique({
     where: { id: reportId },
-    select: { reportedPostId: true },
+    select: { reported_post_id: true },
   });
-  return report?.reportedPostId ?? null;
+
+  return report?.reported_post_id ?? null;
 }
 
 export async function reviewReportAction(formData: FormData) {
-  await requireAdminAction();
+  const { userId } = await requireAdminAction();
 
-  const reportId = String(formData.get("reportId"));
+  const reportId = String(formData.get("reportId") ?? "");
   const postId = await getPostIdFromReport(reportId);
 
-  await prisma.report.update({
+  await prisma.reports.update({
     where: { id: reportId },
     data: {
       status: "reviewed",
-      reviewedAt: new Date(),
-      reviewedBy: ADMIN_ID,
+      reviewed_at: new Date(),
+      reviewed_by: userId,
     },
   });
 
@@ -34,17 +33,17 @@ export async function reviewReportAction(formData: FormData) {
 }
 
 export async function dismissReportAction(formData: FormData) {
-  await requireAdminAction();
+  const { userId } = await requireAdminAction();
 
-  const reportId = String(formData.get("reportId"));
+  const reportId = String(formData.get("reportId") ?? "");
   const postId = await getPostIdFromReport(reportId);
 
-  await prisma.report.update({
+  await prisma.reports.update({
     where: { id: reportId },
     data: {
       status: "dismissed",
-      reviewedAt: new Date(),
-      reviewedBy: ADMIN_ID,
+      reviewed_at: new Date(),
+      reviewed_by: userId,
     },
   });
 
@@ -53,17 +52,17 @@ export async function dismissReportAction(formData: FormData) {
 }
 
 export async function markActionTakenReportAction(formData: FormData) {
-  await requireAdminAction();
+  const { userId } = await requireAdminAction();
 
-  const reportId = String(formData.get("reportId"));
+  const reportId = String(formData.get("reportId") ?? "");
   const postId = await getPostIdFromReport(reportId);
 
-  await prisma.report.update({
+  await prisma.reports.update({
     where: { id: reportId },
     data: {
       status: "action_taken",
-      reviewedAt: new Date(),
-      reviewedBy: ADMIN_ID,
+      reviewed_at: new Date(),
+      reviewed_by: userId,
     },
   });
 
@@ -74,12 +73,12 @@ export async function markActionTakenReportAction(formData: FormData) {
 export async function removePostAction(formData: FormData) {
   await requireAdminAction();
 
-  const postId = String(formData.get("postId"));
+  const postId = String(formData.get("postId") ?? "");
 
-  await prisma.circlePost.update({
+  await prisma.circle_posts.update({
     where: { id: postId },
     data: {
-      deletedAt: new Date(),
+      deleted_at: new Date(),
     },
   });
 

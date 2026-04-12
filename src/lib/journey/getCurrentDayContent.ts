@@ -38,6 +38,23 @@ export type CurrentDayContentResult = {
   phase: "CORE" | "INTEGRATION";
 };
 
+type PromptCompletionRow = {
+  id: string;
+  response: string;
+  is_shared: boolean;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type DayPromptRow = {
+  id: string;
+  type: string;
+  prompt_order: number;
+  label: string | null;
+  content: string;
+  prompt_completions?: PromptCompletionRow[];
+};
+
 const EDIT_WINDOW_MS = 10 * 60 * 1000;
 
 function isWithinEditWindow(createdAt: Date | null | undefined): boolean {
@@ -125,28 +142,29 @@ export async function getCurrentDayContent({
 
   const day = week.journey_days[0];
 
-  const prompts: JourneyPromptDTO[] = day.day_prompts.map((prompt) => {
-    const completion =
-      userId && "prompt_completions" in prompt
+  const prompts: JourneyPromptDTO[] = (day.day_prompts as DayPromptRow[]).map(
+    (prompt) => {
+      const completion = userId
         ? prompt.prompt_completions?.[0] ?? null
         : null;
 
-    return {
-      id: prompt.id,
-      type: prompt.type as PromptType,
-      promptOrder: prompt.prompt_order,
-      label: prompt.label,
-      content: prompt.content,
-      isCompleted: completion !== null,
-      isShared: completion?.is_shared ?? false,
-      isUnlocked: true,
-      completionId: completion?.id ?? null,
-      response: completion?.response ?? null,
-      createdAt: completion?.created_at?.toISOString() ?? null,
-      updatedAt: completion?.updated_at?.toISOString() ?? null,
-      canEdit: isWithinEditWindow(completion?.created_at),
-    };
-  });
+      return {
+        id: prompt.id,
+        type: prompt.type as PromptType,
+        promptOrder: prompt.prompt_order,
+        label: prompt.label,
+        content: prompt.content,
+        isCompleted: completion !== null,
+        isShared: completion?.is_shared ?? false,
+        isUnlocked: true,
+        completionId: completion?.id ?? null,
+        response: completion?.response ?? null,
+        createdAt: completion?.created_at?.toISOString() ?? null,
+        updatedAt: completion?.updated_at?.toISOString() ?? null,
+        canEdit: isWithinEditWindow(completion?.created_at),
+      };
+    }
+  );
 
   const gatedPrompts = applyGating(prompts);
   const firstPrompt = gatedPrompts[0]?.content ?? "No prompt available";

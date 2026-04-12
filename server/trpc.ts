@@ -1,10 +1,10 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import { auth } from '@clerk/nextjs/server';
-import type { FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
-import { prisma } from '@/lib/prisma';
+import { initTRPC, TRPCError } from "@trpc/server";
+import { auth } from "@clerk/nextjs/server";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import { prisma } from "@/lib/prisma";
 
 export const createContext = async (opts: FetchCreateContextFnOptions) => {
-  const { userId } = auth(opts.req);
+  const { userId } = await auth();
 
   return {
     prisma,
@@ -23,7 +23,7 @@ export const publicProc = t.procedure;
 
 export const authedProc = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.userId) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return next({
@@ -35,32 +35,32 @@ export const authedProc = t.procedure.use(async ({ ctx, next }) => {
 });
 
 export const adminProc = authedProc.use(async ({ ctx, next }) => {
-  const profile = await ctx.prisma.profile.findUnique({
+  const profile = await ctx.prisma.profiles.findUnique({
     where: { id: ctx.userId },
-    select: { isAdmin: true },
+    select: { is_admin: true },
   });
 
-  if (!profile?.isAdmin) {
-    throw new TRPCError({ code: 'FORBIDDEN' });
+  if (!profile?.is_admin) {
+    throw new TRPCError({ code: "FORBIDDEN" });
   }
 
   return next();
 });
 
 export const activeProc = authedProc.use(async ({ ctx, next }) => {
-  const profile = await ctx.prisma.profile.findUnique({
+  const profile = await ctx.prisma.profiles.findUnique({
     where: { id: ctx.userId },
-    select: { journeyStatus: true },
+    select: { journey_status: true },
   });
 
   if (!profile) {
-    throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+    throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
   }
 
-  if (profile.journeyStatus !== 'active') {
+  if (profile.journey_status !== "active") {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Journey is not active',
+      code: "FORBIDDEN",
+      message: "Journey is not active",
     });
   }
 

@@ -3,18 +3,18 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 export async function requireAdminPage(): Promise<{ userId: string }> {
-  const { userId: clerkId } = auth();
+  const { userId: clerkId } = await auth();
 
   if (!clerkId) {
     redirect("/sign-in");
   }
 
-  const user = await prisma.profile.findUnique({
+  const user = await prisma.profiles.findUnique({
     where: { id: clerkId },
-    select: { isAdmin: true },
+    select: { is_admin: true },
   });
 
-  if (!user || !user.isAdmin) {
+  if (!user || !user.is_admin) {
     redirect("/");
   }
 
@@ -22,18 +22,18 @@ export async function requireAdminPage(): Promise<{ userId: string }> {
 }
 
 export async function requireAdminAction(): Promise<{ userId: string }> {
-  const { userId: clerkId } = auth();
+  const { userId: clerkId } = await auth();
 
   if (!clerkId) {
     throw new Error("Unauthorized");
   }
 
-  const user = await prisma.profile.findUnique({
+  const user = await prisma.profiles.findUnique({
     where: { id: clerkId },
-    select: { isAdmin: true },
+    select: { is_admin: true },
   });
 
-  if (!user || !user.isAdmin) {
+  if (!user || !user.is_admin) {
     throw new Error("Forbidden");
   }
 

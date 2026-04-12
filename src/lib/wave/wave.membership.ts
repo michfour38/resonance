@@ -81,14 +81,15 @@ export async function findOrCreateAssignedWaveForUser(
   if (!cohort) {
     const label = `Wave ${formatWaveDateLabel(nextStart, timezone)}`;
 
-    cohort = await prisma.cohorts.create({
-      data: {
-        name: label,
-        start_at: nextStart,
-        timezone,
-        status: "waiting",
-      },
-    });
+cohort = await prisma.cohorts.create({
+  data: {
+    name: label,
+    start_at: nextStart,
+    timezone,
+    status: "waiting",
+    updated_at: new Date(),
+  },
+});
   }
 
   return prisma.cohort_members.create({

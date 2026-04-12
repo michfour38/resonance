@@ -8,52 +8,50 @@ import { auth } from "@clerk/nextjs/server";
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 
 export async function reportPostAction(formData: FormData) {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     throw new Error("Not authenticated");
   }
 
-  const reportedPostId = String(formData.get("reportedPostId"));
-  const reportedUserId = String(formData.get("reportedUserId"));
-  const reason = String(formData.get("reason"));
+  const reportedPostId = String(formData.get("reportedPostId") ?? "");
+  const reportedUserId = String(formData.get("reportedUserId") ?? "");
+  const reason = String(formData.get("reason") ?? "");
 
   if (!reportedPostId || !reason) {
     throw new Error("Missing required report fields");
   }
 
-  // ensure profile exists (production-safe)
-  const profile = await prisma.profile.upsert({
+  const profile = await prisma.profiles.upsert({
     where: { id: userId },
     update: {},
-    create: {
-      id: userId,
-      displayName: "New User",
-      pathway: "discover",
-      journeyStatus: "active",
-      onboardingDone: true,
-    },
+create: {
+  id: userId,
+  display_name: "New User",
+  pathway: "discover",
+  journey_status: "active",
+  onboarding_done: true,
+  updated_at: new Date(),
+},
   });
 
-  // prevent self-report
-  const post = await prisma.circlePost.findUnique({
+  const post = await prisma.circle_posts.findUnique({
     where: { id: reportedPostId },
-    select: { userId: true },
+    select: { user_id: true },
   });
 
   if (!post) {
     throw new Error("Post not found");
   }
 
-  if (post.userId === profile.id) {
+  if (post.user_id === profile.id) {
     redirect("/circle?cannotReportSelf=1");
   }
 
-  // prevent duplicate report (any status)
-  const existingReport = await prisma.report.findFirst({
+  const existingReport = await prisma.reports.findFirst({
     where: {
-      reporterId: profile.id,
-      reportedPostId,
+      reporter_id: profile.id,
+      reported_post_id: reportedPostId,
     },
   });
 
@@ -61,11 +59,10 @@ export async function reportPostAction(formData: FormData) {
     redirect("/circle?alreadyReported=1");
   }
 
-  // rate limit (max 5 per minute)
-  const recentReports = await prisma.report.count({
+  const recentReports = await prisma.reports.count({
     where: {
-      reporterId: profile.id,
-      createdAt: {
+      reporter_id: profile.id,
+      created_at: {
         gte: new Date(Date.now() - RATE_LIMIT_WINDOW_MS),
       },
     },
@@ -75,11 +72,11 @@ export async function reportPostAction(formData: FormData) {
     redirect("/circle?rateLimited=1");
   }
 
-  await prisma.report.create({
+  await prisma.reports.create({
     data: {
-      reporterId: profile.id,
-      reportedPostId,
-      reportedUserId: reportedUserId || null,
+      reporter_id: profile.id,
+      reported_post_id: reportedPostId,
+      reported_user_id: reportedUserId || null,
       reason,
       status: "pending",
     },

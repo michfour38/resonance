@@ -40,9 +40,8 @@ export async function getProgressCounterForUser(
   const completed =
     prewaveResponsesCount + waveNameVotesCount + promptCompletionsCount;
 
-  const safeCompleted = Math.min(completed, TOTAL_PROGRESS_UNITS);
-  const ratio =
-    TOTAL_PROGRESS_UNITS === 0 ? 0 : safeCompleted / TOTAL_PROGRESS_UNITS;
+const safeCompleted = Math.min(completed, TOTAL_PROGRESS_UNITS);
+const ratio = safeCompleted / TOTAL_PROGRESS_UNITS;
 
   return {
     completed: safeCompleted,

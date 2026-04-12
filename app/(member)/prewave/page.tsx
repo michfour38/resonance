@@ -63,17 +63,6 @@ export default async function PreWavePage({
 
   const context = await getMemberWaveContext(userId);
 
-  if (requestedPathway && context.membership.pathway !== requestedPathway) {
-    try {
-      await prisma.cohort_members.update({
-        where: { id: context.membership.id },
-        data: { pathway: requestedPathway },
-      });
-    } catch (error) {
-      console.error("Prewave pathway persistence failed:", error);
-    }
-  }
-
   const effectivePathway =
     requestedPathway ??
     (context.membership.pathway === "discover" ||
