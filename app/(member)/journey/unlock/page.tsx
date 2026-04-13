@@ -4,6 +4,8 @@ type JourneyUnlockPageProps = {
   };
 };
 
+const PAYSTACK_JOURNEY_URL = "https://paystack.shop/pay/lb1u1x7afq";
+
 export default function JourneyUnlockPage({
   searchParams,
 }: JourneyUnlockPageProps) {
@@ -11,20 +13,6 @@ export default function JourneyUnlockPage({
     searchParams?.pathway === "discover" || searchParams?.pathway === "relate"
       ? searchParams.pathway
       : null;
-
-  const paystackUrl = process.env.PAYSTACK_JOURNEY_URL;
-
-  if (!paystackUrl) {
-    return (
-      <main className="relative min-h-screen bg-black text-white">
-        <div className="mx-auto max-w-2xl px-6 py-12">
-          <div className="rounded-3xl border border-zinc-800/90 bg-black/55 p-6">
-            <h1 className="text-white">Payment link not configured</h1>
-          </div>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -53,7 +41,7 @@ export default function JourneyUnlockPage({
 
             <div className="mt-6 flex flex-wrap gap-3">
               <a
-                href={paystackUrl}
+                href={PAYSTACK_JOURNEY_URL}
                 className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] hover:bg-[#c8a96a]/10"
               >
                 Continue to payment
