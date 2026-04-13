@@ -311,7 +311,7 @@ export async function getDiscoverReadinessSignal(
   });
 
   const privateThreadResponses = completions.filter(
-    (c) => !c.is_shared && c.response.trim().length > 0
+    (c) => c.response.trim().length > 0 && !c.is_shared
   );
 
   let totalScore = 0;
@@ -369,8 +369,7 @@ export async function getDiscoverReadinessSignal(
 
 async function selectCurrentDay(
   userId: string,
-  weekId: string,
-  weekNumber: number
+  weekId: string
 ): Promise<{ id: string; day_number: number } | null> {
   const days = await prisma.journey_days.findMany({
     where: { week_id: weekId },
@@ -378,143 +377,155 @@ async function selectCurrentDay(
     select: {
       id: true,
       day_number: true,
-      day_prompts: {
-        where: { is_published: true },
-        select: {
-          id: true,
-          prompt_completions: {
-            where: { user_id: userId },
-            select: { id: true },
-          },
-        },
-      },
     },
   });
 
   if (days.length === 0) return null;
 
-  type DayEntry = { id: string; day_number: number };
-  const completedDays: DayEntry[] = [];
-  let firstIncompleteDay: DayEntry | null = null;
-
   for (const day of days) {
-    const published = day.day_prompts;
-    if (published.length === 0) continue;
+    const prompts = await prisma.day_prompts.findMany({
+      where: {
+        day_id: day.id,
+        is_published: true,
+      },
+      orderBy: {
+        prompt_order: "asc",
+      },
+      select: {
+        id: true,
+        type: true,
+        prompt_completions: {
+          where: { user_id: userId },
+          select: { id: true },
+        },
+      },
+    });
 
-    const allComplete = published.every(
+    if (prompts.length === 0) {
+      continue;
+    }
+
+    const threadPrompts = prompts.filter((p) => p.type === "thread_prompt");
+
+    if (threadPrompts.length === 0) {
+      return { id: day.id, day_number: day.day_number };
+    }
+
+    const allThreadPromptsComplete = threadPrompts.every(
       (p) => p.prompt_completions.length > 0
     );
 
-    if (allComplete) {
-      completedDays.push({ id: day.id, day_number: day.day_number });
-    } else if (!firstIncompleteDay) {
-      firstIncompleteDay = { id: day.id, day_number: day.day_number };
+    if (!allThreadPromptsComplete) {
+      return { id: day.id, day_number: day.day_number };
     }
   }
-
-  if (completedDays.length > 0) {
-    const mirroredRows = await prisma.mirror_responses.findMany({
-      where: {
-        user_id: userId,
-        week_number: weekNumber,
-        day_number: { in: completedDays.map((d) => d.day_number) },
-      },
-      select: { day_number: true },
-    });
-
-    const mirroredDayNumbers = new Set(mirroredRows.map((r) => r.day_number));
-
-    const unmirrored = completedDays.filter(
-      (d) => !mirroredDayNumbers.has(d.day_number)
-    );
-
-    if (unmirrored.length > 0) {
-      return unmirrored[unmirrored.length - 1];
-    }
-  }
-
-  if (firstIncompleteDay) return firstIncompleteDay;
 
   const lastDay = days[days.length - 1];
   return { id: lastDay.id, day_number: lastDay.day_number };
 }
+
 export async function getCurrentDayContent(
   userId: string
 ): Promise<DayContentDTO | null> {
-  let week = await prisma.journey_weeks.findFirst({
-    where: { is_published: true },
-    orderBy: { week_number: "asc" },
-    select: { id: true, week_number: true, title: true, theme: true },
-  });
-
-  if (!week) {
-    week = await prisma.journey_weeks.findFirst({
-      where: { week_number: 1 },
-      select: { id: true, week_number: true, title: true, theme: true },
+  try {
+    let week = await prisma.journey_weeks.findFirst({
+      where: { is_published: true },
+      orderBy: { week_number: "asc" },
+      select: {
+        id: true,
+        week_number: true,
+        title: true,
+        theme: true,
+      },
     });
-  }
 
-  if (!week) return null;
-
-  const day = await selectCurrentDay(userId, week.id, week.week_number);
-  if (!day) return null;
-
-  const prompts = await prisma.day_prompts.findMany({
-    where: { day_id: day.id, is_published: true },
-    orderBy: { prompt_order: "asc" },
-    select: {
-      id: true,
-      type: true,
-      prompt_order: true,
-      label: true,
-      content: true,
-      prompt_completions: {
-        where: { user_id: userId },
-        orderBy: { created_at: "desc" },
+    if (!week) {
+      week = await prisma.journey_weeks.findFirst({
+        where: { week_number: 1 },
         select: {
           id: true,
-          response: true,
-          is_shared: true,
-          created_at: true,
-          updated_at: true,
+          week_number: true,
+          title: true,
+          theme: true,
+        },
+      });
+    }
+
+    if (!week) {
+      return null;
+    }
+
+    const day = await selectCurrentDay(userId, week.id);
+    if (!day) {
+      return null;
+    }
+
+    const prompts = await prisma.day_prompts.findMany({
+      where: {
+        day_id: day.id,
+        is_published: true,
+      },
+      orderBy: {
+        prompt_order: "asc",
+      },
+      select: {
+        id: true,
+        type: true,
+        prompt_order: true,
+        label: true,
+        content: true,
+        prompt_completions: {
+          where: { user_id: userId },
+          orderBy: { created_at: "desc" },
+          select: {
+            id: true,
+            response: true,
+            is_shared: true,
+            created_at: true,
+            updated_at: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  const completedIds = new Set(
-    prompts.filter((p) => p.prompt_completions.length > 0).map((p) => p.id)
-  );
+    const completedIds = new Set(
+      prompts.filter((p) => p.prompt_completions.length > 0).map((p) => p.id)
+    );
 
-  const rawPrompts: Omit<DayPromptDTO, "isUnlocked">[] = prompts.map((p) => {
-    const completion = p.prompt_completions[0] ?? null;
+    const rawPrompts: Omit<DayPromptDTO, "isUnlocked">[] = prompts.map((p) => {
+      const completion = p.prompt_completions[0] ?? null;
+
+      return {
+        id: p.id,
+        type: p.type as PromptType,
+        promptOrder: p.prompt_order,
+        label: p.label,
+        content: p.content,
+        isCompleted: completion !== null,
+        isShared: completion?.is_shared ?? false,
+        completionId: completion?.id ?? null,
+        response: completion?.response ?? null,
+        createdAt: completion?.created_at?.toISOString() ?? null,
+        updatedAt: completion?.updated_at?.toISOString() ?? null,
+        canEdit: isWithinEditWindow(completion?.created_at),
+      };
+    });
 
     return {
-      id: p.id,
-      type: p.type as PromptType,
-      promptOrder: p.prompt_order,
-      label: p.label,
-      content: p.content,
-      isCompleted: completion !== null,
-      isShared: completion?.is_shared ?? false,
-      completionId: completion?.id ?? null,
-      response: completion?.response ?? null,
-      createdAt: completion?.created_at?.toISOString() ?? null,
-      updatedAt: completion?.updated_at?.toISOString() ?? null,
-      canEdit: isWithinEditWindow(completion?.created_at),
+      weekId: week.id,
+      weekNumber: week.week_number,
+      weekTitle: week.title,
+      weekTheme: week.theme,
+      dayId: day.id,
+      dayNumber: day.day_number,
+      prompts: applyGating(rawPrompts, completedIds),
     };
-  });
-
-  return {
-    weekId: week.id,
-    weekNumber: week.week_number,
-    weekTitle: week.title,
-    weekTheme: week.theme,
-    dayId: day.id,
-    dayNumber: day.day_number,
-    prompts: applyGating(rawPrompts, completedIds),
-  };
+  } catch (error) {
+    console.error("getCurrentDayContent failed:", error);
+    return null;
+  }
 }
+
 export async function getPromptWithGating(
   promptId: string,
   userId: string
@@ -916,6 +927,7 @@ export async function makeAnalysisPrivateAgain(
     data: { status: "private" },
   });
 }
+
 export async function getReflectionArchive(userId: string) {
   const reflections = await prisma.prompt_completions.findMany({
     where: {
