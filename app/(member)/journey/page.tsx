@@ -62,11 +62,6 @@ export default async function JourneyPage({
           Your access is active. This is your stable post-payment Journey page.
         </p>
 
-        <p className="mt-4 text-sm leading-7 text-zinc-400">
-          The next step is to reconnect the real Journey content service only
-          after the underlying service-layer crash is fixed.
-        </p>
-
         <div className="mt-6 flex flex-wrap gap-3">
           <a
             href="/prewave"
