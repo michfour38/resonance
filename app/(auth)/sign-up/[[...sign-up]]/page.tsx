@@ -1,14 +1,20 @@
 "use client";
 
-import { ClerkProvider, SignUp } from "@clerk/nextjs";
+export const dynamic = "force-dynamic";
 
-const clerkPublishableKey =
-  "pk_test_cmFwaWQtc2VydmFsLTk2LmNsZXJrLmFjY291bnRzLmRldiQ";
+import { SignUp } from "@clerk/nextjs";
 
-export default function Page() {
+export default function SignUpPage() {
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
-      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
-    </ClerkProvider>
+    <div className="flex min-h-screen items-center justify-center bg-black px-6 py-10 text-white">
+      <div className="w-full max-w-md">
+        <SignUp
+          routing="path"
+          path="/sign-up"
+          signInUrl="/sign-in"
+          forceRedirectUrl="/journey"
+        />
+      </div>
+    </div>
   );
 }
