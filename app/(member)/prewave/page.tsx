@@ -53,7 +53,11 @@ export default async function PreWavePage({
       ? context.membership.pathway
       : null);
 
-  const holding = await getHoldingContent();
+  const holding = {
+  title: "Pre-Wave",
+  description: "Preparing your journey...",
+  waveNameOptions: ["Option A", "Option B", "Option C"],
+};
   const preWaveQuestions = getPreWaveQuestions();
   const preWaveBackground = getPreWaveBackground();
 
