@@ -21,7 +21,12 @@ export default function RootLayout({
   return (
     <ClerkProvider publishableKey={clerkPublishableKey}>
       <html lang="en" className={inter.variable}>
-        <body className="bg-black text-white antialiased">{children}</body>
+        <body className="bg-black text-white antialiased">
+  <div style={{ color: "red", fontSize: "30px" }}>
+    TEST BUILD ACTIVE
+  </div>
+  {children}
+</body>
       </html>
     </ClerkProvider>
   );
