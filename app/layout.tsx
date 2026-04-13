@@ -15,10 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider publishableKey={publishableKey}>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <ClerkProvider publishableKey={publishableKey}>
+          {children}
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
