@@ -1,3 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
 
 type JourneyPageProps = {
@@ -6,7 +9,15 @@ type JourneyPageProps = {
   };
 };
 
-export default function JourneyPage({ searchParams }: JourneyPageProps) {
+export default async function JourneyPage({
+  searchParams,
+}: JourneyPageProps) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   const paymentSuccess = searchParams?.payment === "success";
 
   return (
@@ -17,9 +28,8 @@ export default function JourneyPage({ searchParams }: JourneyPageProps) {
         <p className="mt-4 text-green-400">Payment success confirmed</p>
       )}
 
-      <p className="mt-4">
-        Your Journey page is now stable again.
-      </p>
+      <p className="mt-4">Auth is working on Journey again.</p>
+      <p className="mt-2 text-sm text-zinc-400">User ID: {userId}</p>
     </main>
   );
 }
