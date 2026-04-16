@@ -4,19 +4,25 @@ import { pathToFileURL } from "node:url";
 
 type SeedModule = Record<string, unknown>;
 
+function getWeekNumber(fileName: string): number | null {
+  const match = fileName.match(/^seed-week(\d+)\.ts$/);
+  if (!match) return null;
+  return Number(match[1]);
+}
+
 async function run() {
   const seedsDir = path.resolve(process.cwd(), "prisma", "seeds");
   const entries = await fs.readdir(seedsDir, { withFileTypes: true });
 
   const seedFiles = entries
-    .filter(
-      (entry) =>
-        entry.isFile() &&
-        entry.name.endsWith(".ts") &&
-        (entry.name === "seed-week9.ts" || entry.name === "seed-week10.ts")
-    )
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
     .map((entry) => entry.name)
-    .sort();
+    .filter((fileName) => getWeekNumber(fileName) !== null)
+    .sort((a, b) => {
+      const weekA = getWeekNumber(a) ?? 0;
+      const weekB = getWeekNumber(b) ?? 0;
+      return weekA - weekB;
+    });
 
   if (seedFiles.length === 0) {
     console.log("No matching seed files found in prisma/seeds");
