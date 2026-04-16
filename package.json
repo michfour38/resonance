@@ -13,7 +13,7 @@
   "db:studio": "prisma studio",
   "db:generate": "prisma generate",
   "typecheck": "tsc --noEmit"
-}
+},
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
     "@clerk/nextjs": "^5.1.0",
