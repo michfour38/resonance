@@ -3,28 +3,40 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function seedWeek5() {
-  const week = await prisma.journey_weeks.upsert({
-    where: { week_number: 5 },
-    update: {
-      title: "The Pulse",
-      theme: "Attraction & relational energy",
-      room_slug: "pulse",
-      room_name: "The Pulse",
-      room_description:
-        "The movement of attraction, energy, desire, and what draws you toward or away from connection.",
-      is_published: true,
-    },
-    create: {
-      week_number: 5,
-      title: "The Pulse",
-      theme: "Attraction & relational energy",
-      room_slug: "pulse",
-      room_name: "The Pulse",
-      room_description:
-        "The movement of attraction, energy, desire, and what draws you toward or away from connection.",
-      is_published: true,
+  const room = await prisma.rooms.findUnique({
+    where: { slug: "pulse" },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      theme: true,
     },
   });
+
+  if (!room) {
+    throw new Error(
+      'Room "pulse" not found. Run seed-rooms.ts before seed-week5.ts.'
+    );
+  }
+
+const week = await prisma.journey_weeks.upsert({
+  where: {
+    week_number: 5
+  },
+  update: {
+    room_id: room.id,
+    title: "The Pulse",
+    theme: "Attraction & relational energy",
+    is_published: true
+  },
+  create: {
+    room_id: room.id,
+    week_number: 5,
+    title: "The Pulse",
+    theme: "Attraction & relational energy",
+    is_published: true
+  }
+});
 
   const days = [
     {
@@ -307,7 +319,7 @@ export async function seedWeek5() {
         },
       ],
     },
-  ];
+  ] as const;
 
   for (const day of days) {
     const createdDay = await prisma.journey_days.upsert({
@@ -325,28 +337,35 @@ export async function seedWeek5() {
     });
 
     for (const prompt of day.prompts) {
-      await prisma.day_prompts.upsert({
+      const existingPrompt = await prisma.day_prompts.findFirst({
         where: {
-          day_id_prompt_order: {
-            day_id: createdDay.id,
-            prompt_order: prompt.prompt_order,
-          },
-        },
-        update: {
-          type: prompt.type,
-          label: prompt.label,
-          content: prompt.content,
-          is_published: true,
-        },
-        create: {
           day_id: createdDay.id,
           prompt_order: prompt.prompt_order,
-          type: prompt.type,
-          label: prompt.label,
-          content: prompt.content,
-          is_published: true,
         },
       });
+
+      if (existingPrompt) {
+        await prisma.day_prompts.update({
+          where: { id: existingPrompt.id },
+          data: {
+            type: prompt.type as any,
+            label: prompt.label,
+            content: prompt.content,
+            is_published: true,
+          },
+        });
+      } else {
+        await prisma.day_prompts.create({
+          data: {
+            day_id: createdDay.id,
+            prompt_order: prompt.prompt_order,
+            type: prompt.type as any,
+            label: prompt.label,
+            content: prompt.content,
+            is_published: true,
+          },
+        });
+      }
     }
   }
 }
