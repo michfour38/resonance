@@ -69,9 +69,22 @@ export default async function JourneyPage() {
     console.error("Journey content failed to load:", error);
   }
 
+let displayWaveName = "Your Wave";
+
+try {
   const waveContext = await getMemberWaveContext(userId);
-  const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
-  const displayWaveName = getWinningWaveName(waveNameCounts, waveContext.wave.name);
+
+  if (waveContext?.wave?.id) {
+    const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
+
+    displayWaveName = getWinningWaveName(
+      waveNameCounts,
+      waveContext.wave.name
+    );
+  }
+} catch (error) {
+  console.error("Wave context failed:", error);
+}
 
   const backgrounds = getJourneyBackgrounds(content?.weekNumber);
 
