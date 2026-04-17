@@ -7,7 +7,7 @@ type PreWavePageProps = {
 };
 
 function getPreWaveBackground() {
-  return "/images/bg-prewave.png";
+  return "/images/bg-prewave.webp";
 }
 
 export default function PreWavePage({ searchParams }: PreWavePageProps) {
@@ -20,17 +20,27 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
     ? `/journey/unlock?pathway=${pathway}`
     : "/journey/unlock";
 
+  const mirrorIntro =
+    pathway === "relate"
+      ? "Something is already becoming visible in how you move toward connection."
+      : "Something is already becoming visible in what you are beginning to see more clearly within yourself.";
+
+  const mirrorBody =
+    pathway === "relate"
+      ? "Across what you’ve shared so far, there are early signs of pattern, openness, and self-protection beginning to take shape. This is only a glimpse of what becomes clearer when your reflections are held across time."
+      : "Across what you’ve shared so far, there are early signs of pattern, tension, and emerging truth beginning to take shape. This is only a glimpse of what becomes clearer when your reflections are held across time.";
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+    <main className="relative min-h-screen overflow-x-hidden text-white">
       <img
         src={getPreWaveBackground()}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        className="fixed inset-0 h-full w-full object-cover"
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-black/45" />
+      <div className="pointer-events-none fixed inset-0 bg-black/45" />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-12">
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-12 md:py-16">
         <div className="rounded-[2rem] border border-zinc-800/90 bg-black/55 p-6 backdrop-blur-[2px] md:p-8">
           <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">
             Pre-Wave
@@ -40,31 +50,70 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
             Before your Wave begins
           </h1>
 
-          <p className="mt-5 text-lg text-zinc-200">
-            Your Pre-Wave space is live. We are finishing the last connected
-            systems behind the scenes.
+          <p className="mt-5 text-lg leading-8 text-zinc-200">
+            This is the threshold before the full journey opens. What you’ve
+            shared already begins to form an early reflection of what may want
+            to be seen more clearly.
           </p>
 
-          <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6">
+          {/* Mini Mirror teaser */}
+          <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-              Current status
+              Early Mirror
             </p>
 
             <h2 className="mt-3 text-2xl font-semibold text-white">
-              Your journey is preparing
+              Something is already forming
             </h2>
 
-            <p className="mt-3 text-sm leading-7 text-zinc-300">
-              The full Pre-Wave reflection flow is being finalized. You can
-              continue now into the Journey unlock step.
+            <p className="mt-5 text-base leading-8 text-zinc-200">
+              {mirrorIntro}
+            </p>
+
+            <p className="mt-4 text-base leading-8 text-zinc-300">
+              {mirrorBody}
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-500">
+              This is only an early glimpse. Deeper reflection becomes possible
+              as your journey continues.
+            </p>
+          </div>
+
+          {/* Journey green card */}
+          <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
+              Journey
+            </p>
+
+            <h2 className="mt-3 text-2xl font-semibold text-white">
+              Enter Your Full 10-Week Resonance Journey
+            </h2>
+
+            <p className="mt-4 text-base leading-8 text-zinc-100">
+              Continue beyond Pre-Wave into a structured 10-week relational
+              journey designed to deepen how you understand yourself and connect
+              with others.
+            </p>
+
+            <p className="mt-4 text-base leading-8 text-zinc-200">
+              Move through guided weekly rooms, daily reflections, and
+              progressively deeper inquiry into patterns, attraction, emotional
+              triggers, communication, and relational truth.
+            </p>
+
+            <p className="mt-4 text-base leading-8 text-zinc-200">
+              Your Journey includes one deeper Mirror reflection at the end,
+              drawing together what you’ve shared into a fuller synthesis of
+              your patterns, growth, and direction.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href={journeyHref}
-                className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] hover:bg-[#c8a96a]/10"
+                className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
               >
-                Continue to Journey Unlock
+                Unlock Your Journey
               </a>
             </div>
           </div>
