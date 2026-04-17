@@ -8,8 +8,6 @@ import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
 
 export const dynamic = "force-dynamic";
 
-const PAYSTACK_MIRROR_URL = "https://paystack.shop/pay/r6u8o3lbqf";
-
 function getJourneyBackgrounds(weekNumber?: number) {
   const desktopMap: Record<number, string> = {
     1: "/images/desktop/bg-hearth.webp",
@@ -75,6 +73,11 @@ export default async function JourneyPage() {
   const displayWaveName = getWinningWaveName(waveNameCounts, waveContext.wave.name);
 
   const backgrounds = getJourneyBackgrounds(content?.weekNumber);
+
+  const mirrorUnlockHref =
+    content
+      ? `/mirror/unlock?weekNumber=${content.weekNumber}&dayNumber=${content.dayNumber}&tier=full`
+      : "/mirror/unlock?tier=full";
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
@@ -162,7 +165,7 @@ export default async function JourneyPage() {
                 </p>
 
                 <a
-                  href={PAYSTACK_MIRROR_URL}
+                  href={mirrorUnlockHref}
                   className="mt-5 inline-flex rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10"
                 >
                   Unlock Mirror — R720
