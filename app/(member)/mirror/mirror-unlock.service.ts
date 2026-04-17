@@ -12,7 +12,7 @@ type MirrorUnlockParams = {
 export async function isMirrorTierUnlocked(
   params: MirrorUnlockParams
 ): Promise<boolean> {
-  // 🔥 CHANGE: Lite unlock is persistent across all days/weeks
+  // Lite is persistent across the journey
   if (params.tier === "lite") {
     const row = await prisma.mirror_unlocks.findFirst({
       where: {
@@ -28,12 +28,10 @@ export async function isMirrorTierUnlocked(
     return Boolean(row?.unlocked_at);
   }
 
-  // Full remains day-specific (unchanged behavior)
+  // Full is also persistent across the full 10-week journey
   const row = await prisma.mirror_unlocks.findFirst({
     where: {
       user_id: params.userId,
-      week_number: params.weekNumber,
-      day_number: params.dayNumber,
       tier: "full",
       is_paid: true,
     },
