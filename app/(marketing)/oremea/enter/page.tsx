@@ -1,6 +1,7 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { upsertEntryLead } from "./actions";
 
@@ -53,9 +54,7 @@ export default function OremeaEnterPage() {
     });
   }, []);
 
-  function handleContinue() {
-    if (isContinuing) return;
-
+  function buildBeginHref() {
     const params = new URLSearchParams();
 
     if (firstName) params.set("name", firstName);
@@ -63,14 +62,32 @@ export default function OremeaEnterPage() {
     if (source) params.set("source", source);
 
     const query = params.toString();
+    return query ? `/oremea/begin?${query}` : "/oremea/begin";
+  }
+
+  function buildReturnToSelf() {
+    const params = new URLSearchParams();
+
+    if (firstName) params.set("name", firstName);
+    if (leadEmail) params.set("email", leadEmail);
+    if (source) params.set("source", source);
+
+    const query = params.toString();
+    return query ? `/oremea/enter?${query}` : "/oremea/enter";
+  }
+
+  function handleContinue() {
+    if (isContinuing) return;
 
     setIsContinuing(true);
-    window.location.href = query ? `/oremea/begin?${query}` : "/oremea/begin";
+    window.location.href = buildBeginHref();
   }
 
   const heading = firstName
     ? `${firstName}, your place is ready.`
     : "Your place is ready.";
+
+  const returnToSelf = buildReturnToSelf();
 
   return (
     <main className="relative min-h-screen text-white">
@@ -108,20 +125,57 @@ export default function OremeaEnterPage() {
               </p>
             ) : null}
 
-            <div className="mt-8">
-              <button
-                type="button"
-                onClick={handleContinue}
-                disabled={isContinuing}
-                className={`inline-flex min-w-[140px] items-center justify-center rounded-xl border px-5 py-3 text-sm transition ${
-                  !isContinuing
-                    ? "border-[#c8a96a]/60 bg-transparent text-[#f1dfb4] hover:bg-[#c8a96a]/10"
-                    : "border-white/15 bg-transparent text-white/35"
-                }`}
-              >
-                {isContinuing ? <LoadingDots /> : "Continue"}
-              </button>
-            </div>
+            <SignedOut>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <SignUpButton
+                  mode="redirect"
+                  forceRedirectUrl={returnToSelf}
+                  fallbackRedirectUrl={returnToSelf}
+                >
+                  <button
+                    type="button"
+                    className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+                  >
+                    Create account
+                  </button>
+                </SignUpButton>
+
+                <SignInButton
+                  mode="redirect"
+                  forceRedirectUrl={returnToSelf}
+                  fallbackRedirectUrl={returnToSelf}
+                >
+                  <button
+                    type="button"
+                    className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
+                  >
+                    Sign in
+                  </button>
+                </SignInButton>
+              </div>
+
+              <p className="mt-4 text-sm leading-7 text-white/50">
+                Create your account or sign in first, then continue into your
+                guided beginning.
+              </p>
+            </SignedOut>
+
+            <SignedIn>
+              <div className="mt-8">
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={isContinuing}
+                  className={`inline-flex min-w-[140px] items-center justify-center rounded-xl border px-5 py-3 text-sm transition ${
+                    !isContinuing
+                      ? "border-[#c8a96a]/60 bg-transparent text-[#f1dfb4] hover:bg-[#c8a96a]/10"
+                      : "border-white/15 bg-transparent text-white/35"
+                  }`}
+                >
+                  {isContinuing ? <LoadingDots /> : "Continue"}
+                </button>
+              </div>
+            </SignedIn>
 
             {isSavingLead ? (
               <p className="mt-4 text-sm text-white/45">Saving your entry…</p>
