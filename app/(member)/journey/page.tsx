@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getCurrentDayContent } from "@/app/(member)/journey/journey.service";
+import PromptCard from "./prompt-card";
+import MirrorCard from "./mirror-card";
 
 export const dynamic = "force-dynamic";
 
@@ -32,49 +34,62 @@ export default async function JourneyPage({
   }
 
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-3xl">
-        {content?.weekTitle || "Journey Active"}
-      </h1>
+    <main className="min-h-screen bg-black text-white px-6 py-10">
+      <div className="mx-auto max-w-2xl">
+        <header className="space-y-4">
+          <h1 className="text-3xl">{content?.weekTitle || "Journey Active"}</h1>
 
-      {paymentSuccess && (
-        <p className="mt-4 text-green-400">Payment success confirmed</p>
-      )}
-
-      {content ? (
-        <>
-          <p className="mt-4 text-zinc-300">
-            Week {content.weekNumber} · Day {content.dayNumber}
-          </p>
-
-          <p className="mt-4 text-zinc-300">{content.weekTheme}</p>
-
-          {content.prompts?.[0]?.content ? (
-            <div className="mt-6 rounded-xl border border-zinc-700 p-4">
-              <p className="text-sm text-zinc-400">Today’s first prompt</p>
-              <p className="mt-2 text-white">{content.prompts[0].content}</p>
-            </div>
-          ) : (
-            <p className="mt-6 text-zinc-400">
-              No prompt is available for today yet.
-            </p>
+          {paymentSuccess && (
+            <p className="text-green-400">Payment success confirmed</p>
           )}
-        </>
-      ) : (
-        <div className="mt-4 space-y-3">
-          <p className="text-zinc-300">
-            Your Journey page is stable.
-          </p>
 
-          <p className="text-zinc-400">
-            {contentLoadFailed
-              ? "Journey content could not be loaded yet."
-              : "Journey content is not available yet."}
-          </p>
-        </div>
-      )}
+          {content ? (
+            <>
+              <p className="text-zinc-300">
+                Week {content.weekNumber} · Day {content.dayNumber}
+              </p>
 
-      <p className="mt-8 text-sm text-zinc-500">User ID: {userId}</p>
+              <p className="text-zinc-300">{content.weekTheme}</p>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-zinc-300">Your Journey page is stable.</p>
+
+              <p className="text-zinc-400">
+                {contentLoadFailed
+                  ? "Journey content could not be loaded yet."
+                  : "Journey content is not available yet."}
+              </p>
+            </div>
+          )}
+        </header>
+
+        {content ? (
+          <div className="mt-10 space-y-6">
+            {content.prompts.map((prompt, index) => {
+              if (prompt.type === "mirror_exercise") {
+                return (
+                  <MirrorCard
+                    key={prompt.id}
+                    prompt={prompt}
+                    progressRatio={0.2}
+                  />
+                );
+              }
+
+              return (
+                <PromptCard
+                  key={prompt.id}
+                  prompt={prompt}
+                  index={index}
+                />
+              );
+            })}
+          </div>
+        ) : null}
+
+        <p className="mt-8 text-sm text-zinc-500">User ID: {userId}</p>
+      </div>
     </main>
   );
 }
