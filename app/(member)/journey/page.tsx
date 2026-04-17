@@ -6,12 +6,6 @@ import MirrorCard from "./mirror-card";
 
 export const dynamic = "force-dynamic";
 
-type JourneyPageProps = {
-  searchParams?: {
-    payment?: string;
-  };
-};
-
 function getJourneyBackgrounds(weekNumber?: number) {
   const desktopMap: Record<number, string> = {
     1: "/images/desktop/bg-hearth.webp",
@@ -47,16 +41,12 @@ function getJourneyBackgrounds(weekNumber?: number) {
   };
 }
 
-export default async function JourneyPage({
-  searchParams,
-}: JourneyPageProps) {
+export default async function JourneyPage() {
   const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
-
-  const paymentSuccess = searchParams?.payment === "success";
 
   let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
   let contentLoadFailed = false;
@@ -72,30 +62,24 @@ export default async function JourneyPage({
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
-      {/* Mobile portrait background */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat md:hidden"
         style={{ backgroundImage: `url(${backgrounds.mobile})` }}
       />
 
-      {/* Desktop landscape background */}
       <div
         className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
         style={{ backgroundImage: `url(${backgrounds.desktop})` }}
       />
 
-      {/* Shared dark overlay */}
       <div className="fixed inset-0 z-10 bg-black/55" />
 
-      {/* Content */}
       <div className="relative z-20 min-h-screen px-6 py-10">
         <div className="mx-auto max-w-2xl">
           <header className="space-y-4">
             <h1 className="text-3xl">
               {content?.weekTitle || "Journey Active"}
             </h1>
-
-            )}
 
             {content ? (
               <>
@@ -118,50 +102,57 @@ export default async function JourneyPage({
             )}
           </header>
 
-{content ? (
-  <>
-    <div className="mt-10 space-y-6">
-      {content.prompts.map((prompt, index) => {
-        if (prompt.type === "mirror_exercise") {
-          return (
-            <MirrorCard
-              key={prompt.id}
-              prompt={prompt}
-              progressRatio={0.2}
-            />
-          );
-        }
+          {content ? (
+            <>
+              <div className="mt-10 space-y-6">
+                {content.prompts.map((prompt, index) => {
+                  if (prompt.type === "mirror_exercise") {
+                    return (
+                      <MirrorCard
+                        key={prompt.id}
+                        prompt={prompt}
+                        progressRatio={0.2}
+                      />
+                    );
+                  }
 
-        return (
-          <PromptCard
-            key={prompt.id}
-            prompt={prompt}
-            index={index}
-          />
-        );
-      })}
-    </div>
+                  return (
+                    <PromptCard
+                      key={prompt.id}
+                      prompt={prompt}
+                      index={index}
+                    />
+                  );
+                })}
+              </div>
 
-    {/* 🔒 Mirror Upsell Card */}
-    <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-      <p className="text-sm text-zinc-400">Mirror</p>
+              <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+                <p className="text-sm text-zinc-400">Mirror</p>
 
-      <p className="mt-3 text-lg text-white">
-        A deeper synthesis of your patterns, contradictions, and growth across your reflections.
-      </p>
+                <p className="mt-3 text-lg text-white">
+                  A premium reflection layer woven daily through your Journey.
+                </p>
 
-      <p className="mt-2 text-sm text-zinc-400">
-        Unlock your Mirror to see what is emerging beneath the surface.
-      </p>
+                <p className="mt-2 text-sm text-zinc-300">
+                  Receive deeper pattern-based reflections across what you share.
+                  The more honestly you share, the more this layer can reflect
+                  back to you — including themes, contradictions, emotional
+                  loops, and emerging growth over time.
+                </p>
 
-      <button className="mt-5 rounded-full border border-white/20 px-5 py-2 text-sm text-white hover:bg-white/10 transition">
-        Unlock Mirror
-      </button>
-    </div>
-  </>
-) : null}
+                <p className="mt-2 text-sm text-zinc-400">
+                  Your current Journey includes one deeper Mirror reflection at
+                  the end of the 10 weeks. Mirror access unlocks this reflective
+                  layer daily, throughout your full Journey.
+                </p>
 
-          </div>
+                <button className="mt-5 rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10">
+                  Unlock Mirror — R720
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
     </main>
   );
