@@ -30,20 +30,17 @@ const PREWAVE_QUESTIONS = [
 ] as const;
 
 async function getActiveCohortId(userId: string): Promise<string | null> {
-  const membership = await prisma.cohortMember.findFirst({
+  const membership = await prisma.cohort_members.findFirst({
     where: {
-      userId,
+      user_id: userId,
       status: { in: ["enrolled", "active"] },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
     select: {
-      cohortId: true,
+      cohort_id: true,
     },
   });
 
-  return membership?.cohortId ?? null;
+  return membership?.cohort_id ?? null;
 }
 
 export default async function PreWavePage({
