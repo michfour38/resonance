@@ -5,6 +5,7 @@ import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
+import MemberNav from "../member-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -93,86 +94,90 @@ export default async function JourneyPage() {
 
       <div className="fixed inset-0 z-10 bg-black/55" />
 
-      <div className="relative z-20 min-h-screen px-6 py-10">
-        <div className="mx-auto max-w-2xl">
-          <header className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
-              Wave
-            </p>
+      <div className="relative z-20 min-h-screen">
+        <MemberNav />
 
-            <h1 className="text-3xl">{displayWaveName || "Your Wave"}</h1>
+        <div className="px-6 py-6">
+          <div className="mx-auto max-w-2xl">
+            <header className="space-y-4">
+              <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+                Wave
+              </p>
+
+              <h1 className="text-3xl">{displayWaveName || "Your Wave"}</h1>
+
+              {content ? (
+                <>
+                  <p className="text-zinc-200">{content.weekTitle}</p>
+                  <p className="text-zinc-400">{content.weekTheme}</p>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-zinc-300">Your Journey page is stable.</p>
+
+                  <p className="text-zinc-400">
+                    {contentLoadFailed
+                      ? "Journey content could not be loaded yet."
+                      : "Journey content is not available yet."}
+                  </p>
+                </div>
+              )}
+            </header>
 
             {content ? (
               <>
-                <p className="text-zinc-200">{content.weekTitle}</p>
-                <p className="text-zinc-400">{content.weekTheme}</p>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-zinc-300">Your Journey page is stable.</p>
+                <div className="mt-10 space-y-6">
+                  {content.prompts.map((prompt, index) => {
+                    if (prompt.type === "mirror_exercise") {
+                      return (
+                        <MirrorCard
+                          key={prompt.id}
+                          prompt={prompt}
+                          progressRatio={0.2}
+                        />
+                      );
+                    }
 
-                <p className="text-zinc-400">
-                  {contentLoadFailed
-                    ? "Journey content could not be loaded yet."
-                    : "Journey content is not available yet."}
-                </p>
-              </div>
-            )}
-          </header>
-
-          {content ? (
-            <>
-              <div className="mt-10 space-y-6">
-                {content.prompts.map((prompt, index) => {
-                  if (prompt.type === "mirror_exercise") {
                     return (
-                      <MirrorCard
+                      <PromptCard
                         key={prompt.id}
                         prompt={prompt}
-                        progressRatio={0.2}
+                        index={index}
                       />
                     );
-                  }
+                  })}
+                </div>
 
-                  return (
-                    <PromptCard
-                      key={prompt.id}
-                      prompt={prompt}
-                      index={index}
-                    />
-                  );
-                })}
-              </div>
+                <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+                  <p className="text-sm text-zinc-400">Mirror</p>
 
-              <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-                <p className="text-sm text-zinc-400">Mirror</p>
+                  <p className="mt-3 text-lg text-white">
+                    A premium reflection layer woven daily through your Journey.
+                  </p>
 
-                <p className="mt-3 text-lg text-white">
-                  A premium reflection layer woven daily through your Journey.
-                </p>
+                  <p className="mt-2 text-sm text-zinc-300">
+                    Receive deeper pattern-based reflections across what you share.
+                    The more honestly you share, the more this layer can reflect
+                    back to you — including themes, contradictions, emotional
+                    loops, and emerging growth over time.
+                  </p>
 
-                <p className="mt-2 text-sm text-zinc-300">
-                  Receive deeper pattern-based reflections across what you share.
-                  The more honestly you share, the more this layer can reflect
-                  back to you — including themes, contradictions, emotional
-                  loops, and emerging growth over time.
-                </p>
+                  <p className="mt-2 text-sm text-zinc-400">
+                    Your current Journey includes one deeper Mirror reflection at
+                    the end of the 10 weeks. Mirror access unlocks this reflective
+                    layer daily, throughout your full Journey.
+                  </p>
 
-                <p className="mt-2 text-sm text-zinc-400">
-                  Your current Journey includes one deeper Mirror reflection at
-                  the end of the 10 weeks. Mirror access unlocks this reflective
-                  layer daily, throughout your full Journey.
-                </p>
-
-                <a
-                  href={mirrorUnlockHref}
-                  className="mt-5 inline-flex rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10"
-                >
-                  Unlock Mirror — R720
-                </a>
-              </div>
-            </>
-          ) : null}
+                  <a
+                    href={mirrorUnlockHref}
+                    className="mt-5 inline-flex rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10"
+                  >
+                    Unlock Mirror — R720
+                  </a>
+                </div>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
     </main>
