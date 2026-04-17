@@ -13,7 +13,7 @@ export default function OremeaLayout({
         <div
           className="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('/images/oremea-bg-desktop.png')",
+            backgroundImage: "url('/images/oremea-bg-desktop.webp')",
           }}
         />
 
@@ -21,7 +21,7 @@ export default function OremeaLayout({
         <div
           className="block md:hidden absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('/images/oremea-bg-mobile.png')",
+            backgroundImage: "url('/images/oremea-bg-mobile.webp')",
           }}
         />
       </div>

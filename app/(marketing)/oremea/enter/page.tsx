@@ -76,7 +76,7 @@ export default function OremeaEnterPage() {
     <main className="relative h-screen overflow-hidden bg-black text-white">
       {/* Static background */}
       <img
-        src="/images/oremea-bg-desktop.png"
+        src="/images/oremea-bg-desktop.webp"
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
