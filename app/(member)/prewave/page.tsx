@@ -1,10 +1,21 @@
-"use client";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
+import { getHoldingContent } from "@/src/lib/wave/wave.holding";
+import { getPreWaveQuestions, getUnlockedPreWaveCount } from "@/src/lib/wave/prewave.service";
+import { getPreWaveResponses } from "@/src/lib/wave/prewave-response.service";
+import {
+  getUserWaveNameVote,
+  getWaveNameVoteCounts,
+} from "@/src/lib/wave/wave-name-vote.service";
 
-import { useEffect, useMemo, useState } from "react";
+export const dynamic = "force-dynamic";
 
 type PreWavePageProps = {
   searchParams?: {
     pathway?: string;
+    saved?: string;
+    voted?: string;
   };
 };
 
@@ -15,163 +26,41 @@ function getPreWaveBackgrounds() {
   };
 }
 
-const PREWAVE_QUESTIONS = [
-  "What do you most hope this journey might help you understand more clearly about yourself?",
-  "What kind of connection are you most longing for in your life right now?",
-  "What do you think people often misunderstand about you at first?",
-  "What tends to make you feel more open, and what tends to make you pull back?",
-  "What are you hoping to experience differently in the way you relate going forward?",
-  "What already feels like it may be shifting in you, even before the journey fully begins?",
-] as const;
+export default async function PreWavePage({
+  searchParams,
+}: PreWavePageProps) {
+  const { userId } = await auth();
 
-const STORAGE_KEY = "resonance_prewave_state_v1";
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
-type PrewaveState = {
-  pathway: "discover" | "relate";
-  step: number;
-  responses: string[];
-  waveName: string;
-};
+  const waveContext = await getMemberWaveContext(userId);
+  const holdingContent = await getHoldingContent();
+  const questions = getPreWaveQuestions();
+  const responses = await getPreWaveResponses(userId, waveContext.wave.id);
+  const existingVote = await getUserWaveNameVote(userId, waveContext.wave.id);
+  const voteCounts = await getWaveNameVoteCounts(waveContext.wave.id);
 
-function buildInitialState(pathway: "discover" | "relate"): PrewaveState {
-  return {
-    pathway,
-    step: 1,
-    responses: ["", "", "", "", "", ""],
-    waveName: "",
-  };
-}
+  const unlockedCount = getUnlockedPreWaveCount(waveContext.wave.startsAt);
+  const showJourneyUnlock = new Date() >= waveContext.wave.startsAt;
 
-export default function PreWavePage({ searchParams }: PreWavePageProps) {
-  const pathway = searchParams?.pathway === "relate" ? "relate" : "discover";
+  const saved = searchParams?.saved === "1";
+  const voted = searchParams?.voted === "1";
 
   const backgrounds = getPreWaveBackgrounds();
+  const pathway = waveContext.membership.pathway ?? searchParams?.pathway ?? "discover";
 
-  const [state, setState] = useState<PrewaveState>(() =>
-    buildInitialState(pathway)
-  );
-  const [currentResponse, setCurrentResponse] = useState("");
+  const mirrorTeaser =
+    pathway === "relate"
+      ? "Across what you’ve shared so far, there are already traces of how you move toward closeness, where you soften, and where you still protect. The Mirror becomes more accurate as your honesty deepens."
+      : "Across what you’ve shared so far, there are already traces of what you long for, what you guard, and what may be ready to shift. The Mirror becomes more accurate as your honesty deepens.";
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-
-      if (!raw) {
-        const fresh = buildInitialState(pathway);
-        setState(fresh);
-        setCurrentResponse(fresh.responses[0] ?? "");
-        return;
-      }
-
-      const parsed = JSON.parse(raw) as Partial<PrewaveState>;
-
-      const hydrated: PrewaveState = {
-        pathway:
-          parsed.pathway === "relate" || parsed.pathway === "discover"
-            ? parsed.pathway
-            : pathway,
-        step:
-          typeof parsed.step === "number" && parsed.step >= 1 && parsed.step <= 8
-            ? parsed.step
-            : 1,
-        responses:
-          Array.isArray(parsed.responses) && parsed.responses.length === 6
-            ? parsed.responses.map((v) => String(v ?? ""))
-            : ["", "", "", "", "", ""],
-        waveName: String(parsed.waveName ?? ""),
-      };
-
-      if (hydrated.pathway !== pathway) {
-        hydrated.pathway = pathway;
-      }
-
-      setState(hydrated);
-
-      if (hydrated.step >= 1 && hydrated.step <= 6) {
-        setCurrentResponse(hydrated.responses[hydrated.step - 1] ?? "");
-      } else {
-        setCurrentResponse("");
-      }
-    } catch {
-      const fresh = buildInitialState(pathway);
-      setState(fresh);
-      setCurrentResponse(fresh.responses[0] ?? "");
-    }
-  }, [pathway]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // ignore localStorage failures
-    }
-  }, [state]);
-
-  const journeyHref = useMemo(() => {
-    return `/journey/unlock?pathway=${state.pathway}`;
-  }, [state.pathway]);
-
-  const mirrorIntro =
-    state.pathway === "relate"
-      ? "Something is already becoming visible in how you move toward connection."
-      : "Something is already becoming visible in what you are beginning to see more clearly within yourself.";
-
-  const mirrorBody =
-    state.pathway === "relate"
-      ? "Across what you’ve shared so far, there are early signs of pattern, openness, and self-protection beginning to take shape. This is only a glimpse of what becomes clearer when your reflections are held across time."
-      : "Across what you’ve shared so far, there are early signs of pattern, tension, and emerging truth beginning to take shape. This is only a glimpse of what becomes clearer when your reflections are held across time.";
-
-  function saveCurrentResponseAndAdvance() {
-    if (state.step < 1 || state.step > 6) return;
-    if (!currentResponse.trim()) return;
-
-    const nextResponses = [...state.responses];
-    nextResponses[state.step - 1] = currentResponse.trim();
-
-    setState((prev) => ({
-      ...prev,
-      responses: nextResponses,
-      step: Math.min(prev.step + 1, 8),
-    }));
-
-    setCurrentResponse("");
-  }
-
-  function saveWaveNameAndAdvance() {
-    if (!state.waveName.trim()) return;
-
-    setState((prev) => ({
-      ...prev,
-      waveName: prev.waveName.trim(),
-      step: 8,
-    }));
-  }
-
-  function goBack() {
-    if (state.step <= 1) return;
-
-    const nextStep = state.step - 1;
-
-    setState((prev) => ({
-      ...prev,
-      step: nextStep,
-    }));
-
-    if (nextStep >= 1 && nextStep <= 6) {
-      setCurrentResponse(state.responses[nextStep - 1] ?? "");
-    }
-  }
-
-  function resetPrewave() {
-    const fresh = buildInitialState(pathway);
-    setState(fresh);
-    setCurrentResponse("");
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
-    } catch {
-      // ignore localStorage failures
-    }
-  }
+  const voteEntries = holdingContent.waveNameOptions.map((name) => ({
+    name,
+    count: voteCounts.get(name) ?? 0,
+    selected: existingVote?.wave_name === name,
+  }));
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
@@ -179,7 +68,6 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
         className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
         style={{ backgroundImage: `url(${backgrounds.desktop})` }}
       />
-
       <div
         className="fixed inset-0 z-0 block bg-cover bg-center bg-no-repeat md:hidden"
         style={{ backgroundImage: `url(${backgrounds.mobile})` }}
@@ -201,181 +89,186 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
             This is the threshold before the full journey opens.
           </p>
 
-          {state.step >= 1 && state.step <= 6 && (
-            <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
-              <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-                Reflection {state.step} of 6
-              </p>
+          <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-5 md:p-6">
+            <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+              Your Wave
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              {waveContext.wave.name}
+            </h2>
+          </div>
 
-              <h2 className="mt-3 text-2xl font-semibold text-white">
-                {PREWAVE_QUESTIONS[state.step - 1]}
-              </h2>
+          <div className="mt-8 space-y-4">
+            {questions.map((question, index) => {
+              const questionNumber = index + 1;
+              const unlocked = questionNumber <= unlockedCount;
+              const existingResponse = responses.get(questionNumber)?.response ?? "";
 
-              <textarea
-                value={currentResponse}
-                onChange={(e) => setCurrentResponse(e.target.value)}
-                rows={6}
-                className="mt-6 w-full resize-none rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
-                placeholder="Write what feels true..."
-              />
-
-              {!currentResponse.trim() && (
-                <p className="mt-3 text-xs text-zinc-500">
-                  Write something to continue
-                </p>
-              )}
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {state.step > 1 && (
-                  <button
-                    type="button"
-                    onClick={goBack}
-                    className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
-                  >
-                    Back
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={saveCurrentResponseAndAdvance}
-                  disabled={!currentResponse.trim()}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10 disabled:cursor-not-allowed disabled:opacity-30"
+              return (
+                <div
+                  key={questionNumber}
+                  className="rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8"
                 >
-                  Continue
-                </button>
-              </div>
-            </div>
-          )}
+                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+                    Reflection {questionNumber} of 6
+                  </p>
 
-          {state.step === 7 && (
-            <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
-              <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-                Wave name
-              </p>
+                  <h2 className="mt-3 text-2xl font-semibold text-white">
+                    {question}
+                  </h2>
 
-              <h2 className="mt-3 text-2xl font-semibold text-white">
-                What name feels true for this Wave?
-              </h2>
+                  {unlocked ? (
+                    <form
+                      action="/api/prewave-response"
+                      method="POST"
+                      className="mt-6"
+                    >
+                      <input type="hidden" name="cohortId" value={waveContext.wave.id} />
+                      <input type="hidden" name="questionIndex" value={questionNumber} />
+                      <input
+                        type="hidden"
+                        name="returnTo"
+                        value={`/prewave?pathway=${pathway}&saved=1`}
+                      />
 
-              <p className="mt-4 text-base leading-8 text-zinc-300">
-                Your seeded Journey rooms stay the same. This vote shapes the
-                dynamic name of your Wave, not the room titles themselves.
-              </p>
+                      <textarea
+                        name="response"
+                        defaultValue={existingResponse}
+                        rows={6}
+                        className="w-full resize-none rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
+                        placeholder="Write what feels true..."
+                      />
 
-              <input
-                type="text"
-                value={state.waveName}
-                onChange={(e) =>
-                  setState((prev) => ({ ...prev, waveName: e.target.value }))
-                }
-                className="mt-6 w-full rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
-                placeholder="Enter the Wave name you want to vote for..."
-              />
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <button
+                          type="submit"
+                          className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+                        >
+                          Save reflection
+                        </button>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
-                >
-                  Back
-                </button>
+                        {saved && questionNumber === unlockedCount ? (
+                          <p className="text-xs text-[#f1dfb4]">
+                            Reflection saved.
+                          </p>
+                        ) : null}
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="mt-6 relative overflow-hidden rounded-2xl border border-white/10 bg-black/25 p-6">
+                      <div className="blur-sm opacity-45">
+                        <div className="h-5 w-40 rounded bg-white/10" />
+                        <div className="mt-4 h-24 rounded-2xl bg-white/10" />
+                        <div className="mt-4 h-10 w-36 rounded-xl bg-white/10" />
+                      </div>
 
-                <button
-                  type="button"
-                  onClick={saveWaveNameAndAdvance}
-                  disabled={!state.waveName.trim()}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10 disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          )}
-
-          {state.step >= 8 && (
-            <>
-              <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
-                <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-                  Early Mirror
-                </p>
-
-                <h2 className="mt-3 text-2xl font-semibold text-white">
-                  Something is already forming
-                </h2>
-
-                <p className="mt-5 text-base leading-8 text-zinc-200">
-                  {mirrorIntro}
-                </p>
-
-                <p className="mt-4 text-base leading-8 text-zinc-300">
-                  {mirrorBody}
-                </p>
-
-                <p className="mt-4 text-sm leading-7 text-zinc-500">
-                  This is only an early glimpse. Deeper reflection becomes
-                  possible as your journey continues.
-                </p>
-
-                {state.waveName.trim() ? (
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 px-4 py-4">
-                    <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-                      Your Wave
-                    </p>
-                    <p className="mt-2 text-lg text-white">
-                      {state.waveName.trim()}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
-                <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
-                  Journey
-                </p>
-
-                <h2 className="mt-3 text-2xl font-semibold text-white">
-                  Enter Your Full 10-Week Resonance Journey
-                </h2>
-
-                <p className="mt-4 text-base leading-8 text-zinc-100">
-                  Continue beyond Pre-Wave into a structured 10-week relational
-                  journey designed to deepen how you understand yourself and
-                  connect with others.
-                </p>
-
-                <p className="mt-4 text-base leading-8 text-zinc-200">
-                  Move through guided weekly rooms, daily reflections, and
-                  progressively deeper inquiry into patterns, attraction,
-                  emotional triggers, communication, and relational truth.
-                </p>
-
-                <p className="mt-4 text-base leading-8 text-zinc-200">
-                  Your Journey includes one deeper Mirror reflection at the end,
-                  drawing together what you’ve shared into a fuller synthesis of
-                  your patterns, growth, and direction.
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <a
-                    href={journeyHref}
-                    className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
-                  >
-                    Unlock Your Journey
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={resetPrewave}
-                    className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
-                  >
-                    Start over
-                  </button>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="rounded-full border border-white/10 bg-black/55 px-4 py-2 text-xs uppercase tracking-[0.22em] text-zinc-300">
+                          Unlocks on its day
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+              Wave name vote
+            </p>
+
+            <h2 className="mt-3 text-2xl font-semibold text-white">
+              Vote for your Wave name
+            </h2>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-2">
+              {voteEntries.map((option) => (
+                <a
+                  key={option.name}
+                  href={`/api/wave-name-vote?cohortId=${encodeURIComponent(
+                    waveContext.wave.id
+                  )}&waveName=${encodeURIComponent(option.name)}&returnTo=${encodeURIComponent(
+                    `/prewave?pathway=${pathway}&voted=1`
+                  )}`}
+                  className={`rounded-2xl border px-4 py-4 text-sm transition ${
+                    option.selected
+                      ? "border-[#c8a96a]/60 bg-[#c8a96a]/10 text-[#f1dfb4]"
+                      : "border-white/10 bg-black/20 text-zinc-200 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span>{option.name}</span>
+                    <span className="text-xs text-zinc-400">{option.count}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            {voted ? (
+              <p className="mt-4 text-xs text-[#f1dfb4]">Vote saved.</p>
+            ) : null}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
+              Early Mirror
+            </p>
+
+            <h2 className="mt-3 text-2xl font-semibold text-white">
+              The Mirror is beginning to listen
+            </h2>
+
+            <p className="mt-5 text-base leading-8 text-zinc-200">
+              {mirrorTeaser}
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400">
+              What you are seeing here is not the full Mirror.
+              It is only the first sign that your reflections can begin to form
+              a deeper pattern over time.
+            </p>
+          </div>
+
+          {showJourneyUnlock ? (
+            <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
+              <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
+                Journey
+              </p>
+
+              <h2 className="mt-3 text-2xl font-semibold text-white">
+                Enter Your Full 10-Week Resonance Journey
+              </h2>
+
+              <p className="mt-4 text-base leading-8 text-zinc-100">
+                Continue beyond Pre-Wave into a structured 10-week relational
+                journey designed to deepen how you understand yourself and
+                connect with others.
+              </p>
+
+              <p className="mt-4 text-base leading-8 text-zinc-200">
+                Move through guided weekly rooms, daily reflections, and
+                progressively deeper inquiry into patterns, attraction,
+                emotional triggers, communication, and relational truth.
+              </p>
+
+              <p className="mt-4 text-base leading-8 text-zinc-200">
+                Your Journey includes one full Mirror reflection at the end —
+                a deeper synthesis of your patterns, contradictions, and growth
+                across everything you’ve shared.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a
+                  href={`/journey/unlock?pathway=${pathway}`}
+                  className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+                >
+                  Continue to Journey
+                </a>
               </div>
-            </>
-          )}
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

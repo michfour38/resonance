@@ -3,8 +3,12 @@ import { redirect } from "next/navigation";
 import { getCurrentDayContent } from "@/app/(member)/journey/journey.service";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
+import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
+import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
 
 export const dynamic = "force-dynamic";
+
+const PAYSTACK_MIRROR_URL = "https://paystack.shop/pay/r6u8o3lbqf";
 
 function getJourneyBackgrounds(weekNumber?: number) {
   const desktopMap: Record<number, string> = {
@@ -41,6 +45,14 @@ function getJourneyBackgrounds(weekNumber?: number) {
   };
 }
 
+function getWinningWaveName(
+  waveNameCounts: Map<string, number>,
+  fallbackWaveName: string
+) {
+  const sorted = Array.from(waveNameCounts.entries()).sort((a, b) => b[1] - a[1]);
+  return sorted[0]?.[0] ?? fallbackWaveName;
+}
+
 export default async function JourneyPage() {
   const { userId } = await auth();
 
@@ -57,6 +69,10 @@ export default async function JourneyPage() {
     contentLoadFailed = true;
     console.error("Journey content failed to load:", error);
   }
+
+  const waveContext = await getMemberWaveContext(userId);
+  const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
+  const displayWaveName = getWinningWaveName(waveNameCounts, waveContext.wave.name);
 
   const backgrounds = getJourneyBackgrounds(content?.weekNumber);
 
@@ -77,17 +93,16 @@ export default async function JourneyPage() {
       <div className="relative z-20 min-h-screen px-6 py-10">
         <div className="mx-auto max-w-2xl">
           <header className="space-y-4">
-            <h1 className="text-3xl">
-              {content?.weekTitle || "Journey Active"}
-            </h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+              Wave
+            </p>
+
+            <h1 className="text-3xl">{displayWaveName || "Your Wave"}</h1>
 
             {content ? (
               <>
-                <p className="text-zinc-300">
-                  Week {content.weekNumber} · Day {content.dayNumber}
-                </p>
-
-                <p className="text-zinc-300">{content.weekTheme}</p>
+                <p className="text-zinc-200">{content.weekTitle}</p>
+                <p className="text-zinc-400">{content.weekTheme}</p>
               </>
             ) : (
               <div className="space-y-3">
@@ -146,9 +161,12 @@ export default async function JourneyPage() {
                   layer daily, throughout your full Journey.
                 </p>
 
-                <button className="mt-5 rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10">
+                <a
+                  href={PAYSTACK_MIRROR_URL}
+                  className="mt-5 inline-flex rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10"
+                >
                   Unlock Mirror — R720
-                </button>
+                </a>
               </div>
             </>
           ) : null}
