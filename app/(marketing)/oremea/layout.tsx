@@ -7,32 +7,28 @@ export default function OremeaLayout({
 }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      {/* Background images */}
       <div className="fixed inset-0">
         {/* Desktop background */}
         <div
-          className="hidden md:block absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
           style={{
-            backgroundImage: "url('/images/oremea-bg-desktop.webp')",
+            backgroundImage: "url('/images/desktop/oremea-bg-desktop.webp')",
           }}
         />
 
         {/* Mobile background */}
         <div
-          className="block md:hidden absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 block bg-cover bg-center bg-no-repeat md:hidden"
           style={{
-            backgroundImage: "url('/images/oremea-bg-mobile.webp')",
+            backgroundImage: "url('/images/mobile/oremea-bg-mobile.webp')",
           }}
         />
       </div>
 
-{/* Softer dark overlay */}
-<div className="fixed inset-0 bg-black/15" />
+      <div className="fixed inset-0 bg-black/15" />
 
-{/* Light cinematic warmth (subtle) */}
-<div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(214,160,88,0.12),transparent_45%),linear-gradient(to_bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.5))]" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(214,160,88,0.12),transparent_45%),linear-gradient(to_bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.5))]" />
 
-      {/* Content */}
       <div className="relative z-10 min-h-screen">{children}</div>
     </div>
   );

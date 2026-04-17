@@ -6,8 +6,11 @@ type PreWavePageProps = {
   };
 };
 
-function getPreWaveBackground() {
-  return "/images/bg-prewave.webp";
+function getPreWaveBackgrounds() {
+  return {
+    desktop: "/images/desktop/bg-prewave.webp",
+    mobile: "/images/mobile/bg-prewave.webp",
+  };
 }
 
 export default function PreWavePage({ searchParams }: PreWavePageProps) {
@@ -19,6 +22,8 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
   const journeyHref = pathway
     ? `/journey/unlock?pathway=${pathway}`
     : "/journey/unlock";
+
+  const backgrounds = getPreWaveBackgrounds();
 
   const mirrorIntro =
     pathway === "relate"
@@ -32,15 +37,19 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
-      <img
-        src={getPreWaveBackground()}
-        alt=""
-        className="fixed inset-0 h-full w-full object-cover"
+      <div
+        className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
+        style={{ backgroundImage: `url(${backgrounds.desktop})` }}
       />
 
-      <div className="pointer-events-none fixed inset-0 bg-black/45" />
+      <div
+        className="fixed inset-0 z-0 block bg-cover bg-center bg-no-repeat md:hidden"
+        style={{ backgroundImage: `url(${backgrounds.mobile})` }}
+      />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-12 md:py-16">
+      <div className="pointer-events-none fixed inset-0 z-10 bg-black/45" />
+
+      <div className="relative z-20 mx-auto max-w-4xl px-6 py-12 md:py-16">
         <div className="rounded-[2rem] border border-zinc-800/90 bg-black/55 p-6 backdrop-blur-[2px] md:p-8">
           <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">
             Pre-Wave
@@ -56,7 +65,6 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
             to be seen more clearly.
           </p>
 
-          {/* Mini Mirror teaser */}
           <div className="mt-10 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
               Early Mirror
@@ -80,7 +88,6 @@ export default function PreWavePage({ searchParams }: PreWavePageProps) {
             </p>
           </div>
 
-          {/* Journey green card */}
           <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
               Journey

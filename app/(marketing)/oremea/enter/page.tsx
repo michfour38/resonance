@@ -73,18 +73,7 @@ export default function OremeaEnterPage() {
     : "Your place is ready.";
 
   return (
-    <main className="relative h-screen overflow-hidden bg-black text-white">
-      {/* Static background */}
-      <img
-        src="/images/oremea-bg-desktop.webp"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/48" />
-
-      {/* Logo */}
+    <main className="relative min-h-screen text-white">
       <div className="pointer-events-none fixed left-1/2 top-6 z-20 -translate-x-1/2 text-center md:top-8">
         <img
           src="/images/oremea-logo-wht.png"
@@ -93,8 +82,7 @@ export default function OremeaEnterPage() {
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex h-full items-end justify-center px-6 pb-14 pt-28 md:pb-16 md:pt-32">
+      <div className="relative z-10 flex min-h-screen items-end justify-center px-6 pb-14 pt-28 md:pb-16 md:pt-32">
         <div
           className="w-full"
           style={{
