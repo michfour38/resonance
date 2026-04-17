@@ -78,7 +78,7 @@ function PathCard({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative h-[290px] overflow-hidden rounded-[30px] border transition duration-300 ${
+      className={`group relative h-[290px] w-full min-w-0 overflow-hidden rounded-[30px] border transition duration-300 ${
         selected
           ? "border-[#C8A96A] shadow-[0_0_28px_rgba(200,169,106,0.28)]"
           : "border-white/18 opacity-80 hover:opacity-100"
@@ -244,12 +244,13 @@ export default function OremeaBeginPage() {
       body="As your journey unfolds, the Mirror begins to reflect patterns, tensions, and emerging truths that are easy to miss from inside your own life."
     >
       <p className="text-sm italic leading-7 text-zinc-300">
-        Some reflections remain free. Deeper insight unlocks as the journey evolves.
+        Some reflections remain free. Deeper insight unlocks as the journey
+        evolves.
       </p>
     </PanelShell>,
 
     <PanelShell key="p5" className="pb-10 pt-20 md:pb-12 md:pt-20">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4">
         <PathCard
           title="Discover"
           words={["Innerstand", "yourself", "deeper"]}

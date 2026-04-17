@@ -1,7 +1,7 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { upsertEntryLead } from "./actions";
 
@@ -88,6 +88,8 @@ export default function OremeaEnterPage() {
     : "Your place is ready.";
 
   const returnToSelf = buildReturnToSelf();
+  const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnToSelf)}`;
+  const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnToSelf)}`;
 
   return (
     <main className="relative min-h-screen text-white">
@@ -127,31 +129,19 @@ export default function OremeaEnterPage() {
 
             <SignedOut>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <SignUpButton
-                  mode="redirect"
-                  forceRedirectUrl={returnToSelf}
-                  fallbackRedirectUrl={returnToSelf}
+                <a
+                  href={signUpHref}
+                  className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
                 >
-                  <button
-                    type="button"
-                    className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
-                  >
-                    Create account
-                  </button>
-                </SignUpButton>
+                  Create account
+                </a>
 
-                <SignInButton
-                  mode="redirect"
-                  forceRedirectUrl={returnToSelf}
-                  fallbackRedirectUrl={returnToSelf}
+                <a
+                  href={signInHref}
+                  className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
                 >
-                  <button
-                    type="button"
-                    className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/80 transition hover:bg-white/5"
-                  >
-                    Sign in
-                  </button>
-                </SignInButton>
+                  Sign in
+                </a>
               </div>
 
               <p className="mt-4 text-sm leading-7 text-white/50">
