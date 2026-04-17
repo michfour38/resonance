@@ -14,12 +14,13 @@ export async function POST(request: Request) {
   const cohortId = String(formData.get("cohortId") ?? "");
   const questionIndex = Number(formData.get("questionIndex"));
   const response = String(formData.get("response") ?? "").trim();
+  const returnTo = String(formData.get("returnTo") ?? "/prewave");
 
   if (!cohortId || !questionIndex || !response) {
-    return NextResponse.redirect(new URL("/journey", request.url));
+    return NextResponse.redirect(new URL("/prewave", request.url));
   }
 
   await savePreWaveResponse(userId, cohortId, questionIndex, response);
 
-  return NextResponse.redirect(new URL("/journey", request.url));
+  return NextResponse.redirect(new URL(returnTo, request.url));
 }

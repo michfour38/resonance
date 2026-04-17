@@ -11,13 +11,14 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const cohortId = String(url.searchParams.get("cohortId") ?? "");
-  const waveName = String(url.searchParams.get("waveName") ?? "");
+  const waveName = String(url.searchParams.get("waveName") ?? "").trim();
+  const returnTo = String(url.searchParams.get("returnTo") ?? "/prewave");
 
   if (!cohortId || !waveName) {
-    return NextResponse.redirect(new URL("/journey", request.url));
+    return NextResponse.redirect(new URL("/prewave", request.url));
   }
 
   await saveWaveNameVote(userId, cohortId, waveName);
 
-  return NextResponse.redirect(new URL("/journey", request.url));
+  return NextResponse.redirect(new URL(returnTo, request.url));
 }

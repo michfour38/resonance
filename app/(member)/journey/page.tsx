@@ -95,8 +95,6 @@ export default async function JourneyPage({
               {content?.weekTitle || "Journey Active"}
             </h1>
 
-            {paymentSuccess && (
-              <p className="text-green-400">Payment success confirmed</p>
             )}
 
             {content ? (
