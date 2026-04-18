@@ -41,36 +41,48 @@ export async function submitPromptAction(formData: FormData) {
 
   await completePrompt(promptId, userId, response, isShared);
 
-if (pathwayTransition === "discover_to_relate") {
-  await prisma.profiles.update({
-    where: { id: userId },
-    data: { pathway: "relate" },
-  });
-}
+  try {
+    if (pathwayTransition === "discover_to_relate") {
+      await prisma.profiles.update({
+        where: { id: userId },
+        data: { pathway: "relate" },
+      });
+    }
 
-if (pathwayTransition === "relate_to_discover") {
-  await prisma.profiles.update({
-    where: { id: userId },
-    data: { pathway: "discover" },
-  });
-}
-
-  const context = await getMemberWaveContext(userId);
-
-  if (
-    context.progression.phase === "CORE" ||
-    context.progression.phase === "INTEGRATION"
-  ) {
-    await markWaveDayComplete({
-      userId,
-      cohortId: context.wave.id,
-      weekNumber: context.progression.weekNumber!,
-      dayNumber: context.progression.dayNumber!,
-    });
+    if (pathwayTransition === "relate_to_discover") {
+      await prisma.profiles.update({
+        where: { id: userId },
+        data: { pathway: "discover" },
+      });
+    }
+  } catch (error) {
+    console.error("Pathway update failed:", error);
   }
 
-  signalResonanceOnCompletion(userId, promptId, response);
-  signalDepthAlignment(userId, promptId, response);
+  try {
+    const context = await getMemberWaveContext(userId);
+
+    if (
+      context.progression.phase === "CORE" ||
+      context.progression.phase === "INTEGRATION"
+    ) {
+      await markWaveDayComplete({
+        userId,
+        cohortId: context.wave.id,
+        weekNumber: context.progression.weekNumber!,
+        dayNumber: context.progression.dayNumber!,
+      });
+    }
+  } catch (error) {
+    console.error("Wave completion side effects failed:", error);
+  }
+
+  try {
+    signalResonanceOnCompletion(userId, promptId, response);
+    signalDepthAlignment(userId, promptId, response);
+  } catch (error) {
+    console.error("Signal side effects failed:", error);
+  }
 
   revalidatePath("/journey");
   redirect("/journey");

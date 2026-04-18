@@ -128,30 +128,25 @@ export default async function JourneyPage() {
 
         <div className="px-6 py-6">
           <div className="mx-auto max-w-2xl">
-            <header className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
-                Wave
-              </p>
-
-              <h1 className="text-3xl">{displayWaveName || "Your Wave"}</h1>
-
-              {content ? (
-                <>
-                  <p className="text-zinc-200">{content.weekTitle}</p>
-                  <p className="text-zinc-400">{content.weekTheme}</p>
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-zinc-300">Your Journey page is stable.</p>
-
-                  <p className="text-zinc-400">
-                    {contentLoadFailed
-                      ? "Journey content could not be loaded yet."
-                      : "Journey content is not available yet."}
-                  </p>
-                </div>
-              )}
-            </header>
+<header className="space-y-3">
+  {content ? (
+    <>
+      <h1 className="text-4xl text-white">{content.weekTitle}</h1>
+      <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+      <p className="text-zinc-400">{content.weekTheme}</p>
+    </>
+  ) : (
+    <div className="space-y-3">
+      <h1 className="text-4xl text-white">Journey Active</h1>
+      <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+      <p className="text-zinc-400">
+        {contentLoadFailed
+          ? "Journey content could not be loaded yet."
+          : "Journey content is not available yet."}
+      </p>
+    </div>
+  )}
+</header>
 
             {content ? (
               <>
