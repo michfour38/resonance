@@ -184,20 +184,23 @@ if (!testingOverride && progression.phase === "PRE_WAVE") {
     );
   }
 
-  let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
-  let contentLoadFailed = false;
+let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
+let contentLoadFailed = false;
 
-  try {
-    content = await getCurrentDayContent({
-      phase: progression.phase,
-      weekNumber: progression.weekNumber!,
-      dayNumber: progression.dayNumber!,
-      userId,
-    });
-  } catch (error) {
-    contentLoadFailed = true;
-    console.error("Journey content failed to load:", error);
-  }
+const journeyPhase =
+  progression.phase === "INTEGRATION" ? "INTEGRATION" : "CORE";
+
+try {
+  content = await getCurrentDayContent({
+    phase: journeyPhase,
+    weekNumber: progression.weekNumber!,
+    dayNumber: progression.dayNumber!,
+    userId,
+  });
+} catch (error) {
+  contentLoadFailed = true;
+  console.error("Journey content failed to load:", error);
+}
 
   const backgrounds = getJourneyBackgrounds(
     content?.weekNumber ?? progression.weekNumber ?? 1
