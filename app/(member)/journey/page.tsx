@@ -1,12 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getCurrentDayContent } from "@/app/(member)/journey/journey.service";
+import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
 import MemberNav from "../member-nav";
 import { isMirrorTierUnlocked } from "@/app/(member)/mirror/mirror-unlock.service";
+import MirrorOutput from "../mirror/mirror-output";
+import { getMirrorHistory } from "../mirror/mirror.service";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +55,10 @@ function getWinningWaveName(
   return sorted[0]?.[0] ?? fallbackWaveName;
 }
 
+function isJourneyMirrorUpsellEligible(weekNumber: number, dayNumber: number) {
+  return weekNumber > 1 || dayNumber >= 2;
+}
+
 export default async function JourneyPage() {
   const { userId } = await auth();
 
@@ -60,20 +66,11 @@ export default async function JourneyPage() {
     redirect("/sign-in");
   }
 
-  let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
-  let contentLoadFailed = false;
-
-  try {
-    content = await getCurrentDayContent(userId);
-  } catch (error) {
-    contentLoadFailed = true;
-    console.error("Journey content failed to load:", error);
-  }
-
   let displayWaveName = "Your Wave";
+  let waveContext: Awaited<ReturnType<typeof getMemberWaveContext>> | null = null;
 
   try {
-    const waveContext = await getMemberWaveContext(userId);
+    waveContext = await getMemberWaveContext(userId);
 
     if (waveContext?.wave?.id) {
       const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
@@ -87,25 +84,144 @@ export default async function JourneyPage() {
     console.error("Wave context failed:", error);
   }
 
-  const backgrounds = getJourneyBackgrounds(content?.weekNumber);
+  if (!waveContext) {
+    return (
+      <main className="relative min-h-screen overflow-x-hidden text-white">
+        <div
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat md:hidden"
+          style={{ backgroundImage: "url(/images/mobile/bg-hearth.webp)" }}
+        />
 
-  const mirrorUnlockHref =
-    content
-      ? `/mirror/unlock?weekNumber=${content.weekNumber}&dayNumber=${content.dayNumber}&tier=full`
-      : "/mirror/unlock?tier=full";
+        <div
+          className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
+          style={{ backgroundImage: "url(/images/desktop/bg-hearth.webp)" }}
+        />
 
+        <div className="fixed inset-0 z-10 bg-black/55" />
+
+        <div className="relative z-20 min-h-screen">
+          <MemberNav />
+
+          <div className="px-6 py-6">
+            <div className="mx-auto max-w-2xl">
+              <header className="space-y-3">
+                <h1 className="text-4xl text-white">Journey Active</h1>
+                <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                <p className="text-zinc-400">
+                  Journey content could not be loaded yet.
+                </p>
+              </header>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const progression = waveContext.progression;
+
+  if (progression.phase === "PRE_WAVE") {
+    redirect("/prewave");
+  }
+
+  if (progression.phase === "COMPLETED") {
+    const backgrounds = getJourneyBackgrounds(10);
+
+    return (
+      <main className="relative min-h-screen overflow-x-hidden text-white">
+        <div
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat md:hidden"
+          style={{ backgroundImage: `url(${backgrounds.mobile})` }}
+        />
+
+        <div
+          className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
+          style={{ backgroundImage: `url(${backgrounds.desktop})` }}
+        />
+
+        <div className="fixed inset-0 z-10 bg-black/55" />
+
+        <div className="relative z-20 min-h-screen">
+          <MemberNav />
+
+          <div className="px-6 py-6">
+            <div className="mx-auto max-w-2xl">
+              <header className="space-y-3">
+                <h1 className="text-4xl text-white">Journey Complete</h1>
+                <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                <p className="text-zinc-400">
+                  Your 10-week Resonance journey has completed.
+                </p>
+              </header>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
+  let contentLoadFailed = false;
+
+  try {
+    content = await getCurrentDayContent({
+      phase: progression.phase,
+      weekNumber: progression.weekNumber!,
+      dayNumber: progression.dayNumber!,
+      userId,
+    });
+  } catch (error) {
+    contentLoadFailed = true;
+    console.error("Journey content failed to load:", error);
+  }
+
+  const backgrounds = getJourneyBackgrounds(
+    content?.weekNumber ?? progression.weekNumber ?? 1
+  );
+
+  let liteMirrorEligible = false;
+  let fullMirrorEligible = false;
+  let liteMirrorUnlocked = false;
   let fullMirrorUnlocked = false;
+  let currentMirror = null;
+  let mirrorExerciseCompleted = false;
 
   if (content) {
     try {
+      mirrorExerciseCompleted = content.prompts.some(
+        (prompt) => prompt.type === "mirror_exercise" && prompt.isCompleted
+      );
+
+      // Leave current mirror gating behavior unchanged for now.
+      liteMirrorEligible = false;
+      fullMirrorEligible = isJourneyMirrorUpsellEligible(
+        content.weekNumber,
+        content.dayNumber
+      );
+
+      liteMirrorUnlocked = await isMirrorTierUnlocked({
+        userId,
+        weekNumber: content.weekNumber,
+        dayNumber: content.dayNumber,
+        tier: "lite",
+      });
+
       fullMirrorUnlocked = await isMirrorTierUnlocked({
         userId,
         weekNumber: content.weekNumber,
         dayNumber: content.dayNumber,
         tier: "full",
       });
+
+      const mirrorHistory = await getMirrorHistory(userId);
+      currentMirror =
+        mirrorHistory.find(
+          (entry) =>
+            entry.weekNumber === content.weekNumber &&
+            entry.dayNumber === content.dayNumber
+        ) ?? null;
     } catch (error) {
-      console.error("Mirror unlock check failed:", error);
+      console.error("Mirror state failed:", error);
     }
   }
 
@@ -128,25 +244,25 @@ export default async function JourneyPage() {
 
         <div className="px-6 py-6">
           <div className="mx-auto max-w-2xl">
-<header className="space-y-3">
-  {content ? (
-    <>
-      <h1 className="text-4xl text-white">{content.weekTitle}</h1>
-      <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
-      <p className="text-zinc-400">{content.weekTheme}</p>
-    </>
-  ) : (
-    <div className="space-y-3">
-      <h1 className="text-4xl text-white">Journey Active</h1>
-      <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
-      <p className="text-zinc-400">
-        {contentLoadFailed
-          ? "Journey content could not be loaded yet."
-          : "Journey content is not available yet."}
-      </p>
-    </div>
-  )}
-</header>
+            <header className="space-y-3">
+              {content ? (
+                <>
+                  <h1 className="text-4xl text-white">{content.weekTitle}</h1>
+                  <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                  <p className="text-zinc-400">{content.weekTheme}</p>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <h1 className="text-4xl text-white">Journey Active</h1>
+                  <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                  <p className="text-zinc-400">
+                    {contentLoadFailed
+                      ? "Journey content could not be loaded yet."
+                      : "Journey content is not available yet."}
+                  </p>
+                </div>
+              )}
+            </header>
 
             {content ? (
               <>
@@ -172,7 +288,19 @@ export default async function JourneyPage() {
                   })}
                 </div>
 
-             </>
+                <div className="mt-10">
+                  <MirrorOutput
+                    weekNumber={content.weekNumber}
+                    dayNumber={content.dayNumber}
+                    liteMirrorEligible={liteMirrorEligible}
+                    fullMirrorEligible={fullMirrorEligible}
+                    liteMirrorUnlocked={liteMirrorUnlocked}
+                    fullMirrorUnlocked={fullMirrorUnlocked}
+                    mirror={currentMirror}
+                    mirrorExerciseCompleted={mirrorExerciseCompleted}
+                  />
+                </div>
+              </>
             ) : null}
           </div>
         </div>
