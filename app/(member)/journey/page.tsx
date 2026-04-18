@@ -172,48 +172,7 @@ export default async function JourneyPage() {
                   })}
                 </div>
 
-                {!fullMirrorUnlocked ? (
-                  <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-                    <p className="text-sm text-zinc-400">Mirror</p>
-
-                    <p className="mt-3 text-lg text-white">
-                      A premium reflection layer woven daily from your Journey.
-                    </p>
-
-                    <p className="mt-2 text-sm text-zinc-300">
-                      Receive deeper pattern-based reflections across what you
-                      share, so remember — the more you share the more you
-                      receive. Including themes, contradictions, emotional
-                      loops, and emerging growth over time.
-                    </p>
-
-                    <p className="mt-2 text-sm text-zinc-400">
-                      Your current Journey includes one deeper Mirror reflection
-                      at the end of your 10 week. Mirror access unlocks this
-                      reflective layer daily, throughout your full Journey.
-                    </p>
-
-                    <a
-                      href={mirrorUnlockHref}
-                      className="mt-5 inline-flex rounded-full border border-white/20 px-5 py-2 text-sm text-white transition hover:bg-white/10"
-                    >
-                      Unlock Mirror — R720
-                    </a>
-                  </div>
-                ) : (
-                  <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-                    <p className="text-sm text-zinc-400">Mirror</p>
-
-                    <p className="mt-3 text-lg text-white">
-                      Mirror is unlocked across your Journey.
-                    </p>
-
-                    <p className="mt-2 text-sm text-zinc-400">
-                      Your deeper reflective layer is active.
-                    </p>
-                  </div>
-                )}
-              </>
+             </>
             ) : null}
           </div>
         </div>
