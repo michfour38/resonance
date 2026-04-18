@@ -59,6 +59,19 @@ function isJourneyMirrorUpsellEligible(weekNumber: number, dayNumber: number) {
   return weekNumber > 1 || dayNumber >= 2;
 }
 
+// 🔒🔒🔒 TESTING DAY LOCK — REMOVE BEFORE PRODUCTION 🔒🔒🔒
+function getTestingJourneyOverride() {
+  const enabled = true;
+
+  if (!enabled) return null;
+
+  return {
+    phase: "CORE" as const,
+    weekNumber: 1,
+    dayNumber: 1,
+  };
+}
+
 export default async function JourneyPage() {
   const { userId } = await auth();
 
@@ -118,11 +131,22 @@ export default async function JourneyPage() {
     );
   }
 
-  const progression = waveContext.progression;
+  const testingOverride = getTestingJourneyOverride();
 
-  if (progression.phase === "PRE_WAVE") {
-    redirect("/prewave");
-  }
+console.log("TEST LOCK ACTIVE", testingOverride);
+
+const progression = testingOverride
+  ? {
+      ...waveContext.progression,
+      phase: testingOverride.phase,
+      weekNumber: testingOverride.weekNumber,
+      dayNumber: testingOverride.dayNumber,
+    }
+  : waveContext.progression;
+
+if (!testingOverride && progression.phase === "PRE_WAVE") {
+  redirect("/prewave");
+}
 
   if (progression.phase === "COMPLETED") {
     const backgrounds = getJourneyBackgrounds(10);
