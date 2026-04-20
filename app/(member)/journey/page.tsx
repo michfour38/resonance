@@ -85,6 +85,21 @@ export default async function JourneyPage() {
   try {
     waveContext = await getMemberWaveContext(userId);
 
+import { prisma } from "@/lib/prisma";
+
+const user = await prisma.entry_leads.findFirst({
+  where: {
+    email: waveContext?.membership?.email ?? undefined,
+  },
+  select: {
+    journey_access_granted: true,
+  },
+});
+
+if (!user?.journey_access_granted) {
+  redirect("/journey/unlock");
+}
+
     if (waveContext?.wave?.id) {
       const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
 
