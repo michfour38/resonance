@@ -139,3 +139,64 @@ export async function syncEntryAccessWindow(input?: {
     };
   }
 }
+
+export async function getEntryResumeState(input?: {
+  email?: string;
+}) {
+  const signedInEmail = await getSignedInEmail();
+  const fallbackEmail = normalizeEmail(input?.email);
+  const email = signedInEmail || fallbackEmail;
+
+  if (!email) {
+    return {
+      email: null as string | null,
+      hasAccess: false,
+      destination: "pay" as const,
+    };
+  }
+
+  try {
+    const lead = await prisma.entry_leads.findUnique({
+      where: { email },
+      select: {
+        entry_access_expires_at: true,
+        intro_completed_at: true,
+      },
+    });
+
+    const hasAccess = Boolean(
+      lead?.entry_access_expires_at &&
+        lead.entry_access_expires_at.getTime() > Date.now()
+    );
+
+    if (!hasAccess) {
+      return {
+        email,
+        hasAccess: false,
+        destination: "pay" as const,
+      };
+    }
+
+    if (lead?.intro_completed_at) {
+      return {
+        email,
+        hasAccess: true,
+        destination: "prewave" as const,
+      };
+    }
+
+    return {
+      email,
+      hasAccess: true,
+      destination: "begin" as const,
+    };
+  } catch (error) {
+    console.error("Entry resume state failed:", error);
+
+    return {
+      email,
+      hasAccess: false,
+      destination: "pay" as const,
+    };
+  }
+}

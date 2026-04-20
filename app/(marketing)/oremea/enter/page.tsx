@@ -3,7 +3,7 @@
 import { Playfair_Display } from "next/font/google";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { upsertEntryLead } from "./actions";
+import { getEntryResumeState, upsertEntryLead } from "./actions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -65,6 +65,16 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/begin?${query}` : "/oremea/begin";
   }
 
+  function buildPrewaveHref() {
+    const params = new URLSearchParams();
+
+    if (leadEmail) params.set("email", leadEmail);
+    if (source) params.set("source", source);
+
+    const query = params.toString();
+    return query ? `/prewave?${query}` : "/prewave";
+  }
+
   function buildReturnToSelf() {
     const params = new URLSearchParams();
 
@@ -76,25 +86,36 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
-function handleContinue() {
-  if (isContinuing) return;
+  async function handleContinue() {
+    if (isContinuing) return;
 
-  setIsContinuing(true);
+    setIsContinuing(true);
 
-  const params = new URLSearchParams();
+    const params = new URLSearchParams();
 
-  if (firstName) params.set("name", firstName);
-  if (leadEmail) params.set("email", leadEmail);
-  if (source) params.set("source", source);
+    if (firstName) params.set("name", firstName);
+    if (leadEmail) params.set("email", leadEmail);
+    if (source) params.set("source", source);
 
-  const query = params.toString();
+    const query = params.toString();
+    const paystackUrl = "https://paystack.shop/pay/hpklna7iux";
 
-  const paystackUrl = "https://paystack.shop/pay/hpklna7iux";
+    const resume = await getEntryResumeState({
+      email: leadEmail || undefined,
+    });
 
-  window.location.href = query
-    ? `${paystackUrl}?${query}`
-    : paystackUrl;
-}
+    if (resume.destination === "begin") {
+      window.location.href = buildBeginHref();
+      return;
+    }
+
+    if (resume.destination === "prewave") {
+      window.location.href = buildPrewaveHref();
+      return;
+    }
+
+    window.location.href = query ? `${paystackUrl}?${query}` : paystackUrl;
+  }
 
   const heading = firstName
     ? `${firstName}, your place is ready.`
