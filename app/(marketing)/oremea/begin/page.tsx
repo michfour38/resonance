@@ -429,10 +429,6 @@ if (resume.destination === "pay") {
     return (
       <main className="relative h-screen overflow-hidden">
 
-<div className="fixed left-4 top-4 z-[9999] rounded bg-red-600 px-3 py-2 text-white text-sm">
-  BEGIN PAGE LIVE TEST
-</div>
-
         <div className="pointer-events-none fixed left-1/2 top-4 z-20 -translate-x-1/2 text-center md:top-5">
           <div
             className="flex flex-col items-center"
