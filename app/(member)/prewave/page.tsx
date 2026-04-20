@@ -106,7 +106,6 @@ export default async function PreWavePage({
   const unlockedCount = getUnlockedPreWaveCount(waveContext.wave.startsAt);
   const showJourneyUnlock = new Date() >= waveContext.wave.startsAt;
 
-  const saved = searchParams?.saved === "1";
   const voted = searchParams?.voted === "1";
 
   const backgrounds = getPreWaveBackgrounds();
@@ -123,6 +122,22 @@ export default async function PreWavePage({
     count: voteCounts.get(name) ?? 0,
     selected: existingVote?.wave_name === name,
   }));
+
+  const currentGroupFavorite =
+    voteEntries.reduce<(typeof voteEntries)[number] | null>((leader, entry) => {
+      if (!leader) return entry;
+      if (entry.count > leader.count) return entry;
+      return leader;
+    }, null)?.count && voteEntries.some((entry) => entry.count > 0)
+      ? voteEntries.reduce<(typeof voteEntries)[number] | null>(
+          (leader, entry) => {
+            if (!leader) return entry;
+            if (entry.count > leader.count) return entry;
+            return leader;
+          },
+          null
+        )?.name ?? "Not chosen yet"
+      : "Not chosen yet";
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
@@ -158,6 +173,10 @@ export default async function PreWavePage({
             <h2 className="mt-2 text-2xl font-semibold text-white">
               {waveContext.wave.name}
             </h2>
+            <p className="mt-3 text-sm uppercase tracking-[0.2em] text-zinc-400">
+              CURRENT GROUP FAVORITE:{" "}
+              <span className="text-[#f1dfb4]">{currentGroupFavorite}</span>
+            </p>
           </div>
 
           <div className="mt-8 space-y-4">
@@ -181,10 +200,6 @@ export default async function PreWavePage({
               );
             })}
           </div>
-
-          {saved ? (
-            <p className="mt-4 text-xs text-[#f1dfb4]">Reflection saved.</p>
-          ) : null}
 
           <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
