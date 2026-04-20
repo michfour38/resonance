@@ -16,10 +16,14 @@ export async function GET(request: Request) {
   const dayNumber = Number(url.searchParams.get("dayNumber") ?? "0");
 
   if (!weekNumber || !dayNumber) {
-    return NextResponse.redirect(`${APP_URL}/journey`);
+    return NextResponse.redirect(`${APP_URL}/journey?mirror=invalid`);
   }
 
-  await runMirrorSynthesis(userId, weekNumber, dayNumber);
+  const result = await runMirrorSynthesis(userId, weekNumber, dayNumber);
 
-  return NextResponse.redirect(`${APP_URL}/journey`);
+  if (!result) {
+    return NextResponse.redirect(`${APP_URL}/journey?mirror=error`);
+  }
+
+  return NextResponse.redirect(`${APP_URL}/journey?mirror=success`);
 }
