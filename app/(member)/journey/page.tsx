@@ -13,6 +13,8 @@ import { getMirrorHistory } from "../mirror/mirror.service";
 
 export const dynamic = "force-dynamic";
 
+const PAYSTACK_CURRENT_URL = "https://paystack.shop/pay/ey9b56zykb";
+
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() || "";
 }
@@ -252,7 +254,6 @@ export default async function JourneyPage() {
         (prompt) => prompt.type === "mirror_exercise" && prompt.isCompleted
       );
 
-      // Leave current mirror gating behavior unchanged for now.
       liteMirrorEligible = false;
       fullMirrorEligible = isJourneyMirrorUpsellEligible(
         content.weekNumber,
@@ -284,6 +285,14 @@ export default async function JourneyPage() {
       console.error("Mirror state failed:", error);
     }
   }
+
+  const showCurrentUnlockCard = Boolean(
+    content &&
+      content.weekNumber === 10 &&
+      content.dayNumber === 7 &&
+      mirrorExerciseCompleted &&
+      currentMirror
+  );
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
@@ -360,6 +369,48 @@ export default async function JourneyPage() {
                     mirrorExerciseCompleted={mirrorExerciseCompleted}
                   />
                 </div>
+
+                {showCurrentUnlockCard ? (
+                  <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
+                    <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
+                      The Current
+                    </p>
+
+                    <h2 className="mt-3 text-2xl font-semibold text-white">
+                      You’re ready for The Current.
+                    </h2>
+
+                    <p className="mt-4 text-base leading-8 text-zinc-100">
+                      Over the course of this journey, something in you has
+                      clarified.
+                    </p>
+
+                    <p className="mt-4 text-base leading-8 text-zinc-200">
+                      Not everyone reaches this point with the same honesty,
+                      steadiness, or willingness to be changed by what they’ve
+                      seen.
+                    </p>
+
+                    <p className="mt-4 text-base leading-8 text-zinc-200">
+                      What may be opening now is a quiet readiness to meet
+                      others more deeply, from where you are now.
+                    </p>
+
+                    <p className="mt-4 text-base leading-8 text-zinc-200">
+                      The Current is a space for people who have done the work —
+                      and want to meet others who have done the same.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <a
+                        href={PAYSTACK_CURRENT_URL}
+                        className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+                      >
+                        Enter The Current — R900
+                      </a>
+                    </div>
+                  </div>
+                ) : null}
               </>
             ) : null}
           </div>
