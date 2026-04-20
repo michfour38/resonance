@@ -79,14 +79,14 @@ function isJourneyMirrorUpsellEligible(weekNumber: number, dayNumber: number) {
 
 // 🔒🔒🔒 TESTING DAY LOCK — REMOVE BEFORE PRODUCTION 🔒🔒🔒
 function getTestingJourneyOverride() {
-  const enabled = false;
+  const enabled = true;
 
   if (!enabled) return null;
 
   return {
     phase: "CORE" as const,
-    weekNumber: 2,
-    dayNumber: 1,
+    weekNumber: 10,
+    dayNumber: 7,
   };
 }
 
