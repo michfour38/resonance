@@ -212,10 +212,11 @@ const params = new URLSearchParams(window.location.search);
 
       if (cancelled) return;
 
-      if (resume.destination === "pay") {
-        window.location.href = buildEnterHref();
-        return;
-      }
+if (resume.destination === "pay") {
+  setHasAccess(false);
+  setAccessResolved(true);
+  return;
+}
 
       if (resume.destination === "prewave") {
         window.location.href = buildPrewaveHref();
