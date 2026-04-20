@@ -1,5 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
@@ -11,6 +12,21 @@ import MirrorOutput from "../mirror/mirror-output";
 import { getMirrorHistory } from "../mirror/mirror.service";
 
 export const dynamic = "force-dynamic";
+
+function normalizeEmail(email?: string | null) {
+  return email?.trim().toLowerCase() || "";
+}
+
+async function getSignedInEmail() {
+  const user = await currentUser();
+
+  const primaryEmail =
+    user?.emailAddresses.find(
+      (email) => email.id === user.primaryEmailAddressId
+    )?.emailAddress ?? user?.emailAddresses[0]?.emailAddress ?? "";
+
+  return normalizeEmail(primaryEmail);
+}
 
 function getJourneyBackgrounds(weekNumber?: number) {
   const desktopMap: Record<number, string> = {
@@ -79,26 +95,28 @@ export default async function JourneyPage() {
     redirect("/sign-in");
   }
 
+  const signedInEmail = await getSignedInEmail();
+
+  if (!signedInEmail) {
+    redirect("/journey/unlock");
+  }
+
+  const journeyAccess = await prisma.entry_leads.findUnique({
+    where: { email: signedInEmail },
+    select: {
+      journey_access_granted: true,
+    },
+  });
+
+  if (!journeyAccess?.journey_access_granted) {
+    redirect("/journey/unlock");
+  }
+
   let displayWaveName = "Your Wave";
   let waveContext: Awaited<ReturnType<typeof getMemberWaveContext>> | null = null;
 
   try {
     waveContext = await getMemberWaveContext(userId);
-
-import { prisma } from "@/lib/prisma";
-
-const user = await prisma.entry_leads.findFirst({
-  where: {
-    email: waveContext?.membership?.email ?? undefined,
-  },
-  select: {
-    journey_access_granted: true,
-  },
-});
-
-if (!user?.journey_access_granted) {
-  redirect("/journey/unlock");
-}
 
     if (waveContext?.wave?.id) {
       const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
@@ -148,20 +166,20 @@ if (!user?.journey_access_granted) {
 
   const testingOverride = getTestingJourneyOverride();
 
-console.log("TEST LOCK ACTIVE", testingOverride);
+  console.log("TEST LOCK ACTIVE", testingOverride);
 
-const progression = testingOverride
-  ? {
-      ...waveContext.progression,
-      phase: testingOverride.phase,
-      weekNumber: testingOverride.weekNumber,
-      dayNumber: testingOverride.dayNumber,
-    }
-  : waveContext.progression;
+  const progression = testingOverride
+    ? {
+        ...waveContext.progression,
+        phase: testingOverride.phase,
+        weekNumber: testingOverride.weekNumber,
+        dayNumber: testingOverride.dayNumber,
+      }
+    : waveContext.progression;
 
-if (!testingOverride && progression.phase === "PRE_WAVE") {
-  redirect("/prewave");
-}
+  if (!testingOverride && progression.phase === "PRE_WAVE") {
+    redirect("/prewave");
+  }
 
   if (progression.phase === "COMPLETED") {
     const backgrounds = getJourneyBackgrounds(10);
@@ -199,23 +217,23 @@ if (!testingOverride && progression.phase === "PRE_WAVE") {
     );
   }
 
-let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
-let contentLoadFailed = false;
+  let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
+  let contentLoadFailed = false;
 
-const journeyPhase =
-  progression.phase === "INTEGRATION" ? "INTEGRATION" : "CORE";
+  const journeyPhase =
+    progression.phase === "INTEGRATION" ? "INTEGRATION" : "CORE";
 
-try {
-  content = await getCurrentDayContent({
-    phase: journeyPhase,
-    weekNumber: progression.weekNumber!,
-    dayNumber: progression.dayNumber!,
-    userId,
-  });
-} catch (error) {
-  contentLoadFailed = true;
-  console.error("Journey content failed to load:", error);
-}
+  try {
+    content = await getCurrentDayContent({
+      phase: journeyPhase,
+      weekNumber: progression.weekNumber!,
+      dayNumber: progression.dayNumber!,
+      userId,
+    });
+  } catch (error) {
+    contentLoadFailed = true;
+    console.error("Journey content failed to load:", error);
+  }
 
   const backgrounds = getJourneyBackgrounds(
     content?.weekNumber ?? progression.weekNumber ?? 1
