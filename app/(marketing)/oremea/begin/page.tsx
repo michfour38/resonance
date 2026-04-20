@@ -181,9 +181,10 @@ export default function OremeaBeginPage() {
 
     async function resolveAccess() {
       if (paymentSuccess) {
-        await syncEntryAccessWindow({
-          paymentSuccess: true,
-        });
+await syncEntryAccessWindow({
+  email: email || undefined,
+  paymentSuccess: true,
+});
       }
 
       const resume = await getEntryResumeState({
