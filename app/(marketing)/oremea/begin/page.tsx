@@ -3,6 +3,7 @@
 import { Playfair_Display } from "next/font/google";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
+  getEntryResumeState,
   syncEntryAccessWindow,
   updateEntryLeadPathway,
 } from "../enter/actions";
@@ -148,28 +149,56 @@ export default function OremeaBeginPage() {
 
     let cancelled = false;
 
+    function buildEnterHref() {
+      const returnParams = new URLSearchParams();
+      const name = params.get("name")?.trim() || "";
+      const source = params.get("source")?.trim() || "";
+
+      if (name) returnParams.set("name", name);
+      if (email) returnParams.set("email", email);
+      if (source) returnParams.set("source", source);
+
+      const query = returnParams.toString();
+      return query ? `/oremea/enter?${query}` : "/oremea/enter";
+    }
+
+    function buildPrewaveHref() {
+      const prewaveParams = new URLSearchParams();
+      const source = params.get("source")?.trim() || "";
+
+      if (source) prewaveParams.set("source", source);
+
+      const query = prewaveParams.toString();
+      return query ? `/prewave?${query}` : "/prewave";
+    }
+
+    function cleanBeginUrl() {
+      params.delete("payment");
+      const cleaned = params.toString();
+      const cleanedUrl = cleaned ? `/oremea/begin?${cleaned}` : "/oremea/begin";
+      window.history.replaceState({}, "", cleanedUrl);
+    }
+
     async function resolveAccess() {
-      const result = await syncEntryAccessWindow({
+      if (paymentSuccess) {
+        await syncEntryAccessWindow({
+          paymentSuccess: true,
+        });
+      }
+
+      const resume = await getEntryResumeState({
         email: email || undefined,
-        paymentSuccess,
       });
 
       if (cancelled) return;
 
-      if (!result.hasAccess) {
-        const returnParams = new URLSearchParams();
+      if (resume.destination === "pay") {
+        window.location.href = buildEnterHref();
+        return;
+      }
 
-        const name = params.get("name")?.trim() || "";
-        const source = params.get("source")?.trim() || "";
-
-        if (name) returnParams.set("name", name);
-        if (email) returnParams.set("email", email);
-        if (source) returnParams.set("source", source);
-
-        const query = returnParams.toString();
-        const returnTo = query ? `/oremea/enter?${query}` : "/oremea/enter";
-
-        window.location.href = returnTo;
+      if (resume.destination === "prewave") {
+        window.location.href = buildPrewaveHref();
         return;
       }
 
@@ -177,10 +206,7 @@ export default function OremeaBeginPage() {
       setAccessResolved(true);
 
       if (paymentSuccess) {
-        params.delete("payment");
-        const cleaned = params.toString();
-        const cleanedUrl = cleaned ? `/oremea/begin?${cleaned}` : "/oremea/begin";
-        window.history.replaceState({}, "", cleanedUrl);
+        cleanBeginUrl();
       }
     }
 
