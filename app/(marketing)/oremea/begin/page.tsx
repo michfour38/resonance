@@ -167,6 +167,7 @@ export default function OremeaBeginPage() {
       const source = params.get("source")?.trim() || "";
 
       if (source) prewaveParams.set("source", source);
+      if (email) prewaveParams.set("email", email);
 
       const query = prewaveParams.toString();
       return query ? `/prewave?${query}` : "/prewave";
@@ -181,10 +182,26 @@ export default function OremeaBeginPage() {
 
     async function resolveAccess() {
       if (paymentSuccess) {
-await syncEntryAccessWindow({
-  email: email || undefined,
-  paymentSuccess: true,
-});
+        const access = await syncEntryAccessWindow({
+          email: email || undefined,
+          paymentSuccess: true,
+        });
+
+        if (cancelled) return;
+
+        if (access.hasAccess) {
+          setHasAccess(true);
+          setAccessResolved(true);
+          cleanBeginUrl();
+          return;
+        }
+
+        // Critical stabilization fix:
+        // if payment success is present but access cannot be resolved immediately,
+        // stay on /oremea/begin instead of bouncing back into the pay loop.
+        setHasAccess(false);
+        setAccessResolved(true);
+        return;
       }
 
       const resume = await getEntryResumeState({
@@ -205,10 +222,6 @@ await syncEntryAccessWindow({
 
       setHasAccess(true);
       setAccessResolved(true);
-
-      if (paymentSuccess) {
-        cleanBeginUrl();
-      }
     }
 
     resolveAccess();
@@ -290,7 +303,13 @@ await syncEntryAccessWindow({
     if (!selectedPath || isEntering || !hasAccess) return;
 
     setIsEntering(true);
-    window.location.href = `/prewave?pathway=${selectedPath}`;
+
+    const prewaveParams = new URLSearchParams();
+    prewaveParams.set("pathway", selectedPath);
+    if (leadEmail) prewaveParams.set("email", leadEmail);
+
+    const query = prewaveParams.toString();
+    window.location.href = query ? `/prewave?${query}` : "/prewave";
   }
 
   const panels = [
@@ -394,6 +413,13 @@ await syncEntryAccessWindow({
         >
           {isEntering ? <LoadingDots /> : "Enter Resonance"}
         </button>
+
+        {accessResolved && !hasAccess ? (
+          <p className="text-sm leading-7 text-white/60">
+            Your payment has returned, but entry access has not attached yet.
+            Stay on this page for now — do not repay.
+          </p>
+        ) : null}
       </div>
     </PanelShell>,
   ];
