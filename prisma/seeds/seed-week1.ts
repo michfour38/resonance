@@ -19,24 +19,24 @@ export async function seedWeek1() {
     );
   }
 
-const week = await prisma.journey_weeks.upsert({
-  where: {
-    week_number: 1
-  },
-  update: {
-    room_id: room.id,
-    title: "The Hearth",
-    theme: "Belonging & relational safety",
-    is_published: true
-  },
-  create: {
-    room_id: room.id,
-    week_number: 1,
-    title: "The Hearth",
-    theme: "Belonging & relational safety",
-    is_published: true
-  }
-});
+  const week = await prisma.journey_weeks.upsert({
+    where: {
+      week_number: 1,
+    },
+    update: {
+      room_id: room.id,
+      title: "The Hearth",
+      theme: "Belonging & relational safety",
+      is_published: true,
+    },
+    create: {
+      room_id: room.id,
+      week_number: 1,
+      title: "The Hearth",
+      theme: "Belonging & relational safety",
+      is_published: true,
+    },
+  });
 
   const days = [
     {
@@ -103,7 +103,8 @@ const week = await prisma.journey_weeks.upsert({
           prompt_order: 4,
           type: "thread_prompt",
           label: "",
-          content: "What do you tend to do when you don’t feel like you belong?",
+          content:
+            "What do you tend to do when you don’t feel like you belong?",
         },
         {
           prompt_order: 5,
@@ -144,7 +145,7 @@ const week = await prisma.journey_weeks.upsert({
           prompt_order: 5,
           type: "mirror_exercise",
           label: "",
-          content: "The part of me that is easiest to show is…",
+          content: "When I feel safe enough to be fully seen, I notice that I…",
         },
       ],
     },
@@ -230,7 +231,7 @@ const week = await prisma.journey_weeks.upsert({
           type: "thread_prompt",
           label: "",
           content:
-            "What do you need more of to feel safe being yourself around others?",
+            "What do you tend to need most after you’ve shared something real or vulnerable?",
         },
         {
           prompt_order: 2,
@@ -249,13 +250,13 @@ const week = await prisma.journey_weeks.upsert({
           type: "thread_prompt",
           label: "",
           content:
-            "What makes it easier or harder for you to express what you need?",
+            "What makes it easier or harder for you to ask directly for what you need?",
         },
         {
           prompt_order: 5,
           type: "mirror_exercise",
           label: "",
-          content: "Something I need more of in connection is…",
+          content: "A need I often carry quietly is…",
         },
       ],
     },

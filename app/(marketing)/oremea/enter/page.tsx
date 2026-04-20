@@ -76,12 +76,25 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
-  function handleContinue() {
-    if (isContinuing) return;
+function handleContinue() {
+  if (isContinuing) return;
 
-    setIsContinuing(true);
-    window.location.href = buildBeginHref();
-  }
+  setIsContinuing(true);
+
+  const params = new URLSearchParams();
+
+  if (firstName) params.set("name", firstName);
+  if (leadEmail) params.set("email", leadEmail);
+  if (source) params.set("source", source);
+
+  const query = params.toString();
+
+  const paystackUrl = "https://paystack.shop/pay/hpklna7iux";
+
+  window.location.href = query
+    ? `${paystackUrl}?${query}`
+    : paystackUrl;
+}
 
   const heading = firstName
     ? `${firstName}, your place is ready.`

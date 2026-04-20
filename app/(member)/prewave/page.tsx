@@ -2,12 +2,21 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getHoldingContent } from "@/src/lib/wave/wave.holding";
-import { getPreWaveQuestions, getUnlockedPreWaveCount } from "@/src/lib/wave/prewave.service";
-import { getPreWaveResponses } from "@/src/lib/wave/prewave-response.service";
+import {
+  getPreWaveQuestions,
+  getUnlockedPreWaveCount,
+} from "@/src/lib/wave/prewave.service";
+import {
+  getPreWaveResponses,
+  savePreWaveResponse,
+} from "@/src/lib/wave/prewave-response.service";
 import {
   getUserWaveNameVote,
   getWaveNameVoteCounts,
+  saveWaveNameVote,
 } from "@/src/lib/wave/wave-name-vote.service";
+import { syncEntryAccessWindow } from "@/app/(marketing)/oremea/enter/actions";
+import PreWavePromptCard from "./prewave-prompt-card";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +38,62 @@ function getPreWaveBackgrounds() {
 export default async function PreWavePage({
   searchParams,
 }: PreWavePageProps) {
+  async function savePreWaveResponseAction(formData: FormData) {
+    "use server";
+
+    const { userId } = await auth();
+
+    if (!userId) {
+      redirect("/sign-in");
+    }
+
+    const cohortId = String(formData.get("cohortId") ?? "");
+    const questionIndex = Number(formData.get("questionIndex"));
+    const response = String(formData.get("response") ?? "").trim();
+    const returnTo = String(formData.get("returnTo") ?? "/prewave");
+
+    if (!cohortId || !questionIndex || !response) {
+      redirect("/prewave");
+    }
+
+    await savePreWaveResponse(userId, cohortId, questionIndex, response);
+
+    redirect(returnTo.startsWith("/") ? returnTo : "/prewave");
+  }
+
+  async function saveWaveNameVoteAction(formData: FormData) {
+    "use server";
+
+    const { userId } = await auth();
+
+    if (!userId) {
+      redirect("/sign-in");
+    }
+
+    const cohortId = String(formData.get("cohortId") ?? "");
+    const waveName = String(formData.get("waveName") ?? "").trim();
+    const returnTo = String(formData.get("returnTo") ?? "/prewave");
+
+    if (!cohortId || !waveName) {
+      redirect("/prewave");
+    }
+
+    await saveWaveNameVote(userId, cohortId, waveName);
+
+    redirect(returnTo.startsWith("/") ? returnTo : "/prewave");
+  }
+
   const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
+  }
+
+  const entryAccess = await syncEntryAccessWindow();
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (!isDev && !entryAccess.hasAccess) {
+    redirect("/oremea/enter");
   }
 
   const waveContext = await getMemberWaveContext(userId);
@@ -49,7 +110,8 @@ export default async function PreWavePage({
   const voted = searchParams?.voted === "1";
 
   const backgrounds = getPreWaveBackgrounds();
-  const pathway = waveContext.membership.pathway ?? searchParams?.pathway ?? "discover";
+  const pathway =
+    waveContext.membership.pathway ?? searchParams?.pathway ?? "discover";
 
   const mirrorTeaser =
     pathway === "relate"
@@ -102,77 +164,27 @@ export default async function PreWavePage({
             {questions.map((question, index) => {
               const questionNumber = index + 1;
               const unlocked = questionNumber <= unlockedCount;
-              const existingResponse = responses.get(questionNumber)?.response ?? "";
+              const existingResponse =
+                responses.get(questionNumber)?.response ?? "";
 
               return (
-                <div
+                <PreWavePromptCard
                   key={questionNumber}
-                  className="rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8"
-                >
-                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
-                    Reflection {questionNumber} of 6
-                  </p>
-
-                  <h2 className="mt-3 text-2xl font-semibold text-white">
-                    {question}
-                  </h2>
-
-                  {unlocked ? (
-                    <form
-                      action="/api/prewave-response"
-                      method="POST"
-                      className="mt-6"
-                    >
-                      <input type="hidden" name="cohortId" value={waveContext.wave.id} />
-                      <input type="hidden" name="questionIndex" value={questionNumber} />
-                      <input
-                        type="hidden"
-                        name="returnTo"
-                        value={`/prewave?pathway=${pathway}&saved=1`}
-                      />
-
-                      <textarea
-                        name="response"
-                        defaultValue={existingResponse}
-                        rows={6}
-                        className="w-full resize-none rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
-                        placeholder="Write what feels true..."
-                      />
-
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <button
-                          type="submit"
-                          className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
-                        >
-                          Save reflection
-                        </button>
-
-                        {saved && questionNumber === unlockedCount ? (
-                          <p className="text-xs text-[#f1dfb4]">
-                            Reflection saved.
-                          </p>
-                        ) : null}
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="mt-6 relative overflow-hidden rounded-2xl border border-white/10 bg-black/25 p-6">
-                      <div className="blur-sm opacity-45">
-                        <div className="h-5 w-40 rounded bg-white/10" />
-                        <div className="mt-4 h-24 rounded-2xl bg-white/10" />
-                        <div className="mt-4 h-10 w-36 rounded-xl bg-white/10" />
-                      </div>
-
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="rounded-full border border-white/10 bg-black/55 px-4 py-2 text-xs uppercase tracking-[0.22em] text-zinc-300">
-                          Unlocks on its day
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  cohortId={waveContext.wave.id}
+                  questionNumber={questionNumber}
+                  question={question}
+                  unlocked={unlocked}
+                  existingResponse={existingResponse}
+                  pathway={pathway}
+                  onSave={savePreWaveResponseAction}
+                />
               );
             })}
           </div>
+
+          {saved ? (
+            <p className="mt-4 text-xs text-[#f1dfb4]">Reflection saved.</p>
+          ) : null}
 
           <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-500">
@@ -185,24 +197,29 @@ export default async function PreWavePage({
 
             <div className="mt-6 grid gap-3 md:grid-cols-2">
               {voteEntries.map((option) => (
-                <a
-                  key={option.name}
-                  href={`/api/wave-name-vote?cohortId=${encodeURIComponent(
-                    waveContext.wave.id
-                  )}&waveName=${encodeURIComponent(option.name)}&returnTo=${encodeURIComponent(
-                    `/prewave?pathway=${pathway}&voted=1`
-                  )}`}
-                  className={`rounded-2xl border px-4 py-4 text-sm transition ${
-                    option.selected
-                      ? "border-[#c8a96a]/60 bg-[#c8a96a]/10 text-[#f1dfb4]"
-                      : "border-white/10 bg-black/20 text-zinc-200 hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span>{option.name}</span>
-                    <span className="text-xs text-zinc-400">{option.count}</span>
-                  </div>
-                </a>
+                <form key={option.name} action={saveWaveNameVoteAction}>
+                  <input type="hidden" name="cohortId" value={waveContext.wave.id} />
+                  <input type="hidden" name="waveName" value={option.name} />
+                  <input
+                    type="hidden"
+                    name="returnTo"
+                    value={`/prewave?pathway=${pathway}&voted=1`}
+                  />
+
+                  <button
+                    type="submit"
+                    className={`w-full rounded-2xl border px-4 py-4 text-sm transition ${
+                      option.selected
+                        ? "border-[#c8a96a]/60 bg-[#c8a96a]/10 text-[#f1dfb4]"
+                        : "border-white/10 bg-black/20 text-zinc-200 hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{option.name}</span>
+                      <span className="text-xs text-zinc-400">{option.count}</span>
+                    </div>
+                  </button>
+                </form>
               ))}
             </div>
 

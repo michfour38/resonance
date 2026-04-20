@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { SignOutButton } from "@clerk/nextjs";
 
 export default function MemberNav() {
   const detailsRef = useRef<HTMLDetailsElement>(null);
@@ -51,6 +52,17 @@ export default function MemberNav() {
             >
               Search
             </Link>
+
+            <div className="mt-2 border-t border-zinc-800 pt-2">
+              <SignOutButton>
+                <button
+                  type="button"
+                  className="block w-full rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Sign out
+                </button>
+              </SignOutButton>
+            </div>
           </div>
         </details>
       </div>

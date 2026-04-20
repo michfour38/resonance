@@ -2,7 +2,10 @@
 
 import { Playfair_Display } from "next/font/google";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { updateEntryLeadPathway } from "../enter/actions";
+import {
+  syncEntryAccessWindow,
+  updateEntryLeadPathway,
+} from "../enter/actions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -130,6 +133,8 @@ export default function OremeaBeginPage() {
   const [reflection, setReflection] = useState("");
   const [leadEmail, setLeadEmail] = useState<string | null>(null);
   const [isEntering, setIsEntering] = useState(false);
+  const [accessResolved, setAccessResolved] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
 
   const [isSavingPathway, startSavingPathway] = useTransition();
   const pathwaySavedRef = useRef<PathOption>(null);
@@ -137,7 +142,53 @@ export default function OremeaBeginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email")?.trim().toLowerCase() || "";
+    const paymentSuccess = params.get("payment") === "success";
+
     if (email) setLeadEmail(email);
+
+    let cancelled = false;
+
+    async function resolveAccess() {
+      const result = await syncEntryAccessWindow({
+        email: email || undefined,
+        paymentSuccess,
+      });
+
+      if (cancelled) return;
+
+      if (!result.hasAccess) {
+        const returnParams = new URLSearchParams();
+
+        const name = params.get("name")?.trim() || "";
+        const source = params.get("source")?.trim() || "";
+
+        if (name) returnParams.set("name", name);
+        if (email) returnParams.set("email", email);
+        if (source) returnParams.set("source", source);
+
+        const query = returnParams.toString();
+        const returnTo = query ? `/oremea/enter?${query}` : "/oremea/enter";
+
+        window.location.href = returnTo;
+        return;
+      }
+
+      setHasAccess(true);
+      setAccessResolved(true);
+
+      if (paymentSuccess) {
+        params.delete("payment");
+        const cleaned = params.toString();
+        const cleanedUrl = cleaned ? `/oremea/begin?${cleaned}` : "/oremea/begin";
+        window.history.replaceState({}, "", cleanedUrl);
+      }
+    }
+
+    resolveAccess();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const panel6Title =
@@ -209,7 +260,7 @@ export default function OremeaBeginPage() {
   }
 
   function handleEnterResonance() {
-    if (!selectedPath || isEntering) return;
+    if (!selectedPath || isEntering || !hasAccess) return;
 
     setIsEntering(true);
     window.location.href = `/prewave?pathway=${selectedPath}`;
@@ -307,9 +358,9 @@ export default function OremeaBeginPage() {
         <button
           type="button"
           onClick={handleEnterResonance}
-          disabled={!selectedPath || isEntering}
+          disabled={!selectedPath || isEntering || !hasAccess}
           className={`inline-flex min-w-[170px] items-center justify-center rounded-xl border px-5 py-3 text-sm transition ${
-            selectedPath && !isEntering
+            selectedPath && !isEntering && hasAccess
               ? "border-[#c8a96a]/60 bg-transparent text-[#f1dfb4] hover:bg-[#c8a96a]/10"
               : "border-white/15 bg-transparent text-white/35"
           }`}
@@ -319,6 +370,65 @@ export default function OremeaBeginPage() {
       </div>
     </PanelShell>,
   ];
+
+  if (!accessResolved) {
+    return (
+      <main className="relative h-screen overflow-hidden">
+        <div className="pointer-events-none fixed left-1/2 top-4 z-20 -translate-x-1/2 text-center md:top-5">
+          <div
+            className="flex flex-col items-center"
+            style={{
+              width: "min(calc(100vh * 1024 / 1820), 92vw)",
+              maxWidth: "620px",
+            }}
+          >
+            <div className="mb-1.5 flex items-center justify-center gap-4 text-[#C8A96A]">
+              <span className="text-xs leading-none md:text-sm">✦</span>
+              <span className="text-xs leading-none md:text-sm">✦</span>
+              <span className="text-xs leading-none md:text-sm">✦</span>
+            </div>
+
+            <h1
+              className={`${playfair.className} leading-none tracking-tight`}
+              style={{
+                fontSize: "clamp(2rem, 4.2vw, 3.9rem)",
+                textShadow: "0 0 16px rgba(0,0,0,0.28)",
+              }}
+            >
+              <span className="text-white">Reso</span>
+              <span
+                className="italic text-[#C8A96A]"
+                style={{
+                  textShadow: "0 0 8px rgba(200, 169, 106, 0.16)",
+                }}
+              >
+                nance
+              </span>
+            </h1>
+
+            <p
+              className="mt-1.5 uppercase"
+              style={{
+                fontSize: "clamp(0.52rem, 0.8vw, 0.68rem)",
+                letterSpacing: "0.28em",
+                color: "rgba(255,255,255,0.62)",
+              }}
+            >
+              by Oremea
+            </p>
+          </div>
+        </div>
+
+        <div className="flex h-screen items-center justify-center text-white">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/70">
+              <LoadingDots />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="relative h-screen overflow-hidden">

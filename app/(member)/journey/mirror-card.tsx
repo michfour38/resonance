@@ -31,7 +31,6 @@ function getStageCopy(stage: MirrorStage) {
       shareLinkOff: "Share with circle",
       saveLabel: "Save reflection",
       savedLabel: "Saved",
-      savedNote: "Your reflection has been saved.",
       placeholder: "Write what feels true for you...",
     };
   }
@@ -243,9 +242,6 @@ export default function MirrorCard({
             {saved ? copy.savedLabel : copy.saveLabel}
           </button>
 
-          {saved && (
-            <p className="text-xs text-zinc-500">{copy.savedNote}</p>
-          )}
         </div>
       </form>
     </div>

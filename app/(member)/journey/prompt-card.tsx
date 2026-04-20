@@ -8,7 +8,7 @@ import {
   updatePathwayAction,
 } from "./actions";
 import AnalyzeBox from "./analyze-box";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface DiscoverReadinessSignal {
   eligible: boolean;
@@ -35,6 +35,7 @@ export default function PromptCard({
 }: PromptCardProps) {
   const [showEditPrivate, setShowEditPrivate] = useState(false);
   const [showEditShared, setShowEditShared] = useState(false);
+  const incompleteCardRef = useRef<HTMLDivElement>(null);
 
   const pathway =
     currentPathway ??
@@ -49,6 +50,22 @@ export default function PromptCard({
     prompt.type === "thread_prompt" &&
     Boolean(prompt.response?.trim()) &&
     Boolean(discoverReadinessSignal?.eligible);
+
+  useEffect(() => {
+    if (prompt.isCompleted || !prompt.isUnlocked) return;
+
+    const node = incompleteCardRef.current;
+    if (!node) return;
+
+    const timer = window.setTimeout(() => {
+      node.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [prompt.isCompleted, prompt.isUnlocked, prompt.id]);
 
   if (!prompt.isUnlocked) {
     return (
@@ -67,7 +84,10 @@ export default function PromptCard({
 
   if (!prompt.isCompleted) {
     return (
-      <div className="space-y-5 rounded-3xl border border-zinc-700/80 bg-black/45 backdrop-blur-[2px] px-6 py-6">
+      <div
+        ref={incompleteCardRef}
+        className="space-y-5 rounded-3xl border border-zinc-700/80 bg-black/45 backdrop-blur-[2px] px-6 py-6"
+      >
         <div className="space-y-3">
           <p className="text-base leading-7 text-zinc-200">{prompt.content}</p>
         </div>
