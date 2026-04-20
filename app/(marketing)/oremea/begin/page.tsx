@@ -136,16 +136,15 @@ export default function OremeaBeginPage() {
   const [isEntering, setIsEntering] = useState(false);
   const [accessResolved, setAccessResolved] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
-const [debugSearch, setDebugSearch] = useState("");
 
   const [isSavingPathway, startSavingPathway] = useTransition();
   const pathwaySavedRef = useRef<PathOption>(null);
 
-  useEffect(() => {
-setDebugSearch(window.location.search);    
+  useEffect(() => {    
 const params = new URLSearchParams(window.location.search);
     const email = params.get("email")?.trim().toLowerCase() || "";
-    const paymentSuccess = params.get("payment") === "success";
+    const paymentValue = params.get("payment")?.trim() || "";
+const paymentSuccess = paymentValue.startsWith("success");
 
     if (email) setLeadEmail(email);
 
@@ -213,8 +212,7 @@ const params = new URLSearchParams(window.location.search);
       if (cancelled) return;
 
 if (resume.destination === "pay") {
-  setHasAccess(false);
-  setAccessResolved(true);
+  window.location.href = buildEnterHref();
   return;
 }
 
@@ -430,10 +428,6 @@ if (resume.destination === "pay") {
   if (!accessResolved) {
     return (
       <main className="relative h-screen overflow-hidden">
-
-<div className="fixed left-4 top-4 z-[9999] rounded bg-red-600 px-3 py-2 text-white text-sm">
-  BEGIN DEBUG: {debugSearch || "(no query string)"}
-</div>
 
 <div className="fixed left-4 top-4 z-[9999] rounded bg-red-600 px-3 py-2 text-white text-sm">
   BEGIN PAGE LIVE TEST
