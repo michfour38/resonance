@@ -371,8 +371,8 @@ export default async function JourneyPage() {
                 </div>
 
                 {showCurrentUnlockCard ? (
-                  <div className="mt-8 rounded-3xl border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 md:p-8">
-                    <p className="text-xs uppercase tracking-[0.25em] text-[#f1dfb4]/80">
+                  <div className="mt-8 rounded-3xl border border-emerald-400/40 bg-emerald-400/10 p-6 md:p-8">
+                    <p className="text-xs uppercase tracking-[0.25em] text-emerald-300">
                       The Current
                     </p>
 
@@ -404,7 +404,7 @@ export default async function JourneyPage() {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
                         href={PAYSTACK_CURRENT_URL}
-                        className="inline-flex items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+                        className="inline-flex items-center justify-center rounded-xl border border-emerald-400/50 px-5 py-3 text-sm text-emerald-200 transition hover:bg-emerald-400/10"ition hover:bg-[#c8a96a]/10"
                       >
                         Enter The Current — R900
                       </a>
