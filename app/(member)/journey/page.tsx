@@ -84,7 +84,7 @@ function getTestingJourneyOverride() {
   if (!enabled) return null;
 
   return {
-    phase: "CORE" as const,
+    phase: "INTEGRATION" as const,
     weekNumber: 10,
     dayNumber: 7,
   };
@@ -245,7 +245,8 @@ export default async function JourneyPage() {
   let fullMirrorEligible = false;
   let liteMirrorUnlocked = false;
   let fullMirrorUnlocked = false;
-  let currentMirror = null;
+  let currentMirror: Awaited<ReturnType<typeof getMirrorHistory>>[number] | null =
+    null;
   let mirrorExerciseCompleted = false;
 
   if (content) {
@@ -404,7 +405,7 @@ export default async function JourneyPage() {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
                         href={PAYSTACK_CURRENT_URL}
-                        className="inline-flex items-center justify-center rounded-xl border border-emerald-400/50 px-5 py-3 text-sm text-emerald-200 transition hover:bg-emerald-400/10"ition hover:bg-[#c8a96a]/10"
+                        className="inline-flex items-center justify-center rounded-xl border border-emerald-400/50 px-5 py-3 text-sm text-emerald-200 transition hover:bg-emerald-400/10"
                       >
                         Enter The Current — R900
                       </a>
