@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
+import { getPromptThread, PromptThreadDTO } from "./journey.service";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
@@ -248,11 +249,23 @@ export default async function JourneyPage() {
   let currentMirror: Awaited<ReturnType<typeof getMirrorHistory>>[number] | null =
     null;
   let mirrorExerciseCompleted = false;
+  const threadMap = new Map<string, PromptThreadDTO | null>();
 
-  if (content) {
+    if (content) {
     try {
       mirrorExerciseCompleted = content.prompts.some(
         (prompt) => prompt.type === "mirror_exercise" && prompt.isCompleted
+      );
+
+      await Promise.all(
+        content.prompts
+          .filter(
+            (prompt) => prompt.type === "thread_prompt" && prompt.isCompleted
+          )
+          .map(async (prompt) => {
+            const thread = await getPromptThread(prompt.id, userId);
+            threadMap.set(prompt.id, thread);
+          })
       );
 
       liteMirrorEligible = false;
@@ -353,6 +366,8 @@ export default async function JourneyPage() {
                         key={prompt.id}
                         prompt={prompt}
                         index={index}
+                        thread={threadMap.get(prompt.id) ?? null}
+                        currentPathway={waveContext?.membership.pathway ?? "discover"}
                       />
                     );
                   })}
