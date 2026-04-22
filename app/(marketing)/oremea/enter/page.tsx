@@ -1,7 +1,7 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { getEntryResumeState, upsertEntryLead } from "./actions";
 
@@ -22,6 +22,7 @@ function LoadingDots() {
 }
 
 export default function OremeaEnterPage() {
+  const { user } = useUser();
   const [firstName, setFirstName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
   const [source, setSource] = useState("ghl");
@@ -86,22 +87,37 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
-  async function handleContinue() {
+    async function handleContinue() {
     if (isContinuing) return;
 
     setIsContinuing(true);
 
+    const signedInEmail =
+      user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ||
+      user?.emailAddresses?.[0]?.emailAddress?.trim().toLowerCase() ||
+      "";
+
+    const effectiveEmail = leadEmail || signedInEmail;
+
+    if (effectiveEmail) {
+      await upsertEntryLead({
+        email: effectiveEmail,
+        firstName: firstName || undefined,
+        source: source || undefined,
+      });
+    }
+
     const params = new URLSearchParams();
 
     if (firstName) params.set("name", firstName);
-    if (leadEmail) params.set("email", leadEmail);
+    if (effectiveEmail) params.set("email", effectiveEmail);
     if (source) params.set("source", source);
 
     const query = params.toString();
     const paystackUrl = "https://paystack.shop/pay/hpklna7iux";
 
     const resume = await getEntryResumeState({
-      email: leadEmail || undefined,
+      email: effectiveEmail || undefined,
     });
 
     if (resume.destination === "begin") {
