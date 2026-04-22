@@ -57,6 +57,14 @@ export async function findOrCreateAssignedWaveForUser(
   userId: string,
   timezone: string = DEFAULT_WAVE_TIMEZONE
 ) {
+  await prisma.profiles.upsert({
+    where: { user_id: userId },
+    update: {},
+    create: {
+      user_id: userId,
+    },
+  });
+
   const existing = await findOpenMembershipForUser(userId);
 
   if (existing) {
