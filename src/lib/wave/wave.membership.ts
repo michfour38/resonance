@@ -57,15 +57,18 @@ export async function findOrCreateAssignedWaveForUser(
   userId: string,
   timezone: string = DEFAULT_WAVE_TIMEZONE
 ) {
-  const existingProfile = await prisma.profiles.findFirst({
-    where: { user_id: userId },
+  const existingProfile = await prisma.profiles.findUnique({
+    where: { id: userId },
     select: { id: true },
   });
 
   if (!existingProfile) {
     await prisma.profiles.create({
       data: {
-        user_id: userId,
+        id: userId,
+        display_name: "Member",
+        pathway: "discover",
+        updated_at: new Date(),
       },
     });
   }
