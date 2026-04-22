@@ -26,28 +26,32 @@ type PanelProps = {
 function PanelShell({ title, body, children, className = "" }: PanelProps) {
   return (
     <section
-      className={`flex h-screen w-screen shrink-0 items-end justify-center px-6 text-white ${className}`}
+      className={`w-screen shrink-0 px-6 pt-28 pb-24 text-white md:pt-32 md:pb-28 ${className}`}
     >
-      <div
-        className="relative z-10 w-full"
-        style={{
-          width: "min(calc(100vh * 1024 / 1820), 92vw)",
-          maxWidth: "620px",
-        }}
-      >
-        {title ? (
-          <h1 className="mt-3 text-3xl font-semibold leading-[0.98] tracking-tight text-white md:text-5xl">
-            {title}
-          </h1>
-        ) : null}
+      <div className="flex min-h-[calc(100svh-9rem)] items-end justify-center md:min-h-[calc(100svh-10rem)]">
+        <div
+          className="relative z-10 w-full"
+          style={{
+            width: "min(calc(100svh * 1024 / 1820), 92vw)",
+            maxWidth: "620px",
+          }}
+        >
+          {title ? (
+            <h1
+              className={`${playfair.className} mt-3 text-3xl font-semibold leading-[0.98] tracking-tight text-white md:text-5xl`}
+            >
+              {title}
+            </h1>
+          ) : null}
 
-        {body ? (
-          <p className="mt-4 max-w-[34rem] text-base leading-8 text-zinc-200">
-            {body}
-          </p>
-        ) : null}
+          {body ? (
+            <p className="mt-4 max-w-[34rem] text-base leading-8 text-zinc-200">
+              {body}
+            </p>
+          ) : null}
 
-        <div className="mt-2">{children}</div>
+          <div className="mt-2">{children}</div>
+        </div>
       </div>
     </section>
   );
@@ -139,12 +143,16 @@ export default function OremeaBeginPage() {
 
   const [isSavingPathway, startSavingPathway] = useTransition();
   const pathwaySavedRef = useRef<PathOption>(null);
+  const sliderRef = useRef<HTMLDivElement | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchDeltaXRef = useRef(0);
 
-  useEffect(() => {    
-const params = new URLSearchParams(window.location.search);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
     const email = params.get("email")?.trim().toLowerCase() || "";
     const paymentValue = params.get("payment")?.trim() || "";
-const paymentSuccess = paymentValue.startsWith("success");
+    const paymentSuccess = paymentValue.startsWith("success");
 
     if (email) setLeadEmail(email);
 
@@ -197,9 +205,6 @@ const paymentSuccess = paymentValue.startsWith("success");
           return;
         }
 
-        // Critical stabilization fix:
-        // if payment success is present but access cannot be resolved immediately,
-        // stay on /oremea/begin instead of bouncing back into the pay loop.
         setHasAccess(false);
         setAccessResolved(true);
         return;
@@ -211,10 +216,10 @@ const paymentSuccess = paymentValue.startsWith("success");
 
       if (cancelled) return;
 
-if (resume.destination === "pay") {
-  window.location.href = buildEnterHref();
-  return;
-}
+      if (resume.destination === "pay") {
+        window.location.href = buildEnterHref();
+        return;
+      }
 
       if (resume.destination === "prewave") {
         window.location.href = buildPrewaveHref();
@@ -283,6 +288,15 @@ if (resume.destination === "pay") {
     return index < 7;
   })();
 
+  function goPrev() {
+    setIndex((v) => Math.max(0, v - 1));
+  }
+
+  function goNext() {
+    if (!canMoveForward || isEntering) return;
+    setIndex((v) => Math.min(panels.length - 1, v + 1));
+  }
+
   function handlePathSelect(path: Exclude<PathOption, null>) {
     setSelectedPath(path);
     setIndex(5);
@@ -316,28 +330,28 @@ if (resume.destination === "pay") {
   const panels = [
     <PanelShell
       key="p1"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="Return to what is already within you."
       body="A guided experience for self-reflection and relational growth."
     />,
 
     <PanelShell
       key="p2"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="Resonance is where it begins."
       body="A guided daily experience that helps you notice what is repeating, what is shifting, and what is trying to emerge in the way you live, relate, and reflect."
     />,
 
     <PanelShell
       key="p3"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="Not advice. Not noise. Not another feed."
       body="Resonance does not tell you who you are. It helps you discover what becomes visible when your reflections are held with structure, continuity, and care."
     />,
 
     <PanelShell
       key="p4"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="The Mirror listens across time."
       body="As your journey unfolds, the Mirror begins to reflect patterns, tensions, and emerging truths that are easy to miss from inside your own life."
     >
@@ -347,8 +361,8 @@ if (resume.destination === "pay") {
       </p>
     </PanelShell>,
 
-    <PanelShell key="p5" className="pb-10 pt-20 md:pb-12 md:pt-20">
-      <div className="grid grid-cols-2 gap-4">
+    <PanelShell key="p5" className="pt-24 md:pt-20">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <PathCard
           title="Discover"
           words={["Innerstand", "yourself", "deeper"]}
@@ -369,7 +383,7 @@ if (resume.destination === "pay") {
 
     <PanelShell
       key="p6"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title={panel6Title}
     >
       <div className="space-y-4 text-lg leading-8 text-zinc-200">
@@ -381,7 +395,7 @@ if (resume.destination === "pay") {
 
     <PanelShell
       key="p7"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="Begin with what feels true."
       body={panel7Body}
     >
@@ -396,7 +410,7 @@ if (resume.destination === "pay") {
 
     <PanelShell
       key="p8"
-      className="pb-12 pt-36 md:pb-14 md:pt-40"
+      className="md:pt-40"
       title="What I’m already hearing"
     >
       <div className="space-y-5">
@@ -425,15 +439,52 @@ if (resume.destination === "pay") {
     </PanelShell>,
   ];
 
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+    touchDeltaXRef.current = 0;
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartXRef.current === null) return;
+    const currentX = e.touches[0]?.clientX ?? 0;
+    touchDeltaXRef.current = currentX - touchStartXRef.current;
+  }
+
+  function handleTouchEnd() {
+    const delta = touchDeltaXRef.current;
+
+    if (Math.abs(delta) > 50) {
+      if (delta < 0) {
+        goNext();
+      } else {
+        goPrev();
+      }
+    }
+
+    touchStartXRef.current = null;
+    touchDeltaXRef.current = 0;
+  }
+
   if (!accessResolved) {
     return (
-      <main className="relative h-screen overflow-hidden">
+      <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+        <div className="fixed inset-0 z-0">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
+            style={{ backgroundImage: "url(/images/mobile/bg-entry.png)" }}
+          />
+          <div
+            className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
+            style={{ backgroundImage: "url(/images/desktop/bg-entry.webp)" }}
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
         <div className="pointer-events-none fixed left-1/2 top-4 z-20 -translate-x-1/2 text-center md:top-5">
           <div
             className="flex flex-col items-center"
             style={{
-              width: "min(calc(100vh * 1024 / 1820), 92vw)",
+              width: "min(calc(100svh * 1024 / 1820), 92vw)",
               maxWidth: "620px",
             }}
           >
@@ -474,7 +525,7 @@ if (resume.destination === "pay") {
           </div>
         </div>
 
-        <div className="flex h-screen items-center justify-center text-white">
+        <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 pt-24 pb-16">
           <div className="text-center">
             <div className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/70">
               <LoadingDots />
@@ -486,12 +537,24 @@ if (resume.destination === "pay") {
   }
 
   return (
-    <main className="relative h-screen overflow-hidden">
+    <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
+          style={{ backgroundImage: "url(/images/mobile/bg-entry.png)" }}
+        />
+        <div
+          className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
+          style={{ backgroundImage: "url(/images/desktop/bg-entry.webp)" }}
+        />
+        <div className="absolute inset-0 bg-black/50" />
+      </div>
+
       <div className="pointer-events-none fixed left-1/2 top-4 z-20 -translate-x-1/2 text-center md:top-5">
         <div
           className="flex flex-col items-center"
           style={{
-            width: "min(calc(100vh * 1024 / 1820), 92vw)",
+            width: "min(calc(100svh * 1024 / 1820), 92vw)",
             maxWidth: "620px",
           }}
         >
@@ -533,23 +596,31 @@ if (resume.destination === "pay") {
       </div>
 
       <div
-        className="flex h-screen transition-transform duration-700 ease-out"
+        ref={sliderRef}
+        className="relative z-10 flex min-h-[100svh] transition-transform duration-700 ease-out"
         style={{
           width: `${panels.length * 100}vw`,
           transform: `translateX(-${index * 100}vw)`,
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {panels}
       </div>
 
       {index > 0 && (
         <button
-          onClick={() => setIndex((v) => Math.max(0, v - 1))}
-          className="fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
-          style={{ transform: "translate(calc(-50% - 330px), -50%)" }}
+          onClick={goPrev}
+          className="fixed left-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/12 bg-black/25 px-3 py-2 backdrop-blur-[2px] md:left-1/2 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
+          style={
+            {
+              "--desktop-transform": "translate(calc(-50% - 330px), -50%)",
+            } as React.CSSProperties
+          }
           aria-label="Previous"
         >
-          <span className="text-3xl text-white/60 transition hover:text-white md:text-4xl">
+          <span className="text-2xl text-white/70 transition hover:text-white md:text-4xl">
             ←
           </span>
         </button>
@@ -557,18 +628,19 @@ if (resume.destination === "pay") {
 
       {index < panels.length - 1 && (
         <button
-          onClick={() => {
-            if (!canMoveForward || isEntering) return;
-            setIndex((v) => Math.min(panels.length - 1, v + 1));
-          }}
-          className="fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
-          style={{ transform: "translate(calc(-50% + 330px), -50%)" }}
+          onClick={goNext}
+          className="fixed right-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/12 bg-black/25 px-3 py-2 backdrop-blur-[2px] md:left-1/2 md:right-auto md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
+          style={
+            {
+              "--desktop-transform": "translate(calc(-50% + 330px), -50%)",
+            } as React.CSSProperties
+          }
           aria-label="Next"
         >
           <span
-            className={`text-3xl transition md:text-4xl ${
+            className={`text-2xl transition md:text-4xl ${
               canMoveForward && !isEntering
-                ? "text-white/60 hover:text-white"
+                ? "text-white/70 hover:text-white"
                 : "text-white/20"
             }`}
           >
@@ -576,6 +648,22 @@ if (resume.destination === "pay") {
           </span>
         </button>
       )}
+
+      <style jsx>{`
+        @media (min-width: 768px) {
+          button[aria-label="Previous"] {
+            left: 50%;
+            right: auto;
+            transform: var(--desktop-transform);
+          }
+
+          button[aria-label="Next"] {
+            left: 50%;
+            right: auto;
+            transform: var(--desktop-transform);
+          }
+        }
+      `}</style>
 
       <div className="pointer-events-none fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {panels.map((_, i) => (
