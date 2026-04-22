@@ -238,9 +238,6 @@ export default async function PreWavePage({
               ))}
             </div>
 
-            {voted ? (
-              <p className="mt-4 text-xs text-[#f1dfb4]">Vote saved.</p>
-            ) : null}
           </div>
 
           <div className="mt-8 rounded-3xl border border-zinc-800/90 bg-black/45 p-6 md:p-8">
