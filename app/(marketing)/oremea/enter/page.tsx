@@ -232,8 +232,9 @@ export default function OremeaEnterPage() {
             {isSavingLead ? (
               <p className="mt-4 text-sm text-white/45">Saving your entry…</p>
             ) : null}
+          </div>
 
-<div className="mt-6 text-center text-xs leading-6 text-white/40">
+<div className="mt-4 text-center text-xs leading-6 text-white/40">
   <a href="/terms" className="hover:text-white/60">Terms</a>
   <span className="mx-2">·</span>
   <a href="/privacy" className="hover:text-white/60">Privacy</a>
@@ -245,7 +246,6 @@ export default function OremeaEnterPage() {
   <a href="/conduct" className="hover:text-white/60">Conduct</a>
 </div>
 
-          </div>
         </div>
       </div>
     </main>
