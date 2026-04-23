@@ -55,21 +55,21 @@ export default function OremeaEnterPage() {
     });
   }, []);
 
-  function buildBeginHref() {
+  function buildBeginHref(emailOverride?: string) {
     const params = new URLSearchParams();
 
     if (firstName) params.set("name", firstName);
-    if (leadEmail) params.set("email", leadEmail);
+    if (emailOverride || leadEmail) params.set("email", emailOverride || leadEmail);
     if (source) params.set("source", source);
 
     const query = params.toString();
     return query ? `/oremea/begin?${query}` : "/oremea/begin";
   }
 
-  function buildPrewaveHref() {
+  function buildPrewaveHref(emailOverride?: string) {
     const params = new URLSearchParams();
 
-    if (leadEmail) params.set("email", leadEmail);
+    if (emailOverride || leadEmail) params.set("email", emailOverride || leadEmail);
     if (source) params.set("source", source);
 
     const query = params.toString();
@@ -87,7 +87,7 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
-    async function handleContinue() {
+  async function handleContinue() {
     if (isContinuing) return;
 
     setIsContinuing(true);
@@ -121,12 +121,12 @@ export default function OremeaEnterPage() {
     });
 
     if (resume.destination === "begin") {
-      window.location.href = buildBeginHref();
+      window.location.href = buildBeginHref(effectiveEmail);
       return;
     }
 
     if (resume.destination === "prewave") {
-      window.location.href = buildPrewaveHref();
+      window.location.href = buildPrewaveHref(effectiveEmail);
       return;
     }
 
@@ -142,20 +142,32 @@ export default function OremeaEnterPage() {
   const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnToSelf)}`;
 
   return (
-    <main className="relative min-h-screen text-white">
-      <div className="pointer-events-none fixed left-1/2 top-6 z-20 -translate-x-1/2 text-center md:top-8">
+    <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
+          style={{ backgroundImage: "url(/images/mobile/bg-entry.png)" }}
+        />
+        <div
+          className="absolute inset-0 hidden bg-cover bg-center bg-no-repeat md:block"
+          style={{ backgroundImage: "url(/images/desktop/bg-entry.webp)" }}
+        />
+        <div className="absolute inset-0 bg-black/45" />
+      </div>
+
+      <div className="pointer-events-none fixed left-1/2 top-5 z-20 -translate-x-1/2 text-center md:top-8">
         <img
           src="/images/oremea-logo-wht.png"
           alt="Oremea"
-          className="h-20 w-auto md:h-24"
+          className="h-16 w-auto md:h-24"
         />
       </div>
 
-      <div className="relative z-10 flex min-h-screen items-end justify-center px-6 pb-14 pt-28 md:pb-16 md:pt-32">
+      <div className="relative z-10 flex min-h-[100svh] items-end justify-center px-6 pb-10 pt-24 md:pb-16 md:pt-32">
         <div
           className="w-full"
           style={{
-            width: "min(calc(100vh * 1024 / 1820), 92vw)",
+            width: "min(calc(100svh * 1024 / 1820), 92vw)",
             maxWidth: "620px",
           }}
         >
@@ -166,7 +178,7 @@ export default function OremeaEnterPage() {
               {heading}
             </h1>
 
-            <p className="mt-5 max-w-[34rem] text-base leading-8 text-zinc-200">
+            <p className="mt-4 max-w-[34rem] text-base leading-7 text-zinc-200 md:mt-5 md:leading-8">
               You’ve taken the first step. Continue into Resonance to begin the
               guided entry experience.
             </p>
@@ -178,7 +190,7 @@ export default function OremeaEnterPage() {
             ) : null}
 
             <SignedOut>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={signUpHref}
                   className="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
@@ -201,7 +213,7 @@ export default function OremeaEnterPage() {
             </SignedOut>
 
             <SignedIn>
-              <div className="mt-8">
+              <div className="mt-7">
                 <button
                   type="button"
                   onClick={handleContinue}
