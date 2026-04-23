@@ -2,6 +2,7 @@
 
 import { Playfair_Display } from "next/font/google";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import type { ReactNode } from "react";
 import {
   getEntryResumeState,
   syncEntryAccessWindow,
@@ -19,43 +20,9 @@ type PathOption = "discover" | "relate" | null;
 type PanelProps = {
   title?: string;
   body?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 };
-
-function PanelShell({ title, body, children, className = "" }: PanelProps) {
-  return (
-    <section
-      className={`w-screen shrink-0 px-6 pt-28 pb-24 text-white md:pt-32 md:pb-28 ${className}`}
-    >
-      <div className="flex min-h-[calc(100svh-9rem)] items-end justify-center md:min-h-[calc(100svh-10rem)]">
-        <div
-          className="relative z-10 w-full"
-          style={{
-            width: "min(calc(100svh * 1024 / 1820), 92vw)",
-            maxWidth: "620px",
-          }}
-        >
-          {title ? (
-            <h1
-              className={`${playfair.className} mt-3 text-3xl font-semibold leading-[0.98] tracking-tight text-white md:text-5xl`}
-            >
-              {title}
-            </h1>
-          ) : null}
-
-          {body ? (
-            <p className="mt-4 max-w-[34rem] text-base leading-8 text-zinc-200">
-              {body}
-            </p>
-          ) : null}
-
-          <div className="mt-2">{children}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function LoadingDots() {
   return (
@@ -64,6 +31,38 @@ function LoadingDots() {
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.1s]" />
       <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
     </span>
+  );
+}
+
+function PanelShell({ title, body, children, className = "" }: PanelProps) {
+  return (
+    <section
+      className={`flex h-[100svh] w-screen shrink-0 items-center justify-center px-6 pb-16 pt-24 text-white md:px-6 md:pb-20 md:pt-28 ${className}`}
+    >
+      <div
+        className="relative z-10 w-full"
+        style={{
+          width: "min(calc(100svh * 1024 / 1820), 92vw)",
+          maxWidth: "620px",
+        }}
+      >
+        {title ? (
+          <h1
+            className={`${playfair.className} text-[2.45rem] font-semibold leading-[0.94] tracking-tight text-white md:text-5xl`}
+          >
+            {title}
+          </h1>
+        ) : null}
+
+        {body ? (
+          <p className="mt-4 max-w-[34rem] text-[1.02rem] leading-8 text-zinc-200 md:text-base md:leading-8">
+            {body}
+          </p>
+        ) : null}
+
+        <div className="mt-4">{children}</div>
+      </div>
+    </section>
   );
 }
 
@@ -86,10 +85,10 @@ function PathCard({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative h-[290px] w-full min-w-0 overflow-hidden rounded-[30px] border transition duration-300 ${
+      className={`group relative h-[220px] w-full min-w-0 overflow-hidden rounded-[24px] border transition duration-300 md:h-[290px] md:rounded-[30px] ${
         selected
           ? "border-[#C8A96A] shadow-[0_0_28px_rgba(200,169,106,0.28)]"
-          : "border-white/18 opacity-80 hover:opacity-100"
+          : "border-white/18 opacity-85 hover:opacity-100"
       }`}
     >
       <div
@@ -105,26 +104,26 @@ function PathCard({
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-black/10 to-black/34" />
 
-      <div className="relative z-10 flex h-full flex-col items-center p-5 text-center md:p-6">
+      <div className="relative z-10 flex h-full flex-col items-center p-4 text-center md:p-6">
         <h2
-          className={`${playfair.className} text-center text-[1.95rem] leading-none tracking-tight text-white md:text-[2.2rem]`}
+          className={`${playfair.className} text-center text-[1.65rem] leading-none tracking-tight text-white md:text-[2.2rem]`}
           style={{ textShadow: "0 0 14px rgba(0,0,0,0.22)" }}
         >
           {title}
         </h2>
 
-        <div className="mb-4 mt-auto flex flex-col items-center leading-[1.2]">
+        <div className="mb-3 mt-auto flex flex-col items-center leading-[1.15] md:mb-4">
           {words.map((word, i) => (
             <span
               key={i}
-              className="text-[1rem] text-white/92 md:text-[1.06rem]"
+              className="text-[0.92rem] text-white/92 md:text-[1.06rem]"
             >
               {word}
             </span>
           ))}
         </div>
 
-        <span className="text-center text-[0.74rem] uppercase tracking-[0.24em] text-[#f1dfb4]/88">
+        <span className="text-center text-[0.64rem] uppercase tracking-[0.24em] text-[#f1dfb4]/88 md:text-[0.74rem]">
           Select
         </span>
       </div>
@@ -141,9 +140,8 @@ export default function OremeaBeginPage() {
   const [accessResolved, setAccessResolved] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
 
-  const [isSavingPathway, startSavingPathway] = useTransition();
+  const [, startSavingPathway] = useTransition();
   const pathwaySavedRef = useRef<PathOption>(null);
-  const sliderRef = useRef<HTMLDivElement | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef(0);
 
@@ -294,7 +292,7 @@ export default function OremeaBeginPage() {
 
   function goNext() {
     if (!canMoveForward || isEntering) return;
-    setIndex((v) => Math.min(panels.length - 1, v + 1));
+    setIndex((v) => Math.min(7, v + 1));
   }
 
   function handlePathSelect(path: Exclude<PathOption, null>) {
@@ -330,28 +328,21 @@ export default function OremeaBeginPage() {
   const panels = [
     <PanelShell
       key="p1"
-      className="md:pt-40"
       title="Return to what is already within you."
       body="A guided experience for self-reflection and relational growth."
     />,
-
     <PanelShell
       key="p2"
-      className="md:pt-40"
       title="Resonance is where it begins."
       body="A guided daily experience that helps you notice what is repeating, what is shifting, and what is trying to emerge in the way you live, relate, and reflect."
     />,
-
     <PanelShell
       key="p3"
-      className="md:pt-40"
       title="Not advice. Not noise. Not another feed."
       body="Resonance does not tell you who you are. It helps you discover what becomes visible when your reflections are held with structure, continuity, and care."
     />,
-
     <PanelShell
       key="p4"
-      className="md:pt-40"
       title="The Mirror listens across time."
       body="As your journey unfolds, the Mirror begins to reflect patterns, tensions, and emerging truths that are easy to miss from inside your own life."
     >
@@ -360,9 +351,8 @@ export default function OremeaBeginPage() {
         evolves.
       </p>
     </PanelShell>,
-
-    <PanelShell key="p5" className="pt-24 md:pt-20">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <PanelShell key="p5">
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         <PathCard
           title="Discover"
           words={["Innerstand", "yourself", "deeper"]}
@@ -370,7 +360,6 @@ export default function OremeaBeginPage() {
           selected={selectedPath === "discover"}
           onClick={() => handlePathSelect("discover")}
         />
-
         <PathCard
           title="Relate"
           words={["Relational", "innerstanding,", "deeper"]}
@@ -380,39 +369,27 @@ export default function OremeaBeginPage() {
         />
       </div>
     </PanelShell>,
-
-    <PanelShell
-      key="p6"
-      className="md:pt-40"
-      title={panel6Title}
-    >
-      <div className="space-y-4 text-lg leading-8 text-zinc-200">
+    <PanelShell key="p6" title={panel6Title}>
+      <div className="space-y-3 text-base leading-8 text-zinc-200 md:space-y-4 md:text-lg">
         {panel6Lines.map((line) => (
           <p key={line}>{line}</p>
         ))}
       </div>
     </PanelShell>,
-
     <PanelShell
       key="p7"
-      className="md:pt-40"
       title="Begin with what feels true."
       body={panel7Body}
     >
       <textarea
         value={reflection}
         onChange={(e) => setReflection(e.target.value)}
-        rows={6}
+        rows={5}
         className="w-full resize-none rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
         placeholder="Write what feels true..."
       />
     </PanelShell>,
-
-    <PanelShell
-      key="p8"
-      className="md:pt-40"
-      title="What I’m already hearing"
-    >
+    <PanelShell key="p8" title="What I’m already hearing">
       <div className="space-y-5">
         <p className="text-base leading-8 text-zinc-200">{previewResponse}</p>
 
@@ -467,7 +444,7 @@ export default function OremeaBeginPage() {
 
   if (!accessResolved) {
     return (
-      <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+      <main className="relative h-[100svh] overflow-hidden text-white">
         <div className="fixed inset-0 z-0">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
@@ -525,11 +502,9 @@ export default function OremeaBeginPage() {
           </div>
         </div>
 
-        <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 pt-24 pb-16">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/70">
-              <LoadingDots />
-            </div>
+        <div className="relative z-10 flex h-[100svh] items-center justify-center px-6">
+          <div className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm text-white/70">
+            <LoadingDots />
           </div>
         </div>
       </main>
@@ -537,7 +512,7 @@ export default function OremeaBeginPage() {
   }
 
   return (
-    <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+    <main className="relative h-[100svh] overflow-hidden text-white">
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
@@ -596,8 +571,7 @@ export default function OremeaBeginPage() {
       </div>
 
       <div
-        ref={sliderRef}
-        className="relative z-10 flex min-h-[100svh] transition-transform duration-700 ease-out"
+        className="relative z-10 flex h-[100svh] transition-transform duration-500 ease-out"
         style={{
           width: `${panels.length * 100}vw`,
           transform: `translateX(-${index * 100}vw)`,
@@ -612,15 +586,11 @@ export default function OremeaBeginPage() {
       {index > 0 && (
         <button
           onClick={goPrev}
-          className="fixed left-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/12 bg-black/25 px-3 py-2 backdrop-blur-[2px] md:left-1/2 md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
-          style={
-            {
-              "--desktop-transform": "translate(calc(-50% - 330px), -50%)",
-            } as React.CSSProperties
-          }
+          className="hidden md:flex fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
+          style={{ transform: "translate(calc(-50% - 330px), -50%)" }}
           aria-label="Previous"
         >
-          <span className="text-2xl text-white/70 transition hover:text-white md:text-4xl">
+          <span className="text-4xl text-white/60 transition hover:text-white">
             ←
           </span>
         </button>
@@ -629,18 +599,14 @@ export default function OremeaBeginPage() {
       {index < panels.length - 1 && (
         <button
           onClick={goNext}
-          className="fixed right-3 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/12 bg-black/25 px-3 py-2 backdrop-blur-[2px] md:left-1/2 md:right-auto md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
-          style={
-            {
-              "--desktop-transform": "translate(calc(-50% + 330px), -50%)",
-            } as React.CSSProperties
-          }
+          className="hidden md:flex fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
+          style={{ transform: "translate(calc(-50% + 330px), -50%)" }}
           aria-label="Next"
         >
           <span
-            className={`text-2xl transition md:text-4xl ${
+            className={`text-4xl transition ${
               canMoveForward && !isEntering
-                ? "text-white/70 hover:text-white"
+                ? "text-white/60 hover:text-white"
                 : "text-white/20"
             }`}
           >
@@ -649,23 +615,7 @@ export default function OremeaBeginPage() {
         </button>
       )}
 
-      <style jsx>{`
-        @media (min-width: 768px) {
-          button[aria-label="Previous"] {
-            left: 50%;
-            right: auto;
-            transform: var(--desktop-transform);
-          }
-
-          button[aria-label="Next"] {
-            left: 50%;
-            right: auto;
-            transform: var(--desktop-transform);
-          }
-        }
-      `}</style>
-
-      <div className="pointer-events-none fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+      <div className="pointer-events-none fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {panels.map((_, i) => (
           <span
             key={i}
