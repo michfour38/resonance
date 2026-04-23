@@ -142,7 +142,7 @@ export default function OremeaEnterPage() {
   const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnToSelf)}`;
 
   return (
-    <main className="relative min-h-[100svh] overflow-x-hidden text-white">
+    <main className="relative min-h-[100svh] overflow-hidden text-white">
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
@@ -163,7 +163,7 @@ export default function OremeaEnterPage() {
         />
       </div>
 
-      <div className="relative z-10 flex min-h-[100svh] items-end justify-center px-6 pb-10 pt-24 md:pb-16 md:pt-32">
+      <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 pb-10 pt-24 md:pb-16 md:pt-32">
         <div
           className="w-full"
           style={{
@@ -235,6 +235,15 @@ export default function OremeaEnterPage() {
           </div>
         </div>
       </div>
+<div className="pointer-events-none fixed bottom-4 left-1/2 z-20 -translate-x-1/2 text-xs text-white/40">
+  <div className="flex gap-4">
+    <span>Terms</span>
+    <span>Privacy</span>
+    <span>Disclaimer</span>
+    <span>Refunds</span>
+    <span>Conduct</span>
+  </div>
+</div>
     </main>
   );
 }
