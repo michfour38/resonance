@@ -87,11 +87,6 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
-  async function handleContinue() {
-if (resume.destination === "journey") {
-  window.location.href = "/journey";
-  return;
-}
     if (isContinuing) return;
 
     setIsContinuing(true);
