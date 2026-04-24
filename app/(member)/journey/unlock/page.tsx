@@ -4,7 +4,7 @@ type JourneyUnlockPageProps = {
   };
 };
 
-const PAYSTACK_JOURNEY_URL = "https://paystack.shop/pay/lb1u1x7afq";
+const PAYSTACK_JOURNEY_URL = "https://paystack.shop/pay/194owb7fjf";
 
 export default function JourneyUnlockPage({
   searchParams,
