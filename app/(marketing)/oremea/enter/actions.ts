@@ -115,16 +115,17 @@ export async function syncEntryAccessWindow(input?: {
     }
 
     const lead = await prisma.entry_leads.findUnique({
-      where: { email },
-      select: {
-        entry_access_expires_at: true,
-      },
-    });
+  where: { email },
+  select: {
+    entry_access_expires_at: true,
+    journey_access_granted: true,
+  },
+});
 
     const expiresAt = lead?.entry_access_expires_at ?? null;
-    const hasAccess = Boolean(
-      expiresAt && expiresAt.getTime() > Date.now()
-    );
+    const hasAccess =
+  (expiresAt && expiresAt.getTime() > Date.now()) ||
+  Boolean(lead?.journey_access_granted);
 
     return {
       hasAccess,
@@ -157,17 +158,18 @@ export async function getEntryResumeState(input?: {
 
   try {
     const lead = await prisma.entry_leads.findUnique({
-      where: { email },
-      select: {
-        entry_access_expires_at: true,
-        intro_completed_at: true,
-      },
-    });
+  where: { email },
+  select: {
+    entry_access_expires_at: true,
+    intro_completed_at: true,
+    journey_access_granted: true,
+  },
+});
 
-    const hasAccess = Boolean(
-      lead?.entry_access_expires_at &&
-        lead.entry_access_expires_at.getTime() > Date.now()
-    );
+    const hasAccess =
+  (lead?.entry_access_expires_at &&
+    lead.entry_access_expires_at.getTime() > Date.now()) ||
+  Boolean(lead?.journey_access_granted);
 
     if (!hasAccess) {
       return {

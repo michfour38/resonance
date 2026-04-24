@@ -4,7 +4,7 @@ import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
 import { unlockMirrorTier } from "@/app/(member)/mirror/mirror-unlock.service";
 
-const APP_URL = "https://resonance-production-8b50.up.railway.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.oremea.com";
 
 export async function GET(request: Request) {
   const { userId } = await auth();

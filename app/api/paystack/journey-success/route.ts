@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const APP_URL = "https://resonance-production-8b50.up.railway.app";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.oremea.com";
 
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() || "";
