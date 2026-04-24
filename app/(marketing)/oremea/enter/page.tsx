@@ -114,7 +114,7 @@ export default function OremeaEnterPage() {
     if (source) params.set("source", source);
 
     const query = params.toString();
-    const paystackUrl = "https://paystack.shop/pay/hpklna7iux";
+    const paystackUrl = "https://paystack.shop/pay/o6529-6ld7";
 
     const resume = await getEntryResumeState({
       email: effectiveEmail || undefined,
