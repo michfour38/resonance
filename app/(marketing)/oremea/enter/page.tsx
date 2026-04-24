@@ -88,6 +88,10 @@ export default function OremeaEnterPage() {
   }
 
   async function handleContinue() {
+if (resume.destination === "journey") {
+  window.location.href = "/journey";
+  return;
+}
     if (isContinuing) return;
 
     setIsContinuing(true);
@@ -120,7 +124,12 @@ export default function OremeaEnterPage() {
       email: effectiveEmail || undefined,
     });
 
-    if (resume.destination === "begin") {
+    if (resume.destination === "journey") {
+  window.location.href = "/journey";
+  return;
+}
+
+if (resume.destination === "begin") {
       window.location.href = buildBeginHref(effectiveEmail);
       return;
     }

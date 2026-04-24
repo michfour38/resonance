@@ -179,19 +179,27 @@ export async function getEntryResumeState(input?: {
       };
     }
 
-    if (lead?.intro_completed_at) {
-      return {
-        email,
-        hasAccess: true,
-        destination: "prewave" as const,
-      };
-    }
+if (lead?.journey_access_granted) {
+  return {
+    email,
+    hasAccess: true,
+    destination: "journey" as const,
+  };
+}
 
-    return {
-      email,
-      hasAccess: true,
-      destination: "begin" as const,
-    };
+if (lead?.intro_completed_at) {
+  return {
+    email,
+    hasAccess: true,
+    destination: "prewave" as const,
+  };
+}
+
+return {
+  email,
+  hasAccess: true,
+  destination: "begin" as const,
+};
   } catch (error) {
     console.error("Entry resume state failed:", error);
 
