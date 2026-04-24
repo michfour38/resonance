@@ -87,6 +87,7 @@ export default function OremeaEnterPage() {
     return query ? `/oremea/enter?${query}` : "/oremea/enter";
   }
 
+  async function handleContinue() {
     if (isContinuing) return;
 
     setIsContinuing(true);
@@ -120,11 +121,11 @@ export default function OremeaEnterPage() {
     });
 
     if (resume.destination === "journey") {
-  window.location.href = "/journey";
-  return;
-}
+      window.location.href = "/journey";
+      return;
+    }
 
-if (resume.destination === "begin") {
+    if (resume.destination === "begin") {
       window.location.href = buildBeginHref(effectiveEmail);
       return;
     }
@@ -238,18 +239,17 @@ if (resume.destination === "begin") {
             ) : null}
           </div>
 
-<div className="mt-4 text-center text-xs leading-6 text-white/40">
-  <a href="/terms" className="hover:text-white/60">Terms</a>
-  <span className="mx-2">·</span>
-  <a href="/privacy" className="hover:text-white/60">Privacy</a>
-  <span className="mx-2">·</span>
-  <a href="/disclaimer" className="hover:text-white/60">Disclaimer</a>
-  <span className="mx-2">·</span>
-  <a href="/refunds" className="hover:text-white/60">Refunds</a>
-  <span className="mx-2">·</span>
-  <a href="/conduct" className="hover:text-white/60">Conduct</a>
-</div>
-
+          <div className="mt-4 text-center text-xs leading-6 text-white/40">
+            <a href="/terms" className="hover:text-white/60">Terms</a>
+            <span className="mx-2">·</span>
+            <a href="/privacy" className="hover:text-white/60">Privacy</a>
+            <span className="mx-2">·</span>
+            <a href="/disclaimer" className="hover:text-white/60">Disclaimer</a>
+            <span className="mx-2">·</span>
+            <a href="/refunds" className="hover:text-white/60">Refunds</a>
+            <span className="mx-2">·</span>
+            <a href="/conduct" className="hover:text-white/60">Conduct</a>
+          </div>
         </div>
       </div>
     </main>
