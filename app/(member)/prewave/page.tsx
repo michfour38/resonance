@@ -97,6 +97,16 @@ export default async function PreWavePage({
   }
 
   const waveContext = await getMemberWaveContext(userId);
+const journeyAccess = await prisma.entry_leads.findUnique({
+  where: { email: (await currentUser())?.emailAddresses[0]?.emailAddress?.toLowerCase() || "" },
+  select: {
+    journey_access_granted: true,
+  },
+});
+
+if (journeyAccess?.journey_access_granted) {
+  redirect("/journey");
+}
   const holdingContent = await getHoldingContent();
   const questions = getPreWaveQuestions();
   const responses = await getPreWaveResponses(userId, waveContext.wave.id);
