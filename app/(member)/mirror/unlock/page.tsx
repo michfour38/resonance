@@ -6,7 +6,7 @@ type MirrorUnlockPageProps = {
   };
 };
 
-const PAYSTACK_MIRROR_URL = "https://paystack.shop/pay/r6u8o3lbqf";
+const PAYSTACK_MIRROR_URL = "https://paystack.shop/pay/wx9avyp3-t";
 
 export default function MirrorUnlockPage({
   searchParams,
