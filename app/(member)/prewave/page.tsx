@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getHoldingContent } from "@/src/lib/wave/wave.holding";
