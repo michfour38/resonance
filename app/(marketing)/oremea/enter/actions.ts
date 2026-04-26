@@ -210,3 +210,24 @@ return {
     };
   }
 }
+
+export async function saveBeginReflection(input: {
+  email: string;
+  reflection: string;
+}) {
+  const email = input.email?.trim().toLowerCase();
+  const reflection = input.reflection?.trim();
+
+  if (!email || !reflection) return;
+
+  try {
+    await prisma.entry_leads.update({
+      where: { email },
+      data: {
+        begin_reflection: reflection,
+      },
+    });
+  } catch (error) {
+    console.error("Begin reflection save failed:", error);
+  }
+}

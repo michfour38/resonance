@@ -7,6 +7,7 @@ import {
   getEntryResumeState,
   syncEntryAccessWindow,
   updateEntryLeadPathway,
+  saveBeginReflection,
 } from "../enter/actions";
 
 const playfair = Playfair_Display({
@@ -312,18 +313,26 @@ export default function OremeaBeginPage() {
     });
   }
 
-  function handleEnterResonance() {
-    if (!selectedPath || isEntering || !hasAccess) return;
+async function handleEnterResonance() {
+  if (!selectedPath || isEntering || !hasAccess) return;
 
-    setIsEntering(true);
+  setIsEntering(true);
 
-    const prewaveParams = new URLSearchParams();
-    prewaveParams.set("pathway", selectedPath);
-    if (leadEmail) prewaveParams.set("email", leadEmail);
-
-    const query = prewaveParams.toString();
-    window.location.href = query ? `/prewave?${query}` : "/prewave";
+  // 🔥 SAVE reflection + pathway
+  if (leadEmail && reflection.trim()) {
+    await saveBeginReflection({
+      email: leadEmail,
+      reflection: reflection.trim(),
+    });
   }
+
+  const prewaveParams = new URLSearchParams();
+  prewaveParams.set("pathway", selectedPath);
+  if (leadEmail) prewaveParams.set("email", leadEmail);
+
+  const query = prewaveParams.toString();
+  window.location.href = query ? `/prewave?${query}` : "/prewave";
+}
 
   const panels = [
     <PanelShell
