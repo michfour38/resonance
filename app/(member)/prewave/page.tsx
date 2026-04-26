@@ -122,16 +122,18 @@ if (journeyAccess?.journey_access_granted) {
   const backgrounds = getPreWaveBackgrounds();
   const pathway =
     waveContext.membership.pathway ?? searchParams?.pathway ?? "discover";
-if (searchParams?.pathway && !waveContext.membership.pathway) {
-  await prisma.cohort_members.update({
+const incomingPathway =
+  searchParams?.pathway === "discover" || searchParams?.pathway === "relate"
+    ? searchParams.pathway
+    : null;
+
+if (incomingPathway && !waveContext.membership.pathway) {
+  await prisma.cohorts.update({
     where: {
-      user_id_cohort_id: {
-        user_id: userId,
-        cohort_id: waveContext.wave.id,
-      },
+      id: waveContext.wave.id,
     },
     data: {
-      pathway: searchParams.pathway,
+      pathway: incomingPathway,
     },
   });
 }

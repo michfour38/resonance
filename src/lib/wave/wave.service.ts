@@ -21,11 +21,11 @@ export async function getMemberWaveContext(
     new Date()
   );
 
-  const membershipPathway =
-    activeMembership.cohorts.pathway === "discover" ||
-    activeMembership.cohorts.pathway === "relate"
-      ? activeMembership.cohorts.pathway
-      : null;
+const membershipPathway =
+  activeMembership.cohorts.pathway === "discover" ||
+  activeMembership.cohorts.pathway === "relate"
+    ? activeMembership.cohorts.pathway
+    : null;
 
   if (activeMembership.status === "active" && progression.phase === "COMPLETED") {
     await prisma.cohort_members.update({
