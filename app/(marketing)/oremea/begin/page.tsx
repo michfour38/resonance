@@ -7,7 +7,6 @@ import {
   getEntryResumeState,
   syncEntryAccessWindow,
   updateEntryLeadPathway,
-  saveBeginReflection,
 } from "../enter/actions";
 
 const playfair = Playfair_Display({
@@ -317,14 +316,6 @@ async function handleEnterResonance() {
   if (!selectedPath || isEntering || !hasAccess) return;
 
   setIsEntering(true);
-
-  // 🔥 SAVE reflection + pathway
-  if (leadEmail && reflection.trim()) {
-    await saveBeginReflection({
-      email: leadEmail,
-      reflection: reflection.trim(),
-    });
-  }
 
   const prewaveParams = new URLSearchParams();
   prewaveParams.set("pathway", selectedPath);
