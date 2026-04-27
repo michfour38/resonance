@@ -7,6 +7,7 @@ import {
   getEntryResumeState,
   syncEntryAccessWindow,
   updateEntryLeadPathway,
+  markIntroCompleted,
 } from "../enter/actions";
 
 const playfair = Playfair_Display({
@@ -135,6 +136,7 @@ export default function OremeaBeginPage() {
   const [index, setIndex] = useState(0);
   const [selectedPath, setSelectedPath] = useState<PathOption>("discover");
   const [reflection, setReflection] = useState("");
+const [savedReflection, setSavedReflection] = useState("");
   const [leadEmail, setLeadEmail] = useState<string | null>(null);
   const [isEntering, setIsEntering] = useState(false);
   const [accessResolved, setAccessResolved] = useState(false);
@@ -259,7 +261,7 @@ export default function OremeaBeginPage() {
       : "What feels most true about where you are right now, even if you have not had words for it yet?";
 
   const previewResponse = useMemo(() => {
-    const text = reflection.trim();
+    const text = savedReflection.trim();
 
     if (!text) {
       return selectedPath === "relate"
@@ -278,11 +280,11 @@ export default function OremeaBeginPage() {
     return selectedPath === "relate"
       ? "Something in the way you relate is already becoming clearer. There is a pattern here worth staying with, not because it is obvious, but because it may reveal how you move toward, away from, or within connection."
       : "Something in you is already becoming clearer. There is a thread here worth staying with, not because it is loud, but because it feels true enough to return to.";
-  }, [reflection, selectedPath]);
+  }, [savedReflection, selectedPath]);
 
   const canMoveForward = (() => {
     if (index === 4) return selectedPath !== null;
-    if (index === 6) return reflection.trim().length > 0;
+    if (index === 6) return savedReflection.trim().length > 0;
     return index < 7;
   })();
 
@@ -312,10 +314,23 @@ export default function OremeaBeginPage() {
     });
   }
 
+function handleSaveBeginReflection() {
+  const text = reflection.trim();
+
+  if (!text) return;
+
+  setSavedReflection(text);
+  setIndex(7);
+}
+
 async function handleEnterResonance() {
   if (!selectedPath || isEntering || !hasAccess) return;
 
   setIsEntering(true);
+
+  if (leadEmail) {
+    await markIntroCompleted({ email: leadEmail });
+  }
 
   const prewaveParams = new URLSearchParams();
   prewaveParams.set("pathway", selectedPath);
@@ -388,6 +403,22 @@ async function handleEnterResonance() {
         className="w-full resize-none rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#c8a96a]/30"
         placeholder="Write what feels true..."
       />
+<div className="mt-4 flex justify-end">
+  <button
+    type="button"
+    onClick={handleSaveBeginReflection}
+    disabled={!reflection.trim()}
+    className={`rounded-xl border px-5 py-3 text-sm transition ${
+      savedReflection
+        ? "border-[#c8a96a]/60 bg-[#c8a96a]/10 text-[#f1dfb4]"
+        : reflection.trim()
+          ? "border-[#c8a96a]/60 bg-transparent text-[#f1dfb4] hover:bg-[#c8a96a]/10"
+          : "border-white/15 bg-transparent text-white/35"
+    }`}
+  >
+    {savedReflection ? "Reflection saved" : "Save reflection"}
+  </button>
+</div>
     </PanelShell>,
     <PanelShell key="p8" title="What I’m already hearing">
       <div className="space-y-5">

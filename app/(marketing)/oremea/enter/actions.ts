@@ -210,3 +210,19 @@ return {
     };
   }
 }
+
+export async function markIntroCompleted(input: { email: string }) {
+  const email = input.email?.trim().toLowerCase();
+  if (!email) return;
+
+  try {
+    await prisma.entry_leads.update({
+      where: { email },
+      data: {
+        intro_completed_at: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("Mark intro completed failed:", error);
+  }
+}
