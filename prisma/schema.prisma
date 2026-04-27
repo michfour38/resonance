@@ -482,7 +482,6 @@ model entry_leads {
   entry_access_expires_at DateTime? @db.Timestamptz(6)
   journey_paid_at         DateTime? @db.Timestamptz(6)
   journey_access_granted  Boolean   @default(false)
-  begin_reflection        String?
 
   @@index([email])
   @@index([source])

@@ -134,7 +134,7 @@ function PathCard({
 
 export default function OremeaBeginPage() {
   const [index, setIndex] = useState(0);
-  const [selectedPath, setSelectedPath] = useState<PathOption>(null);
+  const [selectedPath, setSelectedPath] = useState<PathOption>("discover");
   const [reflection, setReflection] = useState("");
   const [leadEmail, setLeadEmail] = useState<string | null>(null);
   const [isEntering, setIsEntering] = useState(false);
@@ -361,7 +361,7 @@ async function handleEnterResonance() {
       </p>
     </PanelShell>,
     <PanelShell key="p5">
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
+      <div className="mx-auto max-w-[320px]">
         <PathCard
           title="Discover"
           words={["Innerstand", "yourself", "deeper"]}
