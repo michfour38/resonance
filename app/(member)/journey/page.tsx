@@ -373,8 +373,8 @@ export default async function JourneyPage() {
                   })}
                 </div>
 
-                <div className="mt-10">
-                  <MirrorOutput
+<div id="mirror" className="mt-10 scroll-mt-24">
+  <MirrorOutput
                     weekNumber={content.weekNumber}
                     dayNumber={content.dayNumber}
                     liteMirrorEligible={liteMirrorEligible}

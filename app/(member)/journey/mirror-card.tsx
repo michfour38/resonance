@@ -23,12 +23,11 @@ function getStageCopy(stage: MirrorStage) {
     return {
       helper:
         "A private space for deeper reflection. You can keep this with yourself for now.",
-      savedState: "Kept private",
       sharedState: "Shared with your circle",
       shareOn: "Sharing with circle",
       shareOff: "Keep private",
       shareLinkOn: "Make private again",
-      shareLinkOff: "Share with circle",
+      shareLinkOff: "Edit reflection",
       saveLabel: "Save reflection",
       savedLabel: "Saved",
       placeholder: "Write what feels true for you...",
@@ -124,7 +123,7 @@ export default function MirrorCard({
   prompt,
   progressRatio,
 }: MirrorCardProps) {
-  const [isShared, setIsShared] = useState(prompt.isShared);
+  const isShared = false;
   const [saved, setSaved] = useState(false);
   const [text, setText] = useState(prompt.response ?? "");
   const router = useRouter();
@@ -164,27 +163,15 @@ export default function MirrorCard({
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <p className="text-xs text-zinc-500">
-            {prompt.isShared ? copy.sharedState : copy.savedState}
-          </p>
-
-          <form action={submitPromptAction}>
-            <input type="hidden" name="promptId" value={prompt.id} />
-            <input type="hidden" name="response" value={prompt.response} />
-            <input
-              type="hidden"
-              name="isShared"
-              value={prompt.isShared ? "false" : "true"}
-            />
-            <button
-              type="submit"
-              className="text-xs text-zinc-300 underline underline-offset-4 transition-colors hover:text-white"
-            >
-              {prompt.isShared ? copy.shareLinkOn : copy.shareLinkOff}
-            </button>
-          </form>
-        </div>
+        <div className="flex justify-end pt-1">
+  <button
+    type="button"
+    onClick={() => router.refresh()}
+    className="text-xs text-zinc-300 underline underline-offset-4 transition-colors hover:text-white"
+  >
+    Edit reflection
+  </button>
+</div>
       </div>
     );
   }
@@ -218,20 +205,6 @@ export default function MirrorCard({
           rows={6}
           className={`w-full resize-none rounded-2xl border px-4 py-3 text-sm leading-7 text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 transition-colors duration-500 ${styles.inner} ${styles.ring}`}
         />
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsShared((v) => !v)}
-            className={`rounded-full border px-3 py-1.5 text-xs transition-colors duration-300 ${
-              isShared
-                ? styles.pillOn
-                : "border-zinc-800 bg-transparent text-zinc-400"
-            }`}
-          >
-            {isShared ? copy.shareOn : copy.shareOff}
-          </button>
-        </div>
 
         <div className="flex items-center gap-3">
           <button
