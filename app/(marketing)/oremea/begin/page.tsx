@@ -261,26 +261,32 @@ const [savedReflection, setSavedReflection] = useState("");
       : "What feels most true about where you are right now, even if you have not had words for it yet?";
 
   const previewResponse = useMemo(() => {
-    const text = savedReflection.trim();
+  const text = savedReflection.trim();
 
-    if (!text) {
-      return selectedPath === "relate"
-        ? "Something in the way you relate may become clearer as you begin."
-        : "Something in you may become clearer as you begin.";
-    }
+  if (!text) {
+    return "Save your reflection first. Then Resonance will reflect back what it is already hearing in your words.";
+  }
 
-    const isShallow = text.length < 60;
+  const cleanText = text.length > 180 ? `${text.slice(0, 180).trim()}…` : text;
 
-    if (isShallow) {
-      return selectedPath === "relate"
-        ? "There’s something here worth staying with. As you continue, patterns in how you relate will begin to emerge more clearly."
-        : "There’s something here worth staying with. As you continue, what’s true for you will begin to take clearer shape.";
-    }
+  if (text.length < 25) {
+    return `You wrote: “${cleanText}”
 
-    return selectedPath === "relate"
-      ? "Something in the way you relate is already becoming clearer. There is a pattern here worth staying with, not because it is obvious, but because it may reveal how you move toward, away from, or within connection."
-      : "Something in you is already becoming clearer. There is a thread here worth staying with, not because it is loud, but because it feels true enough to return to.";
-  }, [savedReflection, selectedPath]);
+Even in a short answer, there is something useful here. Resonance will not force meaning onto it. It will begin by staying close to what you actually gave — the hesitation, the simplicity, or even the uncertainty. Sometimes “I don’t know” is not nothing. It is the first honest place to begin.`;
+  }
+
+  if (text.length < 80) {
+    return `You wrote: “${cleanText}”
+
+What is already coming through is not a finished answer, but a starting signal. There is something in this reflection that points to where your attention is currently resting. As you continue, Resonance will help you notice whether this becomes a repeating pattern, a protective response, a longing, or something in you beginning to shift.`;
+  }
+
+  return `You wrote: “${cleanText}”
+
+What I’m already hearing is that something in this reflection matters enough to be named. There may be a thread here around what you are ready to understand more clearly — not by rushing toward an answer, but by watching what repeats, what softens, and what becomes more honest over time.
+
+This is the beginning point Resonance will carry forward.`;
+}, [savedReflection]);
 
   const canMoveForward = (() => {
     if (index === 4) return selectedPath !== null;
@@ -374,13 +380,6 @@ async function handleEnterResonance() {
           imageUrl="/images/discover-bg.png"
           selected={selectedPath === "discover"}
           onClick={() => handlePathSelect("discover")}
-        />
-        <PathCard
-          title="Relate"
-          words={["Relational", "innerstanding,", "deeper"]}
-          imageUrl="/images/relate-bg.png"
-          selected={selectedPath === "relate"}
-          onClick={() => handlePathSelect("relate")}
         />
       </div>
     </PanelShell>,
