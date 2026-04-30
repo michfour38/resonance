@@ -191,7 +191,7 @@ if (lead?.intro_completed_at) {
   return {
     email,
     hasAccess: true,
-    destination: "prewave" as const,
+    destination: "journey" as const,
   };
 }
 

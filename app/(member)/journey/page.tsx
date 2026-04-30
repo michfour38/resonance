@@ -180,10 +180,6 @@ export default async function JourneyPage() {
       }
     : waveContext.progression;
 
-  if (!testingOverride && progression.phase === "PRE_WAVE") {
-    redirect("/prewave");
-  }
-
   if (progression.phase === "COMPLETED") {
     const backgrounds = getJourneyBackgrounds(10);
 

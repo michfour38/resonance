@@ -25,5 +25,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${APP_URL}/journey?mirror=error`);
   }
 
-  return NextResponse.redirect(`${APP_URL}/journey?mirror=success`);
+  return NextResponse.redirect(`${APP_URL}/journey?mirror=success#mirror`);
 }

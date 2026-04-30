@@ -41,5 +41,5 @@ export async function GET(request: Request) {
     isPaid: true,
   });
 
-  return NextResponse.redirect(`${APP_URL}/journey`);
+  return NextResponse.redirect(`${APP_URL}/journey?mirror=success#mirror`);
 }
