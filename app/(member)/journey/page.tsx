@@ -91,6 +91,58 @@ function getTestingJourneyOverride() {
   };
 }
 
+async function getSelfPacedJourneyPosition(userId: string) {
+  const weeks = await prisma.journey_weeks.findMany({
+    where: { is_published: true },
+    orderBy: { week_number: "asc" },
+    include: {
+      journey_days: {
+        orderBy: { day_number: "asc" },
+        include: {
+          day_prompts: {
+            where: { is_published: true },
+            orderBy: { prompt_order: "asc" },
+            include: {
+              prompt_completions: {
+                where: { user_id: userId },
+                select: { id: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  for (const week of weeks) {
+    for (const day of week.journey_days) {
+      const prompts = day.day_prompts;
+
+      if (prompts.length === 0) continue;
+
+      const allDone = prompts.every(
+        (prompt) => prompt.prompt_completions.length > 0
+      );
+
+      if (!allDone) {
+        return {
+          phase: week.week_number >= 9 ? "INTEGRATION" as const : "CORE" as const,
+          weekNumber: week.week_number,
+          dayNumber: day.day_number,
+          completed: false,
+        };
+      }
+    }
+  }
+
+  return {
+    phase: "COMPLETED" as const,
+    weekNumber: 10,
+    dayNumber: 7,
+    completed: true,
+  };
+}
+
 export default async function JourneyPage() {
   const { userId } = await auth();
 
@@ -105,15 +157,23 @@ export default async function JourneyPage() {
   }
 
   const journeyAccess = await prisma.entry_leads.findUnique({
-    where: { email: signedInEmail },
-    select: {
-      journey_access_granted: true,
-    },
-  });
+  where: { email: signedInEmail },
+  select: {
+    journey_access_granted: true,
+    entry_access_expires_at: true,
+  },
+});
 
-  if (!journeyAccess?.journey_access_granted) {
-    redirect("/journey/unlock");
-  }
+const hasEntryAccess =
+  journeyAccess?.entry_access_expires_at &&
+  journeyAccess.entry_access_expires_at.getTime() > Date.now();
+
+const hasJourneyAccess =
+  Boolean(journeyAccess?.journey_access_granted) || Boolean(hasEntryAccess);
+
+if (!hasJourneyAccess) {
+  redirect("/oremea/enter");
+}
 
   let displayWaveName = "Your Wave";
   let waveContext: Awaited<ReturnType<typeof getMemberWaveContext>> | null = null;
@@ -171,14 +231,16 @@ export default async function JourneyPage() {
 
   console.log("TEST LOCK ACTIVE", testingOverride);
 
-  const progression = testingOverride
-    ? {
-        ...waveContext.progression,
-        phase: testingOverride.phase,
-        weekNumber: testingOverride.weekNumber,
-        dayNumber: testingOverride.dayNumber,
-      }
-    : waveContext.progression;
+  const selfPacedPosition = await getSelfPacedJourneyPosition(userId);
+
+const progression = testingOverride
+  ? {
+      ...waveContext.progression,
+      phase: testingOverride.phase,
+      weekNumber: testingOverride.weekNumber,
+      dayNumber: testingOverride.dayNumber,
+    }
+  : selfPacedPosition;
 
   if (progression.phase === "COMPLETED") {
     const backgrounds = getJourneyBackgrounds(10);
