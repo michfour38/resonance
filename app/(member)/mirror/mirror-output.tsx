@@ -31,7 +31,8 @@ export default function MirrorOutput({
     "yes" | "not_quite" | null
   >(null);
   const [note, setNote] = useState("");
-
+const [questions, setQuestions] = useState<string[]>([]);
+const [questionsLoading, setQuestionsLoading] = useState(false);
   const activeTier = fullMirrorUnlocked ? "full" : "lite";
   const hasUnlockedMirror = liteMirrorUnlocked || fullMirrorUnlocked;
 
@@ -44,6 +45,48 @@ export default function MirrorOutput({
 
     return () => clearTimeout(timer);
   }, [isGenerating, weekNumber, dayNumber]);
+
+useEffect(() => {
+  if (hasUnlockedMirror || mirror) return;
+
+  const cacheKey = `resonance_questions_${weekNumber}_${dayNumber}`;
+  const cached = window.localStorage.getItem(cacheKey);
+
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) {
+        setQuestions(parsed);
+        return;
+      }
+    } catch {
+      window.localStorage.removeItem(cacheKey);
+    }
+  }
+
+  async function fetchQuestions() {
+    setQuestionsLoading(true);
+
+    try {
+      const res = await fetch(
+        `/api/mirror/questions?weekNumber=${weekNumber}&dayNumber=${dayNumber}`
+      );
+
+      const data = await res.json();
+
+      if (Array.isArray(data?.questions)) {
+        setQuestions(data.questions);
+        window.localStorage.setItem(cacheKey, JSON.stringify(data.questions));
+      }
+    } catch (error) {
+      console.error("Questions fetch failed:", error);
+    } finally {
+      setQuestionsLoading(false);
+    }
+  }
+
+  fetchQuestions();
+}, [hasUnlockedMirror, mirror, weekNumber, dayNumber]);
 
   function startGenerate() {
     setIsGenerating(true);
@@ -79,6 +122,41 @@ export default function MirrorOutput({
       setFeedbackState("error");
     }
   }
+
+// 👉 NEW: Resonance baseline (2 guiding questions)
+if (!hasUnlockedMirror && !mirror) {
+  return (
+    <div className="rounded-3xl border border-zinc-800 bg-zinc-950 px-6 py-5 space-y-4">
+      <p className="text-xs font-medium uppercase tracking-[0.25em] text-zinc-500">
+        Reflection Questions
+      </p>
+
+      {questionsLoading ? (
+        <p className="text-sm leading-7 text-zinc-400">
+          Preparing your questions...
+        </p>
+      ) : questions.length > 0 ? (
+        <div className="space-y-3 text-sm leading-7 text-zinc-300">
+          {questions.map((question, index) => (
+            <p key={index}>{question}</p>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3 text-sm leading-7 text-zinc-300">
+          <p>What felt most real or important in what you just wrote?</p>
+          <p>
+            What part of this feels familiar — like something you’ve experienced
+            before?
+          </p>
+        </div>
+      )}
+
+      <p className="text-xs text-zinc-500">
+        These questions are shaped from what you’ve already shared.
+      </p>
+    </div>
+  );
+}
 
   if (!liteMirrorEligible && !fullMirrorEligible) {
     return (
