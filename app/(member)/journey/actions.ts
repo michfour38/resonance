@@ -199,3 +199,34 @@ export async function updatePathwayAction(formData: FormData) {
 
   revalidatePath("/journey");
 }
+
+export async function continueJourneyDayAction(formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const weekNumber = Number(formData.get("weekNumber"));
+  const dayNumber = Number(formData.get("dayNumber"));
+
+  if (!weekNumber || !dayNumber) return;
+
+  await prisma.journey_day_continues.upsert({
+    where: {
+      user_id_week_number_day_number: {
+        user_id: userId,
+        week_number: weekNumber,
+        day_number: dayNumber,
+      },
+    },
+    update: {
+      continued_at: new Date(),
+    },
+    create: {
+      user_id: userId,
+      week_number: weekNumber,
+      day_number: dayNumber,
+    },
+  });
+
+  revalidatePath("/journey");
+  redirect("/journey");
+}

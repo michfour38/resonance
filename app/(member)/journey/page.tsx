@@ -11,6 +11,7 @@ import MemberNav from "../member-nav";
 import { isMirrorTierUnlocked } from "@/app/(member)/mirror/mirror-unlock.service";
 import MirrorOutput from "../mirror/mirror-output";
 import { getMirrorHistory } from "../mirror/mirror.service";
+import { continueJourneyDayAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -120,9 +121,22 @@ async function getSelfPacedJourneyPosition(userId: string) {
 
       if (prompts.length === 0) continue;
 
-      const allDone = prompts.every(
-        (prompt) => prompt.prompt_completions.length > 0
-      );
+const allPromptsDone = prompts.every(
+  (prompt) => prompt.prompt_completions.length > 0
+);
+
+const continued = await prisma.journey_day_continues.findUnique({
+  where: {
+    user_id_week_number_day_number: {
+      user_id: userId,
+      week_number: week.week_number,
+      day_number: day.day_number,
+    },
+  },
+  select: { id: true },
+});
+
+const allDone = allPromptsDone && Boolean(continued);
 
       if (!allDone) {
         return {
@@ -443,6 +457,20 @@ const progression = testingOverride
                     mirrorExerciseCompleted={mirrorExerciseCompleted}
                   />
                 </div>
+
+{content.prompts.every((prompt) => prompt.isCompleted) ? (
+  <form action={continueJourneyDayAction} className="mt-6 flex justify-end">
+    <input type="hidden" name="weekNumber" value={content.weekNumber} />
+    <input type="hidden" name="dayNumber" value={content.dayNumber} />
+
+    <button
+      type="submit"
+      className="rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
+    >
+      Continue to next day
+    </button>
+  </form>
+) : null}
 
                 {showCurrentUnlockCard ? (
                   <div className="mt-8 rounded-3xl border border-emerald-400/40 bg-emerald-400/10 p-6 md:p-8">

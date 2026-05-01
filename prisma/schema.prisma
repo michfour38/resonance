@@ -168,6 +168,19 @@ model cohorts {
   journey_progress journey_progress[]
 }
 
+model journey_day_continues {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String
+  week_number  Int
+  day_number   Int
+  continued_at DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, week_number, day_number])
+  @@index([user_id])
+  @@index([week_number, day_number])
+}
+
 model inquiry_sessions {
   id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   reflection_session_id String              @unique @db.Uuid

@@ -163,11 +163,9 @@ export default function PromptCard({
 
         {prompt.canEdit ? (
           showEditPrivate ? (
-            <form
-  action={async (formData) => {
-    await submitPromptAction(formData);
-    setShowEditPrivate(false);
-  }}
+<form
+  action={submitPromptAction}
+  onSubmit={() => setShowEditPrivate(false)}
   className="space-y-4"
 >
               <input type="hidden" name="promptId" value={prompt.id} />
@@ -241,10 +239,8 @@ export default function PromptCard({
       {prompt.canEdit &&
         (showEditShared ? (
 <form
-  action={async (formData) => {
-    await submitPromptAction(formData);
-    setShowEditShared(false);
-  }}
+  action={submitPromptAction}
+  onSubmit={() => setShowEditShared(false)}
   className="space-y-4"
 >
             <input type="hidden" name="promptId" value={prompt.id} />
