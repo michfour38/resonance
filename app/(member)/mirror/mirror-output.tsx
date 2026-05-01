@@ -123,13 +123,15 @@ useEffect(() => {
     }
   }
 
+const isResonance = !hasUnlockedMirror;
+
 // 👉 NEW: Resonance baseline (2 guiding questions)
 if (!hasUnlockedMirror && !mirror) {
   return (
     <div className="rounded-3xl border border-zinc-800 bg-zinc-950 px-6 py-5 space-y-4">
       <p className="text-xs font-medium uppercase tracking-[0.25em] text-zinc-500">
-        Reflection Questions
-      </p>
+  {isResonance ? "Reflection Questions" : "Mirror"}
+</p>
 
       {questionsLoading ? (
         <p className="text-sm leading-7 text-zinc-400">
@@ -152,26 +154,13 @@ if (!hasUnlockedMirror && !mirror) {
       )}
 
       <p className="text-xs text-zinc-500">
-        These questions are shaped from what you’ve already shared.
+        These are drawn directly from what you’ve reflected today.
       </p>
     </div>
   );
 }
 
-  if (!liteMirrorEligible && !fullMirrorEligible) {
-    return (
-      <div className="rounded-3xl border border-zinc-800 bg-zinc-950 px-6 py-5 space-y-2">
-        <p className="text-xs font-medium uppercase tracking-[0.25em] text-zinc-500">
-          Mirror
-        </p>
-        <p className="text-sm leading-7 text-zinc-300">
-          The Mirror opens after you have completed 2 active Wave days.
-        </p>
-      </div>
-    );
-  }
-
-  if (fullMirrorEligible && !fullMirrorUnlocked) {
+    if (fullMirrorEligible && !fullMirrorUnlocked) {
     return (
       <div className="rounded-3xl border border-[#7a6426]/40 bg-[#17130a] px-6 py-6 space-y-4">
         <div className="space-y-1">
