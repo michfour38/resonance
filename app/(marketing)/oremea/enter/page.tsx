@@ -259,7 +259,10 @@ return query ? `${baseUrl}?${query}` : baseUrl;
             </a>
           </div>
 
-          <div className="flex h-full flex-col rounded-[2rem] border border-[#c8a96a]/35 bg-[#c8a96a]/10 p-6 backdrop-blur-[2px] md:p-8">
+          <div className="relative flex h-full flex-col rounded-[2rem] border border-[#c8a96a]/60 bg-[#c8a96a]/15 p-6 shadow-[0_0_45px_rgba(200,169,106,0.10)] backdrop-blur-[2px] md:p-8">
+  <div className="absolute right-5 top-5 rounded-full border border-[#c8a96a]/40 bg-black/30 px-3 py-1 text-[0.65rem] uppercase tracking-[0.22em] text-[#f1dfb4]/80">
+    Deeper clarity
+  </div>
             <p className="text-xs uppercase tracking-[0.28em] text-[#f1dfb4]/80">
               Option 2
             </p>
@@ -342,13 +345,33 @@ return query ? `${baseUrl}?${query}` : baseUrl;
               What Mirror adds
             </summary>
             <p className="mt-4 text-sm leading-7 text-zinc-400">
-              Resonance helps you stay with what you have already noticed in
-              your relationships. Mirror helps you see what is forming across
-              the process. Instead of individual reflections, Mirror looks
-              across your responses over time — identifying patterns, repeated
-              dynamics, and subtle shifts that are difficult to see from within
-              a single moment. Each Mirror reflection includes guiding
-              questions, helping you continue the process with greater clarity.
+              You can reflect for weeks and still miss the pattern.
+
+Not because you’re unaware — but because you’re inside it.
+
+Mirror steps outside your individual answers, and looks across them.
+
+It tracks what repeats:
+how you interpret people, what you tolerate, where you override yourself, when you pull closer or step away. 
+
+Not once — but over time.
+
+What feels like separate moments begins to reveal a structure.
+
+And once you can see the structure, you stop guessing.
+
+Each Mirror reflection also generates two precise questions based on your own responses — not generic prompts — designed to take you directly into the pattern that’s forming.
+
+Without Mirror, you reflect on moments.
+
+With Mirror, you start to see the pattern shaping your experience.
+
+And once you see it clearly, you can’t unsee it.
+
+Most people write.
+Very few ever see the pattern they’re writing.
+
+Choose how deeply you want to see.
             </p>
           </details>
 
@@ -363,6 +386,19 @@ return query ? `${baseUrl}?${query}` : baseUrl;
             </p>
           </details>
         </section>
+<div className="mx-auto mt-10 max-w-2xl text-center">
+  <p className="text-base text-zinc-200">
+  Most people reflect on what happened.
+</p>
+
+<p className="mt-2 text-base text-zinc-200">
+  Very few ever see the pattern shaping their relationships.
+</p>
+
+  <p className="mt-6 text-2xl leading-8 text-[#C8A96A]">
+  Choose how clearly you want to see.
+</p>
+</div>
 
         <footer className="mt-8 text-center text-xs leading-6 text-white/40">
           <a href="/terms" className="hover:text-white/60">
