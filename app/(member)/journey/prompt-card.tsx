@@ -5,7 +5,6 @@ import {
   submitPromptAction,
   toggleWitnessAction,
   toggleResonatedAction,
-  updatePathwayAction,
 } from "./actions";
 import AnalyzeBox from "./analyze-box";
 import { useEffect, useRef, useState } from "react";
@@ -26,6 +25,16 @@ interface PromptCardProps {
   currentPathway?: "discover" | "relate" | null;
 }
 
+function LoadingDots() {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.2s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.1s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
+    </span>
+  );
+}
+
 export default function PromptCard({
   prompt,
   index,
@@ -35,6 +44,7 @@ export default function PromptCard({
 }: PromptCardProps) {
   const [showEditPrivate, setShowEditPrivate] = useState(false);
   const [showEditShared, setShowEditShared] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const incompleteCardRef = useRef<HTMLDivElement>(null);
 
   const pathway =
@@ -50,6 +60,16 @@ export default function PromptCard({
     prompt.type === "thread_prompt" &&
     Boolean(prompt.response?.trim()) &&
     Boolean(discoverReadinessSignal?.eligible);
+
+  function handleSubmit(formData: FormData) {
+  if (isSubmitting) return;
+
+  setIsSubmitting(true);
+
+  window.setTimeout(() => {
+    void submitPromptAction(formData);
+  }, 350);
+}
 
   useEffect(() => {
     if (prompt.isCompleted || !prompt.isUnlocked) return;
@@ -92,7 +112,7 @@ export default function PromptCard({
           <p className="text-base leading-7 text-zinc-200">{prompt.content}</p>
         </div>
 
-        <form action={submitPromptAction} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
           <input type="hidden" name="promptId" value={prompt.id} />
           <input
             type="hidden"
@@ -110,9 +130,10 @@ export default function PromptCard({
           <div className="flex justify-end pt-1">
             <button
               type="submit"
-              className="rounded-xl bg-zinc-800 px-4 py-2 text-sm text-white transition-colors hover:bg-zinc-700"
+              disabled={isSubmitting}
+              className="min-w-[82px] rounded-xl bg-zinc-800 px-4 py-2 text-sm text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Reflect
+              {isSubmitting ? <LoadingDots /> : "Reflect"}
             </button>
           </div>
         </form>
@@ -140,7 +161,7 @@ export default function PromptCard({
             </p>
 
             <div className="flex justify-end">
-              <form action={submitPromptAction}>
+              <form action={handleSubmit}>
                 <input type="hidden" name="promptId" value={prompt.id} />
                 <input type="hidden" name="response" value={prompt.response ?? ""} />
                 <input type="hidden" name="isShared" value="true" />
@@ -152,9 +173,16 @@ export default function PromptCard({
 
                 <button
                   type="submit"
-                  className="rounded-xl border border-amber-300/25 bg-amber-400/15 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/22"
+                  disabled={isSubmitting}
+                  className="min-w-[130px] rounded-xl border border-amber-300/25 bg-amber-400/15 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/22 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {prompt.isShared ? "Now seen" : "Let yourself be seen"}
+                  {isSubmitting ? (
+                    <LoadingDots />
+                  ) : prompt.isShared ? (
+                    "Now seen"
+                  ) : (
+                    "Let yourself be seen"
+                  )}
                 </button>
               </form>
             </div>
@@ -163,11 +191,11 @@ export default function PromptCard({
 
         {prompt.canEdit ? (
           showEditPrivate ? (
-<form
-  action={submitPromptAction}
-  onSubmit={() => setShowEditPrivate(false)}
-  className="space-y-4"
->
+            <form
+              action={handleSubmit}
+              onSubmit={() => setShowEditPrivate(false)}
+              className="space-y-4"
+            >
               <input type="hidden" name="promptId" value={prompt.id} />
               <input
                 type="hidden"
@@ -193,9 +221,10 @@ export default function PromptCard({
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl border border-amber-400/20 bg-amber-400/20 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/25"
+                    disabled={isSubmitting}
+                    className="min-w-[90px] rounded-xl border border-amber-400/20 bg-amber-400/20 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Save edit
+                    {isSubmitting ? <LoadingDots /> : "Save edit"}
                   </button>
                 </div>
               </div>
@@ -238,11 +267,11 @@ export default function PromptCard({
 
       {prompt.canEdit &&
         (showEditShared ? (
-<form
-  action={submitPromptAction}
-  onSubmit={() => setShowEditShared(false)}
-  className="space-y-4"
->
+          <form
+            action={handleSubmit}
+            onSubmit={() => setShowEditShared(false)}
+            className="space-y-4"
+          >
             <input type="hidden" name="promptId" value={prompt.id} />
             <input
               type="hidden"
@@ -267,9 +296,10 @@ export default function PromptCard({
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl border border-amber-400/20 bg-amber-400/20 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/25"
+                  disabled={isSubmitting}
+                  className="min-w-[90px] rounded-xl border border-amber-400/20 bg-amber-400/20 px-4 py-2 text-sm text-amber-100 transition-colors hover:bg-amber-400/25 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Save edit
+                  {isSubmitting ? <LoadingDots /> : "Save edit"}
                 </button>
               </div>
             </div>

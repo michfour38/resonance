@@ -12,6 +12,8 @@ import { isMirrorTierUnlocked } from "@/app/(member)/mirror/mirror-unlock.servic
 import MirrorOutput from "../mirror/mirror-output";
 import { getMirrorHistory } from "../mirror/mirror.service";
 import { continueJourneyDayAction } from "./actions";
+import ContinueDayButton from "./continue-day-button";
+import AutoScrollToMirror from "./auto-scroll-to-mirror";
 
 export const dynamic = "force-dynamic";
 
@@ -470,6 +472,10 @@ const progression = testingOverride
                   })}
                 </div>
 
+<AutoScrollToMirror
+  trigger={content.prompts.every((prompt) => prompt.isCompleted)}
+/>
+
 <div id="mirror" className="mt-10 scroll-mt-24">
   <MirrorOutput
                     weekNumber={content.weekNumber}
@@ -489,12 +495,8 @@ currentMirror ? (
     <input type="hidden" name="weekNumber" value={content.weekNumber} />
     <input type="hidden" name="dayNumber" value={content.dayNumber} />
 
-    <button
-      type="submit"
-      className="rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#c8a96a]/10"
-    >
-      Continue to next day
-    </button>
+    <ContinueDayButton />
+
   </form>
 ) : null}
 

@@ -67,6 +67,15 @@ function getStageCopy(stage: MirrorStage) {
   };
 }
 
+function LoadingDots() {
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.2s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.1s]" />
+      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
+    </span>
+  );
+}
 function getProgressStyles(ratio: number) {
   // 0%–15% → zinc-dominant
   if (ratio <= 0.15) {
@@ -125,19 +134,26 @@ export default function MirrorCard({
 }: MirrorCardProps) {
   const isShared = false;
   const [saved, setSaved] = useState(false);
-  const [text, setText] = useState(prompt.response ?? "");
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [text, setText] = useState(prompt.response ?? "");
   const router = useRouter();
 
   const styles = getProgressStyles(progressRatio);
   const stage = getMirrorStage(progressRatio);
   const copy = getStageCopy(stage);
 
-  async function handleSubmit(formData: FormData) {
-    formData.set("isShared", isShared ? "true" : "false");
+  function handleSubmit(formData: FormData) {
+  if (isSubmitting) return;
+
+  setIsSubmitting(true);
+  formData.set("isShared", isShared ? "true" : "false");
+
+  window.setTimeout(async () => {
     await submitPromptAction(formData);
     setSaved(true);
     router.refresh();
-  }
+  }, 350);
+}
 
   if (prompt.isCompleted && prompt.response) {
     return (
@@ -209,10 +225,10 @@ export default function MirrorCard({
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={!text.trim()}
+            disabled={!text.trim() || isSubmitting}
             className={`rounded-xl px-4 py-2 text-sm transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-30 ${styles.saveButton}`}
           >
-            {saved ? copy.savedLabel : copy.saveLabel}
+            {isSubmitting ? <LoadingDots /> : saved ? copy.savedLabel : copy.saveLabel}
           </button>
 
         </div>

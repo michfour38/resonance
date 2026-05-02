@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {
   getEntryResumeState,
   grantJourneyAccess,
+  markIntroCompleted,
 } from "../enter/actions";
 
 const playfair = Playfair_Display({
@@ -35,7 +36,7 @@ function LoadingDots() {
 function PanelShell({ title, body, children, className = "" }: PanelProps) {
   return (
     <section
-      className={`flex h-[100svh] w-screen shrink-0 items-center justify-center px-6 pb-16 pt-24 text-white md:px-6 md:pb-20 md:pt-28 ${className}`}
+      className={`flex h-[100svh] w-screen shrink-0 items-center justify-center px-6 pb-10 pt-28 text-white md:px-6 md:pb-20 md:pt-28 ${className}`}
     >
       <div
         className="relative z-10 w-full"
@@ -46,14 +47,14 @@ function PanelShell({ title, body, children, className = "" }: PanelProps) {
       >
         {title ? (
           <h1
-            className={`${playfair.className} text-[2.45rem] font-semibold leading-[0.94] tracking-tight text-white md:text-5xl`}
+            className={`${playfair.className} text-[2rem] font-semibold leading-[0.95] tracking-tight text-white md:text-5xl`}
           >
             {title}
           </h1>
         ) : null}
 
         {body ? (
-          <p className="mt-4 max-w-[34rem] text-[1.02rem] leading-8 text-zinc-200 md:text-base md:leading-8">
+          <p className="mt-4 max-w-[34rem] whitespace-pre-wrap text-[1.02rem] leading-8 text-zinc-200 md:text-base md:leading-8">
             {body}
           </p>
         ) : null}
@@ -65,11 +66,17 @@ function PanelShell({ title, body, children, className = "" }: PanelProps) {
 }
 
 export default function OremeaBeginPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
-  const [index, setIndex] = useState(0);  const [reflection, setReflection] = useState("");
+  const signedInEmail =
+    user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ||
+    user?.emailAddresses?.[0]?.emailAddress?.trim().toLowerCase() ||
+    "";
+
+  const [index, setIndex] = useState(0);
+  const [reflection, setReflection] = useState("");
   const [savedReflection, setSavedReflection] = useState("");
-  const [leadEmail, setLeadEmail] = useState<string | null>(null);
+const [isSaving, setIsSaving] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
   const [accessResolved, setAccessResolved] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -77,45 +84,31 @@ export default function OremeaBeginPage() {
   const touchStartXRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef(0);
 
-    useEffect(() => {
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!user || !signedInEmail) {
+      window.location.href = "/oremea/enter";
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
-
-const { user } = useUser();
-
-const email =
-  user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ||
-  params.get("email")?.trim().toLowerCase() ||
-  "";
     const paymentValue = params.get("payment")?.trim() || "";
     const paymentSuccess = paymentValue.startsWith("success");
 
-    if (email) setLeadEmail(email);
-
     let cancelled = false;
-
-    function buildEnterHref() {
-      const returnParams = new URLSearchParams();
-      const name = params.get("name")?.trim() || "";
-      const source = params.get("source")?.trim() || "";
-
-      if (name) returnParams.set("name", name);
-      if (email) returnParams.set("email", email);
-      if (source) returnParams.set("source", source);
-
-      const query = returnParams.toString();
-      return query ? `/oremea/enter?${query}` : "/oremea/enter";
-    }
 
     async function resolveAccess() {
       if (paymentSuccess) {
         const access = await grantJourneyAccess({
-          email: email || undefined,
+          email: signedInEmail,
         });
 
         if (cancelled) return;
 
         if (access.hasAccess) {
-          window.location.href = "/journey";
+          setHasAccess(true);
+          setAccessResolved(true);
           return;
         }
 
@@ -125,7 +118,7 @@ const email =
       }
 
       const resume = await getEntryResumeState({
-        email: email || undefined,
+        email: signedInEmail,
       });
 
       if (cancelled) return;
@@ -135,7 +128,13 @@ const email =
         return;
       }
 
-      window.location.href = buildEnterHref();
+      if (resume.destination === "begin") {
+        setHasAccess(true);
+        setAccessResolved(true);
+        return;
+      }
+
+      window.location.href = "/oremea/enter";
     }
 
     resolveAccess();
@@ -143,7 +142,7 @@ const email =
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isLoaded, user, signedInEmail]);
 
   const previewResponse = useMemo(() => {
     const text = savedReflection.trim();
@@ -187,19 +186,27 @@ This is the beginning point Resonance will carry forward.`;
     setIndex((v) => Math.min(5, v + 1));
   }
 
-  function handleSaveBeginReflection() {
-    const text = reflection.trim();
+  async function handleSaveBeginReflection() {
+  const text = reflection.trim();
+  if (!text || isSaving) return;
 
-    if (!text) return;
+  setIsSaving(true);
 
-    setSavedReflection(text);
-    setIndex(5);
-  }
+  // simulate processing / synthesis feel
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  setSavedReflection(text);
+  setIsSaving(false);
+}
 
   async function handleEnterResonance() {
     if (isEntering || !hasAccess) return;
 
     setIsEntering(true);
+
+    await markIntroCompleted({
+      email: signedInEmail,
+    });
 
     window.location.href = "/journey";
   }
@@ -208,22 +215,31 @@ This is the beginning point Resonance will carry forward.`;
     <PanelShell
       key="p1"
       title="Return to what is already within you."
-      body="A guided experience for self-reflection and relational growth."
+      body={`This is not something you learn.
+It is something that becomes visible — over time.`}
     />,
     <PanelShell
       key="p2"
-      title="Resonance is where it begins."
-      body="A structured solo reflection system that helps your patterns become visible over time — through prompts, guiding questions, and quiet recognition."
+      title="How Resonance unfolds."
+      body={`Over the next few weeks:
+You will respond to a few prompts per day.
+You will be guided through questions that help you stay with what appears.
+Over time, what repeats begins to reveal itself.`}
     />,
     <PanelShell
       key="p3"
       title="Not advice. Not noise. Not another feed."
-      body="Resonance does not tell you who you are. It helps you discover what becomes visible when your reflections are held with structure, continuity, and care."
+      body={`Resonance does not tell you who you are.
+It does not diagnose, coach, or correct you.
+It gives structure to your own reflections — so you can begin to see what is already there.`}
     />,
     <PanelShell
       key="p4"
       title="Begin with what feels true."
-      body="What feels most true about where you are right now, even if you have not had words for it yet?"
+      body={`What feels most true about where you are right now?
+Not what sounds right.
+Not what you think it should be.
+What is actually there.`}
     >
       <textarea
         value={reflection}
@@ -246,7 +262,7 @@ This is the beginning point Resonance will carry forward.`;
                 : "border-white/15 bg-transparent text-white/35"
           }`}
         >
-          {savedReflection ? "Reflection saved" : "Save reflection"}
+          {isSaving ? <LoadingDots /> : savedReflection ? "Reflection saved" : "Save reflection"}
         </button>
       </div>
     </PanelShell>,
@@ -260,9 +276,17 @@ This is the beginning point Resonance will carry forward.`;
     <PanelShell key="p6" title="Enter Resonance">
       <div className="space-y-5">
         <p className="text-base leading-8 text-zinc-200">
-          You’ve placed your first reflection into the system. From here,
-          Resonance will continue through structured prompts, guiding questions,
-          and pattern recognition over time.
+          You’ve placed your first reflection into the system.
+        </p>
+
+        <p className="text-base leading-8 text-zinc-200">
+          From here, Resonance continues through structured prompts, guiding
+          questions, and pattern recognition over time.
+        </p>
+
+        <p className="text-base leading-8 text-zinc-300">
+          You don’t need to figure everything out. You only need to stay with
+          what appears.
         </p>
 
         <button
@@ -280,7 +304,7 @@ This is the beginning point Resonance will carry forward.`;
 
         {accessResolved && !hasAccess ? (
           <p className="text-sm leading-7 text-white/60">
-            Your payment has returned, but entry access has not attached yet.
+            Your payment has returned, but journey access has not attached yet.
             Stay on this page for now — do not repay.
           </p>
         ) : null}
@@ -352,7 +376,7 @@ This is the beginning point Resonance will carry forward.`;
         <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      <div className="pointer-events-none fixed left-1/2 top-4 z-20 -translate-x-1/2 text-center md:top-5">
+      <div className="pointer-events-none fixed left-1/2 top-3 z-20 -translate-x-1/2 text-center md:top-5">
         <div
           className="flex flex-col items-center"
           style={{
@@ -369,7 +393,7 @@ This is the beginning point Resonance will carry forward.`;
           <h1
             className={`${playfair.className} leading-none tracking-tight`}
             style={{
-              fontSize: "clamp(2rem, 4.2vw, 3.9rem)",
+              fontSize: "clamp(1.35rem, 3vw, 3.2rem)",
               textShadow: "0 0 16px rgba(0,0,0,0.28)",
             }}
           >
@@ -413,7 +437,7 @@ This is the beginning point Resonance will carry forward.`;
       {index > 0 && (
         <button
           onClick={goPrev}
-          className="hidden md:flex fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
+          className="fixed left-1/2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
           style={{ transform: "translate(calc(-50% - 330px), -50%)" }}
           aria-label="Previous"
         >
@@ -426,7 +450,7 @@ This is the beginning point Resonance will carry forward.`;
       {index < panels.length - 1 && (
         <button
           onClick={goNext}
-          className="hidden md:flex fixed left-1/2 top-1/2 z-20 -translate-y-1/2"
+          className="fixed left-1/2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
           style={{ transform: "translate(calc(-50% + 330px), -50%)" }}
           aria-label="Next"
         >
@@ -442,7 +466,7 @@ This is the beginning point Resonance will carry forward.`;
         </button>
       )}
 
-      <div className="pointer-events-none fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+      <div className="pointer-events-none fixed bottom-12 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {panels.map((_, i) => (
           <span
             key={i}
@@ -452,6 +476,29 @@ This is the beginning point Resonance will carry forward.`;
           />
         ))}
       </div>
+<footer className="fixed bottom-3 left-1/2 z-20 w-full -translate-x-1/2 px-4 text-center text-[11px] text-white/40">
+  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+    <a href="/terms" className="hover:text-white/60">
+      Terms
+    </a>
+    <span>·</span>
+    <a href="/privacy" className="hover:text-white/60">
+      Privacy
+    </a>
+    <span>·</span>
+    <a href="/disclaimer" className="hover:text-white/60">
+      Disclaimer
+    </a>
+    <span>·</span>
+    <a href="/refunds" className="hover:text-white/60">
+      Refunds
+    </a>
+    <span>·</span>
+    <a href="/conduct" className="hover:text-white/60">
+      Conduct
+    </a>
+  </div>
+</footer>
     </main>
   );
 }

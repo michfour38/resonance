@@ -69,11 +69,16 @@ export default function OremeaEnterPage() {
       });
 
       if (resume.destination === "journey") {
-        window.location.href = "/journey";
-        return;
-      }
+  window.location.href = "/journey";
+  return;
+}
 
-      setIsCheckingState(false);
+if (resume.destination === "begin") {
+  window.location.href = "/oremea/begin";
+  return;
+}
+
+setIsCheckingState(false);
     });
   }, [isLoaded, user, signedInEmail, firstName, source]);
 
