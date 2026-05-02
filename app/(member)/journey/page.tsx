@@ -459,7 +459,7 @@ const progression = testingOverride
                 </div>
 
 {content.prompts.every((prompt) => prompt.isCompleted) &&
-(currentMirror || (!fullMirrorUnlocked && !liteMirrorUnlocked)) ? (
+currentMirror ? (
   <form action={continueJourneyDayAction} className="mt-6 flex justify-end">
     <input type="hidden" name="weekNumber" value={content.weekNumber} />
     <input type="hidden" name="dayNumber" value={content.dayNumber} />
