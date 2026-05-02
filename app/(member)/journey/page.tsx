@@ -325,9 +325,9 @@ const progression = testingOverride
 
     if (content) {
     try {
-      mirrorExerciseCompleted = content.prompts.some(
-        (prompt) => prompt.type === "mirror_exercise" && prompt.isCompleted
-      );
+      mirrorExerciseCompleted =
+        content.prompts.length > 0 &&
+        content.prompts.every((prompt) => prompt.isCompleted);
 
       await Promise.all(
         content.prompts
