@@ -229,7 +229,7 @@ if (!hasJourneyAccess) {
             <div className="mx-auto max-w-2xl">
               <header className="space-y-3">
                 <h1 className="text-4xl text-white">Journey Active</h1>
-                <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                <p className="text-zinc-300">Resonance by Oremea - Journey</p>
                 <p className="text-zinc-400">
                   Journey content could not be loaded yet.
                 </p>
@@ -280,7 +280,7 @@ const progression = testingOverride
             <div className="mx-auto max-w-2xl">
               <header className="space-y-3">
                 <h1 className="text-4xl text-white">Journey Complete</h1>
-                <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                <p className="text-zinc-300">Resonance by Oremea - Journey</p>
                 <p className="text-zinc-400">
                   Your 10-week Resonance journey has completed.
                 </p>
@@ -403,13 +403,13 @@ const progression = testingOverride
               {content ? (
                 <>
                   <h1 className="text-4xl text-white">{content.weekTitle}</h1>
-                  <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                  <p className="text-zinc-300">Resonance by Oremea - Journey</p>
                   <p className="text-zinc-400">{content.weekTheme}</p>
                 </>
               ) : (
                 <div className="space-y-3">
                   <h1 className="text-4xl text-white">Journey Active</h1>
-                  <p className="text-zinc-300">{displayWaveName || "Your Wave"}</p>
+                  <p className="text-zinc-300">Resonance by Oremea - Journey</p>
                   <p className="text-zinc-400">
                     {contentLoadFailed
                       ? "Journey content could not be loaded yet."
@@ -458,7 +458,8 @@ const progression = testingOverride
                   />
                 </div>
 
-{content.prompts.every((prompt) => prompt.isCompleted) ? (
+{content.prompts.every((prompt) => prompt.isCompleted) &&
+(currentMirror || (!fullMirrorUnlocked && !liteMirrorUnlocked)) ? (
   <form action={continueJourneyDayAction} className="mt-6 flex justify-end">
     <input type="hidden" name="weekNumber" value={content.weekNumber} />
     <input type="hidden" name="dayNumber" value={content.dayNumber} />

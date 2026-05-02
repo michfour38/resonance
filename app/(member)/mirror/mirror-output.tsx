@@ -22,6 +22,7 @@ export default function MirrorOutput({
   liteMirrorUnlocked,
   fullMirrorUnlocked,
   mirror,
+  mirrorExerciseCompleted,
 }: MirrorOutputProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [feedbackState, setFeedbackState] = useState<
@@ -31,65 +32,59 @@ export default function MirrorOutput({
     "yes" | "not_quite" | null
   >(null);
   const [note, setNote] = useState("");
-const [questions, setQuestions] = useState<string[]>([]);
-const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [questionsError, setQuestionsError] = useState(false);
+
   const activeTier = fullMirrorUnlocked ? "full" : "lite";
   const hasUnlockedMirror = liteMirrorUnlocked || fullMirrorUnlocked;
+  const isResonance = !hasUnlockedMirror;
 
   useEffect(() => {
     if (!isGenerating) return;
 
     const timer = setTimeout(() => {
-      window.location.href = `/api/mirror/generate?weekNumber=${weekNumber}&dayNumber=${dayNumber}`;
+      window.location.href = `/api/mirror/generate?weekNumber=${weekNumber}&dayNumber=${dayNumber}&tier=${activeTier}`;
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [isGenerating, weekNumber, dayNumber]);
+  }, [isGenerating, weekNumber, dayNumber, activeTier]);
 
-useEffect(() => {
-  if (hasUnlockedMirror || mirror) return;
-
-  const cacheKey = `resonance_questions_${weekNumber}_${dayNumber}`;
-  const cached = window.localStorage.getItem(cacheKey);
-
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed)) {
-        setQuestions(parsed);
-        return;
-      }
-    } catch {
-      window.localStorage.removeItem(cacheKey);
-    }
+  function startGenerate() {
+    setIsGenerating(true);
   }
 
-  async function fetchQuestions() {
+  async function generateQuestions() {
+    if (questionsLoading || questions.length > 0) return;
+
     setQuestionsLoading(true);
+    setQuestionsError(false);
 
     try {
       const res = await fetch(
-        `/api/mirror/questions?weekNumber=${weekNumber}&dayNumber=${dayNumber}`
+        `/api/mirror/questions?weekNumber=${weekNumber}&dayNumber=${dayNumber}`,
+        {
+          method: "POST",
+        }
       );
+
+      if (!res.ok) {
+        throw new Error("Questions request failed");
+      }
 
       const data = await res.json();
 
       if (Array.isArray(data?.questions)) {
         setQuestions(data.questions);
-        window.localStorage.setItem(cacheKey, JSON.stringify(data.questions));
+      } else {
+        throw new Error("Questions response was invalid");
       }
     } catch (error) {
-      console.error("Questions fetch failed:", error);
+      console.error("Questions generation failed:", error);
+      setQuestionsError(true);
     } finally {
       setQuestionsLoading(false);
     }
-  }
-
-  fetchQuestions();
-}, [hasUnlockedMirror, mirror, weekNumber, dayNumber]);
-
-  function startGenerate() {
-    setIsGenerating(true);
   }
 
   async function submitFeedback(feedback: "yes" | "not_quite", customNote = "") {
@@ -123,44 +118,58 @@ useEffect(() => {
     }
   }
 
-const isResonance = !hasUnlockedMirror;
+  if (!mirrorExerciseCompleted) {
+    return null;
+  }
 
-// 👉 NEW: Resonance baseline (2 guiding questions)
-if (!hasUnlockedMirror && !mirror) {
-  return (
-    <div className="rounded-3xl border border-zinc-800 bg-zinc-950 px-6 py-5 space-y-4">
-      <p className="text-xs font-medium uppercase tracking-[0.25em] text-zinc-500">
-  {isResonance ? "Reflection Questions" : "Mirror"}
-</p>
-
-      {questionsLoading ? (
-        <p className="text-sm leading-7 text-zinc-400">
-          Preparing your questions...
+  if (!hasUnlockedMirror && !mirror) {
+    return (
+      <div className="rounded-3xl border border-zinc-800 bg-zinc-950 px-6 py-5 space-y-4">
+        <p className="text-xs font-medium uppercase tracking-[0.25em] text-zinc-500">
+          {isResonance ? "Reflection Questions" : "Mirror"}
         </p>
-      ) : questions.length > 0 ? (
-        <div className="space-y-3 text-sm leading-7 text-zinc-300">
-          {questions.map((question, index) => (
-            <p key={index}>{question}</p>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3 text-sm leading-7 text-zinc-300">
-          <p>What felt most real or important in what you just wrote?</p>
-          <p>
-            What part of this feels familiar — like something you’ve experienced
-            before?
+
+        {questions.length > 0 ? (
+          <div className="space-y-3 text-sm leading-7 text-zinc-300">
+            {questions.map((question, index) => (
+              <p key={index}>{question}</p>
+            ))}
+          </div>
+        ) : (
+          <>
+            <p className="text-sm leading-7 text-zinc-400">
+              When you’re ready, generate your two guiding questions for today.
+            </p>
+
+            <button
+              type="button"
+              onClick={generateQuestions}
+              disabled={questionsLoading}
+              className="inline-block rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-200 transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {questionsLoading
+                ? "Preparing your questions..."
+                : "Generate my 2 guiding questions"}
+            </button>
+          </>
+        )}
+
+        {questionsError && (
+          <p className="text-xs text-red-400">
+            Couldn’t generate questions. Try again.
           </p>
-        </div>
-      )}
+        )}
 
-      <p className="text-xs text-zinc-500">
-        These are drawn directly from what you’ve reflected today.
-      </p>
-    </div>
-  );
-}
+        {questions.length > 0 && (
+          <p className="text-xs text-zinc-500">
+            These are drawn directly from what you’ve reflected today.
+          </p>
+        )}
+      </div>
+    );
+  }
 
-    if (fullMirrorEligible && !fullMirrorUnlocked) {
+  if (fullMirrorEligible && !fullMirrorUnlocked) {
     return (
       <div className="rounded-3xl border border-[#7a6426]/40 bg-[#17130a] px-6 py-6 space-y-4">
         <div className="space-y-1">
