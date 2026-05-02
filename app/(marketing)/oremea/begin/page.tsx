@@ -1,6 +1,7 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -64,8 +65,9 @@ function PanelShell({ title, body, children, className = "" }: PanelProps) {
 }
 
 export default function OremeaBeginPage() {
-  const [index, setIndex] = useState(0);
-  const [reflection, setReflection] = useState("");
+  const { user } = useUser();
+
+  const [index, setIndex] = useState(0);  const [reflection, setReflection] = useState("");
   const [savedReflection, setSavedReflection] = useState("");
   const [leadEmail, setLeadEmail] = useState<string | null>(null);
   const [isEntering, setIsEntering] = useState(false);
@@ -77,8 +79,6 @@ export default function OremeaBeginPage() {
 
     useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
-    import { useUser } from "@clerk/nextjs";
 
 const { user } = useUser();
 
