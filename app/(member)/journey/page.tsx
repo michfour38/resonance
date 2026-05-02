@@ -164,11 +164,36 @@ export default async function JourneyPage() {
     redirect("/sign-in");
   }
 
-  const signedInEmail = await getSignedInEmail();
+const signedInEmail = await getSignedInEmail();
 
-  if (!signedInEmail) {
-    redirect("/journey/unlock");
-  }
+if (!signedInEmail) {
+  redirect("/journey/unlock");
+}
+
+// 👇 ADD THIS BLOCK RIGHT HERE
+const entryLead = await prisma.entry_leads.findUnique({
+  where: { email: signedInEmail },
+  select: {
+    pathway: true,
+  },
+});
+
+// FORCE SOLO PATHWAY
+const pathway = "discover";
+
+await prisma.profiles.upsert({
+  where: { id: userId },
+  update: {
+    updated_at: new Date(),
+  },
+  create: {
+    id: userId,
+    display_name: signedInEmail.split("@")[0],
+    pathway,
+    journey_status: "active",
+    updated_at: new Date(),
+  },
+});
 
   const journeyAccess = await prisma.entry_leads.findUnique({
   where: { email: signedInEmail },

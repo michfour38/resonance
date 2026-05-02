@@ -5,8 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   getEntryResumeState,
-  syncEntryAccessWindow,
-  markIntroCompleted,
+  grantJourneyAccess,
 } from "../enter/actions";
 
 const playfair = Playfair_Display({
@@ -76,10 +75,17 @@ export default function OremeaBeginPage() {
   const touchStartXRef = useRef<number | null>(null);
   const touchDeltaXRef = useRef(0);
 
-  useEffect(() => {
+    useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    const email = params.get("email")?.trim().toLowerCase() || "";
+    import { useUser } from "@clerk/nextjs";
+
+const { user } = useUser();
+
+const email =
+  user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ||
+  params.get("email")?.trim().toLowerCase() ||
+  "";
     const paymentValue = params.get("payment")?.trim() || "";
     const paymentSuccess = paymentValue.startsWith("success");
 
@@ -100,26 +106,16 @@ export default function OremeaBeginPage() {
       return query ? `/oremea/enter?${query}` : "/oremea/enter";
     }
 
-    function cleanBeginUrl() {
-      params.delete("payment");
-      const cleaned = params.toString();
-      const cleanedUrl = cleaned ? `/oremea/begin?${cleaned}` : "/oremea/begin";
-      window.history.replaceState({}, "", cleanedUrl);
-    }
-
     async function resolveAccess() {
       if (paymentSuccess) {
-        const access = await syncEntryAccessWindow({
+        const access = await grantJourneyAccess({
           email: email || undefined,
-          paymentSuccess: true,
         });
 
         if (cancelled) return;
 
         if (access.hasAccess) {
-          setHasAccess(true);
-          setAccessResolved(true);
-          cleanBeginUrl();
+          window.location.href = "/journey";
           return;
         }
 
@@ -134,18 +130,12 @@ export default function OremeaBeginPage() {
 
       if (cancelled) return;
 
-      if (resume.destination === "pay") {
-        window.location.href = buildEnterHref();
-        return;
-      }
-
       if (resume.destination === "journey") {
         window.location.href = "/journey";
         return;
       }
 
-      setHasAccess(true);
-      setAccessResolved(true);
+      window.location.href = buildEnterHref();
     }
 
     resolveAccess();
@@ -210,10 +200,6 @@ This is the beginning point Resonance will carry forward.`;
     if (isEntering || !hasAccess) return;
 
     setIsEntering(true);
-
-    if (leadEmail) {
-      await markIntroCompleted({ email: leadEmail });
-    }
 
     window.location.href = "/journey";
   }

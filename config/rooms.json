@@ -222,55 +222,55 @@
       ]
     },
     {
-      "slug": "integration_1",
-      "name": "Integration I",
+      "slug": "the-gathering",
+      "name": "The Gathering",
       "weekNumber": 9,
-      "theme": "Weaving the journey together",
+      "theme": "Gathering what has shifted",
       "isIntegration": true,
-      "openingCopy": "Eight rooms. Eight weeks of honest looking. This week we begin to weave the threads together — to see the larger pattern of who you are in relationship.",
-      "weeklyFocus": "Looking back across all eight rooms, what is the single most important thing you have learned about yourself?",
+      "openingCopy": "You’ve moved through the journey. Now we gather what has actually changed — what is clearer, what is real, and what you’re beginning to carry differently.",
+      "weeklyFocus": "What has genuinely shifted in how you understand yourself and your way of relating?",
       "pathwayOverlay": {
-        "discover": "What has this journey shown you about yourself as an individual — your patterns, your needs, your gifts?",
-        "relate": "What has this journey shown you about how you show up in your most significant relationships?",
-        "harmonize": "What has this journey shown you about what you and your partner are creating together — and what you want to create?"
+        "discover": "What has become clearer about who you are and how you move through connection?",
+        "relate": "What has shifted in the way you show up in your relationships?",
+        "harmonize": "What is becoming more visible about the dynamic you create together?"
       },
       "signalPhrases": [
-        "looking back",
         "I've realised",
-        "it all connects",
-        "the pattern is",
-        "I see now that"
+        "it's clearer now",
+        "I see the pattern",
+        "this changed for me",
+        "something shifted"
       ],
       "inquiryEntryHints": [
-        "I see the thread now",
-        "everything connects to this",
-        "it all makes sense now"
+        "I understand myself differently now",
+        "this week changed how I see things",
+        "I didn't see this before"
       ]
     },
     {
-      "slug": "integration_2",
-      "name": "Integration II",
+      "slug": "the-becoming",
+      "name": "The Becoming",
       "weekNumber": 10,
-      "theme": "Carrying insights forward",
+      "theme": "Embodiment and continuation",
       "isIntegration": true,
-      "openingCopy": "The journey does not end here — it begins here. This final week is about translating everything you have discovered into a living practice of conscious relationship.",
-      "weeklyFocus": "What one commitment will you carry from this journey into your daily life and relationships?",
+      "openingCopy": "This is not an ending. It’s the moment you begin to live what you’ve seen — to carry it into how you choose, respond, and relate going forward.",
+      "weeklyFocus": "What will you actually live differently after this journey?",
       "pathwayOverlay": {
-        "discover": "What practices will you carry into your ongoing relationship with yourself?",
-        "relate": "What will you do differently in your relationships starting this week?",
-        "harmonize": "What agreements or intentions are you and your partner taking forward from this experience?"
+        "discover": "What will you now practice in your relationship with yourself?",
+        "relate": "What will you do differently in how you relate to others?",
+        "harmonize": "What will you intentionally build or sustain together from here?"
       },
       "signalPhrases": [
         "going forward",
-        "my commitment",
-        "I want to practice",
-        "I'm going to",
-        "I commit to"
+        "I choose",
+        "I'm committing to",
+        "this is what I'll do",
+        "I'm ready to"
       ],
       "inquiryEntryHints": [
-        "I know what I need to commit to",
-        "I want to make a promise to myself",
-        "I'm ready to take this into my life"
+        "I want to do this differently now",
+        "I'm committing to change",
+        "this is what I'm taking forward"
       ]
     }
   ]

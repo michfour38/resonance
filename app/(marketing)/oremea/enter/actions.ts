@@ -37,11 +37,13 @@ export async function upsertEntryLead(input: UpsertEntryLeadInput) {
       update: {
         first_name: firstName,
         source,
+        pathway: "discover",
       },
       create: {
         email,
         first_name: firstName,
         source,
+        pathway: "discover",
       },
     });
   } catch (error) {
@@ -49,38 +51,8 @@ export async function upsertEntryLead(input: UpsertEntryLeadInput) {
   }
 }
 
-export async function updateEntryLeadPathway(input: {
-  email: string;
-  pathway: "discover" | "relate";
-  firstName?: string;
-  source?: string;
-}) {
-  const email = normalizeEmail(input.email);
-  const pathway = input.pathway;
-  const firstName = input.firstName?.trim() || undefined;
-  const source = input.source?.trim() || undefined;
-
-  if (!email) return;
-
-  try {
-    await prisma.entry_leads.upsert({
-      where: { email },
-      update: { pathway },
-      create: {
-        email,
-        first_name: firstName,
-        source,
-        pathway,
-      },
-    });
-  } catch (error) {
-    console.error("Entry lead pathway update failed:", error);
-  }
-}
-
-export async function syncEntryAccessWindow(input?: {
+export async function grantJourneyAccess(input?: {
   email?: string;
-  paymentSuccess?: boolean;
 }) {
   const signedInEmail = await getSignedInEmail();
   const fallbackEmail = normalizeEmail(input?.email);
@@ -89,54 +61,36 @@ export async function syncEntryAccessWindow(input?: {
   if (!email) {
     return {
       hasAccess: false,
-      expiresAt: null as string | null,
+      email: null as string | null,
     };
   }
 
   try {
-    if (input?.paymentSuccess) {
-      const paidAt = new Date();
-      const expiresAt = new Date(
-        paidAt.getTime() + 14 * 24 * 60 * 60 * 1000
-      );
-
-      await prisma.entry_leads.upsert({
-        where: { email },
-        update: {
-          entry_paid_at: paidAt,
-          entry_access_expires_at: expiresAt,
-        },
-        create: {
-          email,
-          entry_paid_at: paidAt,
-          entry_access_expires_at: expiresAt,
-        },
-      });
-    }
-
-    const lead = await prisma.entry_leads.findUnique({
-  where: { email },
-  select: {
-    entry_access_expires_at: true,
-    journey_access_granted: true,
-  },
-});
-
-    const expiresAt = lead?.entry_access_expires_at ?? null;
-    const hasAccess =
-  (expiresAt && expiresAt.getTime() > Date.now()) ||
-  Boolean(lead?.journey_access_granted);
+    await prisma.entry_leads.upsert({
+      where: { email },
+      update: {
+        journey_access_granted: true,
+        journey_paid_at: new Date(),
+        pathway: "discover",
+      },
+      create: {
+        email,
+        journey_access_granted: true,
+        journey_paid_at: new Date(),
+        pathway: "discover",
+      },
+    });
 
     return {
-      hasAccess,
-      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      hasAccess: true,
+      email,
     };
   } catch (error) {
-    console.error("Entry access window sync failed:", error);
+    console.error("Grant journey access failed:", error);
 
     return {
       hasAccess: false,
-      expiresAt: null as string | null,
+      email,
     };
   }
 }
@@ -152,54 +106,31 @@ export async function getEntryResumeState(input?: {
     return {
       email: null as string | null,
       hasAccess: false,
-      destination: "pay" as const,
+      destination: "sign-in" as const,
     };
   }
 
   try {
     const lead = await prisma.entry_leads.findUnique({
-  where: { email },
-  select: {
-    entry_access_expires_at: true,
-    intro_completed_at: true,
-    journey_access_granted: true,
-  },
-});
+      where: { email },
+      select: {
+        journey_access_granted: true,
+      },
+    });
 
-    const hasAccess =
-  (lead?.entry_access_expires_at &&
-    lead.entry_access_expires_at.getTime() > Date.now()) ||
-  Boolean(lead?.journey_access_granted);
-
-    if (!hasAccess) {
+    if (lead?.journey_access_granted) {
       return {
         email,
-        hasAccess: false,
-        destination: "pay" as const,
+        hasAccess: true,
+        destination: "journey" as const,
       };
     }
 
-if (lead?.journey_access_granted) {
-  return {
-    email,
-    hasAccess: true,
-    destination: "journey" as const,
-  };
-}
-
-if (lead?.intro_completed_at) {
-  return {
-    email,
-    hasAccess: true,
-    destination: "journey" as const,
-  };
-}
-
-return {
-  email,
-  hasAccess: true,
-  destination: "begin" as const,
-};
+    return {
+      email,
+      hasAccess: false,
+      destination: "pay" as const,
+    };
   } catch (error) {
     console.error("Entry resume state failed:", error);
 
@@ -208,21 +139,5 @@ return {
       hasAccess: false,
       destination: "pay" as const,
     };
-  }
-}
-
-export async function markIntroCompleted(input: { email: string }) {
-  const email = input.email?.trim().toLowerCase();
-  if (!email) return;
-
-  try {
-    await prisma.entry_leads.update({
-      where: { email },
-      data: {
-        intro_completed_at: new Date(),
-      },
-    });
-  } catch (error) {
-    console.error("Mark intro completed failed:", error);
   }
 }
