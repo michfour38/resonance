@@ -45,7 +45,19 @@ export default function OremeaEnterPage() {
     const params = new URLSearchParams(window.location.search);
 
     const name = params.get("name")?.trim() || "";
-    const incomingSource = params.get("source")?.trim() || "ghl";
+    
+// 👀🔄TEMP: source tracking reversed for launch
+// 🚨🔄TODO: fix after GHL link update
+
+const rawSource = params.get("source")?.trim();
+
+const incomingSource =
+  rawSource === "ghl"
+    ? "organic"   // reversed
+    : rawSource || "ghl"; // default goes to ghl
+
+// 👀🔄TEMP: source tracking reversed for launch
+// 🚨🔄TODO: fix after GHL link update
 
     setFirstName(name);
     setSource(incomingSource);
