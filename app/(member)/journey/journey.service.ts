@@ -797,6 +797,7 @@ export async function getReflectionArchive(userId: string) {
       created_at: true,
       day_prompts: {
         select: {
+          content: true,
           journey_days: {
             select: {
               day_number: true,
@@ -835,6 +836,7 @@ export async function getReflectionArchive(userId: string) {
     return {
       id: r.id,
       response: r.response,
+      question: r.day_prompts?.content ?? "",
       createdAt: r.created_at,
       weekNumber,
       dayNumber,

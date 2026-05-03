@@ -18,6 +18,7 @@ type Props = {
 type ArchiveItem = {
   id: string;
   response: string;
+  question: string; // 👈 ADD THIS LINE
   createdAt: Date | string;
   weekNumber: number | null;
   dayNumber: number | null;
@@ -241,9 +242,15 @@ export default async function ArchivePage({ searchParams }: Props) {
                                 {formatArchiveDate(r.createdAt)}
                               </p>
 
-                              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
-                                {r.response}
-                              </p>
+                              <div className="space-y-3">
+  <p className="text-sm text-zinc-400">
+    {r.question}
+  </p>
+
+  <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">
+    {r.response}
+  </p>
+</div>
                             </div>
                           ))}
                         </section>
