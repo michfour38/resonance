@@ -28,7 +28,7 @@ export default function MemberNav() {
   }}
   className="relative"
 >
-          <summary className="w-[200px] cursor-pointer list-none text-center text-sm font-medium text-zinc-300 transition hover:text-white">
+          <summary className="cursor-pointer list-none px-3 text-center text-sm font-medium text-zinc-300 transition hover:text-white">
             Archive
           </summary>
 
@@ -72,7 +72,7 @@ export default function MemberNav() {
   }}
   className="relative"
 >
-  <summary className="w-[200px] cursor-pointer list-none text-center text-sm font-medium text-zinc-300 transition hover:text-white">
+  <summary className="cursor-pointer list-none px-3 text-center text-sm font-medium text-zinc-300 transition hover:text-white">
     Profile
   </summary>
 
