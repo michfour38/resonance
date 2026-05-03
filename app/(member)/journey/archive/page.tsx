@@ -227,33 +227,35 @@ export default async function ArchivePage({ searchParams }: Props) {
                       </summary>
 
                       <div className="mt-6 space-y-7 border-t border-zinc-800/80 pt-6">
-                        <section className="space-y-4">
-                          <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                            Prompts
-                          </p>
+                        <section>
+  <details className="rounded-2xl border border-[#6d5b2b]/35 bg-[#15120c]/80 px-5 py-4">
+    <summary className="cursor-pointer text-sm text-[#f1dfb4]">
+      Guidance
+    </summary>
 
-                          {dayReflections.map((r) => (
-                            <div
-                              key={r.id}
-                              className="rounded-2xl border border-zinc-800/80 bg-black/35 px-4 py-4"
-                            >
-                              <p className="text-[11px] tracking-[0.12em] text-zinc-500">
-                                {r.roomName ? `${r.roomName} · ` : ""}
-                                {formatArchiveDate(r.createdAt)}
-                              </p>
-
-                              <div className="space-y-3">
-  <p className="text-sm text-zinc-400">
-    {r.question}
-  </p>
-
-  <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">
-    {r.response}
-  </p>
-</div>
-                            </div>
-                          ))}
-                        </section>
+    <div className="mt-5 border-t border-[#6d5b2b]/30 pt-5">
+      {dayMirror ? (
+        <div className="space-y-4">
+          {dayMirror.output
+            .split("\n\n")
+            .filter(Boolean)
+            .map((paragraph, index) => (
+              <p
+                key={index}
+                className="whitespace-pre-wrap text-sm leading-7 text-[#efe4c6]"
+              >
+                {paragraph}
+              </p>
+            ))}
+        </div>
+      ) : (
+        <p className="text-sm leading-7 text-zinc-400">
+          Mirror guidance has not been created for this day yet.
+        </p>
+      )}
+    </div>
+  </details>
+</section>
 
                         <section className="space-y-4">
                           <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
