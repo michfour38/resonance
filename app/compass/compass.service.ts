@@ -7,31 +7,41 @@ export type LensType =
   | "GRIEF"
   | "GROWTH";
 
+export type CompassStage =
+  | "EMOTION_SCAN"
+  | "EMOTION_CLARIFICATION"
+  | "BELIEF_EXTRACTION"
+  | "BELIEF_REFINEMENT"
+  | "NEXT_STEP";
+
 export interface CompassInput {
   rawInput: string;
   lens: LensType;
+  confirmedEmotion?: string | null;
+  confirmedBelief?: string | null;
 }
 
-export interface BeliefDetectionResult {
-  detectedPattern: string | null;
-  beliefHypothesis: string | null;
-  confidence: number;
+export interface EmotionMatch {
+  emotion: string;
+  cluster: string;
 }
 
 export interface CompassOutput {
-  state: string;
-  if: string;
-  then: string;
-  else: string;
-  observe: string;
-  repair: string;
-  nextStep: string;
-  belief?: string | null;
-  pattern?: string | null;
+  lens: LensType;
+  stage: CompassStage;
+  userWords: string;
+  detectedEmotions: EmotionMatch[];
+  primaryEmotion: string | null;
+  clarificationQuestion: string | null;
+  possibleBelief: string | null;
+  protectionQuestion: string | null;
+  realityQuestion: string | null;
+  refinedBeliefPrompt: string | null;
+  nextHonestStep: string | null;
 }
 
 // -----------------------------
-// 🧠 SHARED NORMALIZATION (align with Journey)
+// Shared normalization
 // -----------------------------
 
 function normalizeText(text: string): string {
@@ -39,137 +49,232 @@ function normalizeText(text: string): string {
 }
 
 // -----------------------------
-// 🧠 BELIEF PATTERN LIBRARY (v2)
-// Now closer to Journey-style detection
+// Emotion Directory
+// Based on Dr Bradley Nelson-style emotion chart,
+// used ONLY as a vocabulary directory, not diagnosis or truth.
 // -----------------------------
 
-const beliefPatterns = [
+const emotionDirectory = [
   {
-    pattern: "DEPENDENCY",
-    signals: ["can't live without", "need them to be okay", "i need them"],
-    belief: "I cannot exist fully without them",
-    weight: 3,
+    cluster: "ABANDONMENT_CLUSTER",
+    emotions: [
+      "abandonment",
+      "betrayal",
+      "forlorn",
+      "lost",
+      "love unreceived",
+      "effort unreceived",
+      "heartache",
+      "insecurity",
+      "overjoy",
+      "vulnerability",
+    ],
   },
   {
-    pattern: "PERMANENCE",
-    signals: ["forever", "never supposed to end", "always meant to be"],
-    belief: "This was meant to last forever",
-    weight: 2,
+    cluster: "ANXIETY_CLUSTER",
+    emotions: [
+      "anxiety",
+      "despair",
+      "disgust",
+      "nervousness",
+      "worry",
+      "failure",
+      "helplessness",
+      "hopelessness",
+      "lack of control",
+      "low self-esteem",
+    ],
   },
   {
-    pattern: "CONTROL_VIOLATION",
-    signals: ["shouldn't have happened", "this isn't right", "not supposed to happen"],
-    belief: "This outcome was not allowed to happen",
-    weight: 3,
+    cluster: "GRIEF_CLUSTER",
+    emotions: [
+      "crying",
+      "discouragement",
+      "rejection",
+      "sadness",
+      "sorrow",
+      "confusion",
+      "defensiveness",
+      "grief",
+      "self-abuse",
+      "stubbornness",
+    ],
   },
   {
-    pattern: "IDENTITY_MERGE",
-    signals: ["who am i without", "i am nothing without", "without them i am"],
-    belief: "My identity is tied to this person",
-    weight: 3,
+    cluster: "ANGER_CLUSTER",
+    emotions: [
+      "anger",
+      "bitterness",
+      "guilt",
+      "hatred",
+      "resentment",
+      "depression",
+      "frustration",
+      "indecisiveness",
+      "panic",
+      "taken for granted",
+    ],
   },
   {
-    pattern: "DIVINE_CONFLICT",
-    signals: ["god wouldn't", "why would god", "god shouldn't"],
-    belief: "A higher power should have prevented this",
-    weight: 2,
+    cluster: "FEAR_CLUSTER",
+    emotions: [
+      "blaming",
+      "dread",
+      "fear",
+      "horror",
+      "peeved",
+      "conflict",
+      "creative insecurity",
+      "terror",
+      "unsupported",
+      "wishy washy",
+    ],
+  },
+  {
+    cluster: "IDENTITY_CLUSTER",
+    emotions: [
+      "humiliation",
+      "jealousy",
+      "longing",
+      "lust",
+      "overwhelm",
+      "pride",
+      "shame",
+      "shock",
+      "unworthy",
+      "worthless",
+    ],
   },
 ];
 
 // -----------------------------
-// 🧠 BELIEF DETECTION (scored, not binary)
+// Emotion detection
 // -----------------------------
 
-export function detectBelief(input: string): BeliefDetectionResult {
+export function detectEmotions(input: string): EmotionMatch[] {
   const text = normalizeText(input);
+  const matches: EmotionMatch[] = [];
 
-  let bestMatch: BeliefDetectionResult = {
-    detectedPattern: null,
-    beliefHypothesis: null,
-    confidence: 0,
-  };
-
-  for (const pattern of beliefPatterns) {
-    let score = 0;
-
-    for (const signal of pattern.signals) {
-      if (text.includes(signal)) {
-        score += pattern.weight;
+  for (const group of emotionDirectory) {
+    for (const emotion of group.emotions) {
+      if (text.includes(emotion)) {
+        matches.push({
+          emotion,
+          cluster: group.cluster,
+        });
       }
-    }
-
-    if (score > bestMatch.confidence) {
-      bestMatch = {
-        detectedPattern: pattern.pattern,
-        beliefHypothesis: pattern.belief,
-        confidence: score,
-      };
     }
   }
 
-  return bestMatch;
+  return matches;
+}
+
+function buildEmotionClarificationQuestion(matches: EmotionMatch[]): string {
+  if (matches.length === 0) {
+    return "Which emotion feels closest right now: grief, fear, anger, abandonment, confusion, shame, or longing?";
+  }
+
+  if (matches.length === 1) {
+    return `When you say "${matches[0].emotion}", is that the exact emotion, or is there another emotion underneath it?`;
+  }
+
+  const emotionList = matches.map((m) => m.emotion).join(", ");
+
+  return `Several emotions may be present: ${emotionList}. Which one feels most central right now?`;
 }
 
 // -----------------------------
-// 🧭 BELIEF LENS (aligned with YOUR system)
+// Belief Lens
 // -----------------------------
 
-function runBeliefLens(input: string): CompassOutput {
-  const detection = detectBelief(input);
+function buildBeliefQuestion(emotion: string): string {
+  return `When ${emotion} is present, what does it make you believe is true?`;
+}
 
-  const belief = detection.beliefHypothesis;
+function buildProtectionQuestion(emotion: string): string {
+  return `What does holding onto ${emotion} protect you from facing too quickly?`;
+}
+
+function buildRealityQuestion(emotion: string): string {
+  return `What is also true, even while ${emotion} is present?`;
+}
+
+function buildRefinedBeliefPrompt(emotion: string): string {
+  return `Write a more complete belief that includes ${emotion}, but is not ruled by it.`;
+}
+
+function buildNextHonestStep(emotion: string): string {
+  return `Choose one honest step that respects ${emotion} without letting it make the whole decision.`;
+}
+
+function runBeliefLens(input: CompassInput): CompassOutput {
+  const userWords = input.rawInput.trim();
+  const detectedEmotions = detectEmotions(userWords);
+  const primaryEmotion =
+    input.confirmedEmotion?.trim() ||
+    (detectedEmotions.length === 1 ? detectedEmotions[0].emotion : null);
+
+  if (!primaryEmotion) {
+    return {
+      lens: "BELIEF",
+      stage: "EMOTION_CLARIFICATION",
+      userWords,
+      detectedEmotions,
+      primaryEmotion: null,
+      clarificationQuestion: buildEmotionClarificationQuestion(detectedEmotions),
+      possibleBelief: null,
+      protectionQuestion: null,
+      realityQuestion: null,
+      refinedBeliefPrompt: null,
+      nextHonestStep: null,
+    };
+  }
+
+  const possibleBelief =
+    input.confirmedBelief?.trim() ||
+    buildBeliefQuestion(primaryEmotion);
 
   return {
-    pattern: detection.detectedPattern,
-    belief,
-
-    state: "I am uncovering the belief driving my emotional response",
-
-    if: "A strong emotional reaction or recurring thought appears",
-
-    then: belief
-      ? `Identify the belief: "${belief}"`
-      : "Identify the belief underneath the emotion",
-
-    // 🔁 YOUR ELSE (not softened, not forced)
-    else:
-      "If clarity is not yet visible, I continue the search while allowing the emotion, returning to the belief until it becomes clear",
-
-    observe:
-      "Notice which beliefs repeat across different emotional waves",
-
-    repair:
-      "Test the belief against reality and refine it if it no longer holds",
-
-    nextStep: belief
-      ? `Sit with: "${belief}" and ask: is this fully true?`
-      : "Ask: What must be true for me to feel this way?",
+    lens: "BELIEF",
+    stage: input.confirmedBelief ? "BELIEF_REFINEMENT" : "BELIEF_EXTRACTION",
+    userWords,
+    detectedEmotions,
+    primaryEmotion,
+    clarificationQuestion: null,
+    possibleBelief,
+    protectionQuestion: buildProtectionQuestion(primaryEmotion),
+    realityQuestion: buildRealityQuestion(primaryEmotion),
+    refinedBeliefPrompt: buildRefinedBeliefPrompt(primaryEmotion),
+    nextHonestStep: buildNextHonestStep(primaryEmotion),
   };
 }
 
 // -----------------------------
-// 🧭 MAIN ENGINE
+// Main Compass Engine
 // -----------------------------
 
 export function runCompass(input: CompassInput): CompassOutput {
   switch (input.lens) {
     case "BELIEF":
-      return runBeliefLens(input.rawInput);
+      return runBeliefLens(input);
 
-    // Future lenses plug in here cleanly
     case "BOUNDARY":
     case "FEAR":
     case "GRIEF":
     case "GROWTH":
     default:
       return {
-        state: "Lens not implemented yet",
-        if: "",
-        then: "",
-        else: "",
-        observe: "",
-        repair: "",
-        nextStep: "",
+        lens: input.lens,
+        stage: "EMOTION_SCAN",
+        userWords: input.rawInput,
+        detectedEmotions: [],
+        primaryEmotion: null,
+        clarificationQuestion: "This lens is not implemented yet.",
+        possibleBelief: null,
+        protectionQuestion: null,
+        realityQuestion: null,
+        refinedBeliefPrompt: null,
+        nextHonestStep: null,
       };
   }
 }

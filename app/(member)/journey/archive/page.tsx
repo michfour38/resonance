@@ -18,7 +18,7 @@ type Props = {
 type ArchiveItem = {
   id: string;
   response: string;
-  question: string; // 👈 ADD THIS LINE
+  question: string;
   createdAt: Date | string;
   weekNumber: number | null;
   dayNumber: number | null;
@@ -70,7 +70,7 @@ export default async function ArchivePage({ searchParams }: Props) {
 
   const reflections = (await getReflectionArchive(userId)) as ArchiveItem[];
 
-  const mirrors = (await prisma.mirror_responses.findMany({
+  const mirrors = await prisma.mirror_responses.findMany({
     where: { user_id: userId },
     orderBy: [{ week_number: "asc" }, { day_number: "asc" }],
     select: {
@@ -81,14 +81,7 @@ export default async function ArchivePage({ searchParams }: Props) {
       tier: true,
       created_at: true,
     },
-  })) as unknown as {
-    id: string;
-    week_number: number;
-    day_number: number;
-    output: string;
-    tier: string;
-    created_at: Date;
-  }[];
+  });
 
   const mirrorItems: MirrorArchiveItem[] = mirrors.map((m) => ({
     id: m.id,
@@ -118,6 +111,7 @@ export default async function ArchivePage({ searchParams }: Props) {
   const searchResults = query
     ? reflections.filter((r) => {
         const haystack = [
+          r.question,
           r.response,
           r.roomName ?? "",
           r.dayNumber ? `day ${r.dayNumber}` : "",
@@ -227,73 +221,63 @@ export default async function ArchivePage({ searchParams }: Props) {
                       </summary>
 
                       <div className="mt-6 space-y-7 border-t border-zinc-800/80 pt-6">
-                        <section>
-  <details className="rounded-2xl border border-[#6d5b2b]/35 bg-[#15120c]/80 px-5 py-4">
-    <summary className="cursor-pointer text-sm text-[#f1dfb4]">
-      Guidance
-    </summary>
-
-    <div className="mt-5 border-t border-[#6d5b2b]/30 pt-5">
-      {dayMirror ? (
-        <div className="space-y-4">
-          {dayMirror.output
-            .split("\n\n")
-            .filter(Boolean)
-            .map((paragraph, index) => (
-              <p
-                key={index}
-                className="whitespace-pre-wrap text-sm leading-7 text-[#efe4c6]"
-              >
-                {paragraph}
-              </p>
-            ))}
-        </div>
-      ) : (
-        <p className="text-sm leading-7 text-zinc-400">
-          Mirror guidance has not been created for this day yet.
-        </p>
-      )}
-    </div>
-  </details>
-</section>
-
                         <section className="space-y-4">
                           <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-                            Guidance
+                            Prompts
                           </p>
 
-                          {dayMirror ? (
-                            <div className="rounded-2xl border border-[#6d5b2b]/35 bg-[#15120c]/80 px-5 py-5">
-                              <p className="mb-4 text-[11px] uppercase tracking-[0.18em] text-[#b6a36a]">
-                                Mirror synthesis
+                          {dayReflections.map((r) => (
+                            <div
+                              key={r.id}
+                              className="rounded-2xl border border-zinc-800/80 bg-black/35 px-4 py-4"
+                            >
+                              <p className="text-[11px] tracking-[0.12em] text-zinc-500">
+                                {r.roomName ? `${r.roomName} · ` : ""}
+                                {formatArchiveDate(r.createdAt)}
                               </p>
 
-                              <div className="space-y-4">
-                                {dayMirror.output
-                                  .split("\n\n")
-                                  .filter(Boolean)
-                                  .map((paragraph, index) => (
-                                    <p
-                                      key={index}
-                                      className="whitespace-pre-wrap text-sm leading-7 text-[#efe4c6]"
-                                    >
-                                      {paragraph}
-                                    </p>
-                                  ))}
+                              <div className="mt-4 space-y-3">
+                                <p className="text-sm leading-7 text-zinc-400">
+                                  {r.question}
+                                </p>
+
+                                <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200">
+                                  {r.response}
+                                </p>
                               </div>
                             </div>
-                          ) : (
-                            <div className="rounded-2xl border border-zinc-800/80 bg-black/35 px-5 py-5">
-                              <p className="text-sm leading-7 text-zinc-400">
-                                Guidance has not been archived for this day yet.
-                              </p>
-                              <p className="mt-2 text-xs leading-6 text-zinc-500">
-                                For Resonance-only members, the 2 guiding
-                                questions need to be saved before they can
-                                appear here.
-                              </p>
+                          ))}
+                        </section>
+
+                        <section>
+                          <details className="rounded-2xl border border-[#6d5b2b]/35 bg-[#15120c]/80 px-5 py-4">
+                            <summary className="cursor-pointer text-sm text-[#f1dfb4]">
+                              Guidance
+                            </summary>
+
+                            <div className="mt-5 border-t border-[#6d5b2b]/30 pt-5">
+                              {dayMirror ? (
+                                <div className="space-y-4">
+                                  {dayMirror.output
+                                    .split("\n\n")
+                                    .filter(Boolean)
+                                    .map((paragraph, index) => (
+                                      <p
+                                        key={index}
+                                        className="whitespace-pre-wrap text-sm leading-7 text-[#efe4c6]"
+                                      >
+                                        {paragraph}
+                                      </p>
+                                    ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm leading-7 text-zinc-400">
+                                  Mirror guidance has not been created for this
+                                  day yet.
+                                </p>
+                              )}
                             </div>
-                          )}
+                          </details>
                         </section>
                       </div>
                     </details>
@@ -479,6 +463,10 @@ export default async function ArchivePage({ searchParams }: Props) {
                     {selectedEntry.dayNumber
                       ? ` · Day ${selectedEntry.dayNumber}`
                       : ""}
+                  </p>
+
+                  <p className="text-sm leading-7 text-zinc-400">
+                    {selectedEntry.question}
                   </p>
 
                   <p className="whitespace-pre-wrap text-[15px] leading-8 text-zinc-200 md:text-base">
