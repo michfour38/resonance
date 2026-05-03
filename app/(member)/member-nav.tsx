@@ -18,10 +18,16 @@ export default function MemberNav() {
 
   return (
     <nav className="px-6 py-4">
-      <div className="mx-auto flex max-w-2xl items-center justify-end gap-4 relative">
-        <details ref={(el) => {
-  if (el) detailsRefs.current[0] = el;
-}} className="relative mr-24">
+      <div className="mx-auto flex max-w-2xl items-center justify-end gap-2 relative">
+        <details
+  ref={(el) => {
+    if (el) detailsRefs.current[0] = el;
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.open = false;
+  }}
+  className="relative"
+>
           <summary className="w-[200px] cursor-pointer list-none text-center text-sm font-medium text-zinc-300 transition hover:text-white">
             Archive
           </summary>
@@ -57,9 +63,15 @@ export default function MemberNav() {
 
            </div>
         </details>
-<details ref={(el) => {
-  if (el) detailsRefs.current[1] = el;
-}} className="relative">
+<details
+  ref={(el) => {
+    if (el) detailsRefs.current[1] = el;
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.open = false;
+  }}
+  className="relative"
+>
   <summary className="w-[200px] cursor-pointer list-none text-center text-sm font-medium text-zinc-300 transition hover:text-white">
     Profile
   </summary>

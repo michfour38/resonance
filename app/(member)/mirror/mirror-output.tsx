@@ -279,7 +279,14 @@ export default function MirrorOutput({
       </div>
 
       <div className="space-y-4">
-        {mirror?.output.split("\n\n").map((paragraph, i) => (
+        {mirror?.output
+  .replace(/\*\*The mirror shows:\*\*/gi, "")
+  .replace(/The mirror shows:/gi, "")
+  .replace(/\*\*Two questions:\*\*/gi, "")
+  .replace(/Two questions:/gi, "")
+  .trim()
+  .split("\n\n")
+  .map((paragraph, i) => (
           <p
             key={i}
             className="whitespace-pre-wrap text-sm leading-7 text-[#efe4c6]"

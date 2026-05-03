@@ -78,6 +78,12 @@ RULES:
 
 STRUCTURE:
 
+- Do not use headings.
+- Do not write “The mirror shows:”
+- Do not write “Two questions:”
+- Do not bold section titles.
+- Let the reflection and the two questions flow naturally without labels.
+
 1. Begin with the most alive specific thing from today's reflections
 2. Name what it reveals underneath in plain, human language
 3. Name one real tension or contradiction if present
