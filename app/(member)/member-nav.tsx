@@ -47,20 +47,6 @@ export default function MemberNav() {
                 href="/journey/archive?view=room"
                 className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
               >
-                
-<Link
-  href="/journey/archive?view=reflections"
-  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
->
-  Your Reflections
-</Link>
-
-<Link
-  href="/journey/archive?view=patterns"
-  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
->
-  Your Patterns
-</Link>
 
 By room
               </Link>
