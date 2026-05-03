@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { runCompass } from "./compass.service";
 
 type CompassField = {
   key: keyof CompassState;
@@ -24,43 +25,44 @@ const fields: CompassField[] = [
     key: "state",
     label: "STATE",
     prompt: "What aligned state are you building toward?",
-    placeholder: "Example: I remain clear, calm, and self-led.",
+    placeholder: "Example: I am uncovering the belief driving my grief.",
   },
   {
     key: "ifCondition",
     label: "IF",
-    prompt: "What condition, trigger, contradiction, or test appears?",
-    placeholder: "Example: If I feel pulled to override my boundary...",
+    prompt: "What emotion, thought, contradiction, or question appears?",
+    placeholder: "Example: If I feel like I cannot live without them...",
   },
   {
     key: "thenAction",
     label: "THEN",
-    prompt: "What do you commit to doing?",
-    placeholder: "Example: Then I pause, name the boundary, and do not act from urgency.",
+    prompt: "What belief needs to be seen clearly?",
+    placeholder: "Example: Then I look for the belief underneath the pain.",
   },
   {
     key: "elseResponse",
     label: "ELSE",
-    prompt: "What happens if you falter or override yourself?",
-    placeholder: "Example: Else I acknowledge the pattern without excusing it.",
+    prompt: "What happens if clarity is not visible yet?",
+    placeholder:
+      "Example: Else I continue the search while allowing the emotion.",
   },
   {
     key: "observe",
     label: "OBSERVE",
-    prompt: "What pattern must be watched over time?",
-    placeholder: "Example: I watch whether my actions match my stated values.",
+    prompt: "What belief, phrase, or emotional wave keeps repeating?",
+    placeholder: "Example: I notice the belief that love should not end.",
   },
   {
     key: "repairRepeat",
     label: "REPAIR / REPEAT",
-    prompt: "Did the behavior truly change, or did the loop repeat?",
-    placeholder: "Example: If it repeats, I repair quickly and return to the rule.",
+    prompt: "What belief needs testing, refining, or returning to?",
+    placeholder: "Example: I test whether this belief is fully true.",
   },
   {
     key: "nextStep",
     label: "NEXT STEP",
     prompt: "What is the one executable action now?",
-    placeholder: "Example: I send one clear message and do not reopen the loop today.",
+    placeholder: "Example: I write the belief plainly and sit with it.",
   },
 ];
 
@@ -78,8 +80,20 @@ export default function CompassPage() {
   const [compass, setCompass] = useState<CompassState>(initialState);
 
   const completedCount = useMemo(() => {
-    return Object.values(compass).filter((value) => value.trim().length > 0).length;
+    return Object.values(compass).filter((value) => value.trim().length > 0)
+      .length;
   }, [compass]);
+
+  const rawInput = useMemo(() => {
+    return Object.values(compass).join(" ");
+  }, [compass]);
+
+  const generated = useMemo(() => {
+    return runCompass({
+      rawInput,
+      lens: "BELIEF",
+    });
+  }, [rawInput]);
 
   const updateField = (key: keyof CompassState, value: string) => {
     setCompass((current) => ({
@@ -99,12 +113,15 @@ export default function CompassPage() {
             <p className="mb-3 text-xs uppercase tracking-[0.38em] text-amber-200/70">
               Oremea
             </p>
+
             <h1 className="font-serif text-4xl text-amber-100 sm:text-5xl">
               The Compass
             </h1>
+
             <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-stone-300">
               Turn self-awareness into one executable next step.
             </p>
+
             <p className="mt-2 text-sm uppercase tracking-[0.28em] text-amber-200/55">
               Clarity. Direction. Execution.
             </p>
@@ -113,18 +130,37 @@ export default function CompassPage() {
           <section className="mb-6 rounded-[2rem] border border-amber-200/18 bg-[#16110d]/88 p-6 shadow-2xl shadow-black/40 backdrop-blur">
             <div className="mb-4 flex items-center justify-between gap-4">
               <h2 className="font-serif text-2xl text-amber-100">
-                Build your rule
+                Belief Lens
               </h2>
+
               <span className="rounded-full border border-amber-200/20 bg-amber-100/8 px-3 py-1 text-xs text-amber-100/80">
                 {completedCount}/7
               </span>
             </div>
 
             <p className="leading-relaxed text-stone-300">
-              The Compass turns a situation, goal, or repeating loop into a clear
-              behavioral rule. Define the state, the test, the action, the fallback,
-              the observation, the repair, and the next move.
+              Use grief, pressure, longing, or contradiction as the entry point.
+              The Compass will help reveal the belief underneath the emotion and
+              turn it into one clear next step.
             </p>
+          </section>
+
+          <section className="mb-6 rounded-[2rem] border border-amber-200/16 bg-[#120f0c]/86 p-5 shadow-xl shadow-black/25 backdrop-blur">
+            <p className="mb-2 text-xs uppercase tracking-[0.32em] text-amber-200/65">
+              Detected Belief
+            </p>
+
+            <p className="text-sm leading-relaxed text-stone-300">
+              {generated.belief
+                ? generated.belief
+                : "Begin entering your words below. The belief will appear here when enough signal is present."}
+            </p>
+
+            {generated.pattern ? (
+              <p className="mt-3 text-xs uppercase tracking-[0.24em] text-amber-100/55">
+                Pattern: {generated.pattern}
+              </p>
+            ) : null}
           </section>
 
           <section className="space-y-4">
@@ -165,13 +201,25 @@ export default function CompassPage() {
             </p>
 
             <div className="space-y-3 text-sm leading-relaxed text-stone-300">
-              <RuleLine label="STATE" value={compass.state} />
-              <RuleLine label="IF" value={compass.ifCondition} />
-              <RuleLine label="THEN" value={compass.thenAction} />
-              <RuleLine label="ELSE" value={compass.elseResponse} />
-              <RuleLine label="OBSERVE" value={compass.observe} />
-              <RuleLine label="REPAIR / REPEAT" value={compass.repairRepeat} />
-              <RuleLine label="NEXT STEP" value={compass.nextStep} />
+              <RuleLine label="STATE" value={compass.state || generated.state} />
+              <RuleLine label="IF" value={compass.ifCondition || generated.if} />
+              <RuleLine
+                label="THEN"
+                value={compass.thenAction || generated.then}
+              />
+              <RuleLine
+                label="ELSE"
+                value={compass.elseResponse || generated.else}
+              />
+              <RuleLine label="OBSERVE" value={compass.observe || generated.observe} />
+              <RuleLine
+                label="REPAIR / REPEAT"
+                value={compass.repairRepeat || generated.repair}
+              />
+              <RuleLine
+                label="NEXT STEP"
+                value={compass.nextStep || generated.nextStep}
+              />
             </div>
           </section>
         </div>
@@ -186,9 +234,7 @@ function RuleLine({ label, value }: { label: string; value: string }) {
       <span className="font-semibold tracking-[0.16em] text-amber-100">
         {label}:
       </span>{" "}
-      <span className="text-stone-300">
-        {value.trim() || "—"}
-      </span>
+      <span className="text-stone-300">{value.trim() || "—"}</span>
     </p>
   );
 }
