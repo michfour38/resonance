@@ -1,190 +1,231 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { runCompass } from "./compass.service";
+import {
+  FearAnswers,
+  initialFearAnswers,
+  runFearLens,
+} from "./fear.service";
 
 export default function CompassPage() {
-  const [rawInput, setRawInput] = useState("");
-  const [confirmedEmotion, setConfirmedEmotion] = useState("");
-  const [confirmedBelief, setConfirmedBelief] = useState("");
-  const [refinedBelief, setRefinedBelief] = useState("");
-  const [nextStep, setNextStep] = useState("");
+  const [answers, setAnswers] = useState<FearAnswers>(initialFearAnswers);
+  const [visibleHistory, setVisibleHistory] = useState<
+    { label: string; value: string }[]
+  >([]);
 
-  const compass = useMemo(() => {
-    return runCompass({
-      rawInput,
-      lens: "BELIEF",
-      confirmedEmotion: confirmedEmotion || null,
-      confirmedBelief: confirmedBelief || null,
-    });
-  }, [rawInput, confirmedEmotion, confirmedBelief]);
+  const output = useMemo(() => runFearLens(answers), [answers]);
+  const prompt = output.currentPrompt;
+  const currentValue = prompt ? answers[prompt.stepKey] : "";
 
-  const detectedEmotionText =
-    compass.detectedEmotions.length > 0
-      ? compass.detectedEmotions.map((item) => item.emotion).join(", ")
-      : "No exact emotion detected yet.";
+  const updateAnswer = (value: string) => {
+    if (!prompt) return;
+    setAnswers((current) => ({
+      ...current,
+      [prompt.stepKey]: value,
+    }));
+  };
+
+  const continueFlow = () => {
+    if (!prompt || !String(currentValue).trim()) return;
+
+    setVisibleHistory((current) => [
+      ...current,
+      {
+        label: prompt.title,
+        value: String(currentValue),
+      },
+    ]);
+
+    setAnswers((current) => ({ ...current }));
+  };
+
+  const reset = () => {
+    setAnswers(initialFearAnswers);
+    setVisibleHistory([]);
+  };
 
   return (
-    <main className="min-h-screen bg-[#080706] text-stone-100">
-      <section className="relative min-h-screen overflow-hidden px-5 py-8 sm:px-8 lg:px-12">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(184,134,64,0.18),_transparent_34%),linear-gradient(180deg,_rgba(36,28,20,0.82),_rgba(8,7,6,1)_48%,_rgba(13,10,8,1))]" />
-        <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(115deg,_transparent_0%,_rgba(255,255,255,0.18)_45%,_transparent_70%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#0a0705] text-stone-100">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(214,165,86,0.18),transparent_34%),radial-gradient(circle_at_50%_85%,rgba(112,73,32,0.20),transparent_42%),linear-gradient(180deg,#1a120b_0%,#0a0705_54%,#050403_100%)]" />
+      <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(115deg,transparent_0%,rgba(255,235,190,0.18)_45%,transparent_72%)]" />
 
-        <div className="relative mx-auto max-w-3xl">
-          <header className="mb-8 pt-6 text-center">
-            <p className="mb-3 text-xs uppercase tracking-[0.38em] text-amber-200/70">
-              Oremea
-            </p>
+      <section className="relative mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10">
+        <header className="text-center">
+          <p className="mb-4 text-[11px] uppercase tracking-[0.42em] text-amber-200/45">
+            The Compass
+          </p>
 
-            <h1 className="font-serif text-4xl text-amber-100 sm:text-5xl">
-              The Compass
-            </h1>
+          <h1 className="font-serif text-5xl leading-none text-amber-100 sm:text-6xl">
+            by Oremea
+          </h1>
 
-            <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-stone-300">
-              Turn self-awareness into one executable next step.
-            </p>
+          <p className="mx-auto mt-8 max-w-xl text-sm leading-relaxed text-stone-400">
+            When something feels off, The Compass brings you back to what is
+            happening now.
+          </p>
 
-            <p className="mt-2 text-sm uppercase tracking-[0.28em] text-amber-200/55">
-              Belief Lens
-            </p>
-          </header>
+          <p className="mt-5 font-serif text-xl text-amber-100/85">
+            Show me what to do next.
+          </p>
+        </header>
 
-          <section className="mb-5 rounded-[2rem] border border-amber-200/18 bg-[#16110d]/88 p-6 shadow-2xl shadow-black/40 backdrop-blur">
-            <h2 className="font-serif text-2xl text-amber-100">
-              What’s on your mind?
-            </h2>
-
-            <p className="mt-3 text-sm leading-relaxed text-stone-300">
-              Start with your own words. The Compass will first look for the
-              emotional signal, then guide you toward the belief underneath it.
-            </p>
-
-            <textarea
-              value={rawInput}
-              onChange={(event) => {
-                setRawInput(event.target.value);
-                setConfirmedEmotion("");
-                setConfirmedBelief("");
-                setRefinedBelief("");
-                setNextStep("");
-              }}
-              placeholder="Example: I feel like I can’t live without them."
-              rows={6}
-              className="mt-5 min-h-[150px] w-full resize-none rounded-2xl border border-amber-200/12 bg-[#211912]/80 px-4 py-3 text-sm leading-relaxed text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-amber-200/35 focus:bg-[#251c14]"
-            />
-          </section>
-
-          <section className="mb-5 rounded-[2rem] border border-amber-200/16 bg-[#120f0c]/86 p-6 shadow-xl shadow-black/25 backdrop-blur">
-            <p className="mb-2 text-xs uppercase tracking-[0.32em] text-amber-200/65">
-              Emotion Scan
-            </p>
-
-            <p className="text-sm leading-relaxed text-stone-300">
-              {detectedEmotionText}
-            </p>
-
-            {compass.clarificationQuestion ? (
-              <p className="mt-4 text-base leading-relaxed text-amber-100">
-                {compass.clarificationQuestion}
-              </p>
+        <div className="flex flex-1 items-center py-14">
+          <section className="mx-auto w-full max-w-2xl space-y-8">
+            {visibleHistory.length > 0 ? (
+              <div className="space-y-5 border-l border-amber-200/12 pl-5">
+                {visibleHistory.map((item, index) => (
+                  <div key={`${item.label}-${index}`}>
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-amber-200/35">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-stone-400">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
             ) : null}
 
-            <input
-              value={confirmedEmotion}
-              onChange={(event) => setConfirmedEmotion(event.target.value)}
-              placeholder="Name the exact emotion here."
-              className="mt-5 w-full rounded-2xl border border-amber-200/12 bg-[#211912]/80 px-4 py-3 text-sm text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-amber-200/35 focus:bg-[#251c14]"
-            />
-          </section>
+            {!output.isComplete && prompt ? (
+              <div className="space-y-8">
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
-          {confirmedEmotion.trim().length > 0 ? (
-            <section className="mb-5 rounded-[2rem] border border-amber-200/16 bg-[#120f0c]/86 p-6 shadow-xl shadow-black/25 backdrop-blur">
-              <p className="mb-2 text-xs uppercase tracking-[0.32em] text-amber-200/65">
-                Belief Extraction
-              </p>
+                {output.regressionDetected && prompt.helperText ? (
+                  <div className="rounded-[1.5rem] border border-amber-200/10 bg-[#130e09]/58 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
+                    <p className="text-xs uppercase tracking-[0.22em] text-amber-200/45">
+                      Return point
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-amber-100/72">
+                      {prompt.helperText}
+                    </p>
+                  </div>
+                ) : null}
 
-              <p className="text-base leading-relaxed text-amber-100">
-                {compass.possibleBelief}
-              </p>
+                <div>
+                  <h2 className="font-serif text-3xl leading-tight text-amber-100 sm:text-4xl">
+                    {prompt.title}
+                  </h2>
 
-              <textarea
-                value={confirmedBelief}
-                onChange={(event) => setConfirmedBelief(event.target.value)}
-                placeholder="Write the belief in your own words."
-                rows={4}
-                className="mt-5 min-h-[120px] w-full resize-none rounded-2xl border border-amber-200/12 bg-[#211912]/80 px-4 py-3 text-sm leading-relaxed text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-amber-200/35 focus:bg-[#251c14]"
-              />
-            </section>
-          ) : null}
+                  <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-300">
+                    {prompt.prompt}
+                  </p>
 
-          {confirmedBelief.trim().length > 0 ? (
-            <>
-              <section className="mb-5 rounded-[2rem] border border-amber-200/16 bg-[#120f0c]/86 p-6 shadow-xl shadow-black/25 backdrop-blur">
-                <p className="mb-2 text-xs uppercase tracking-[0.32em] text-amber-200/65">
-                  Reality + Refinement
-                </p>
-
-                <div className="space-y-4 text-sm leading-relaxed text-stone-300">
-                  <p>{compass.protectionQuestion}</p>
-                  <p>{compass.realityQuestion}</p>
-                  <p>{compass.refinedBeliefPrompt}</p>
+                  {prompt.helperText && !output.regressionDetected ? (
+                    <p className="mt-4 text-sm leading-relaxed text-stone-500">
+                      {prompt.helperText}
+                    </p>
+                  ) : null}
                 </div>
 
-                <textarea
-                  value={refinedBelief}
-                  onChange={(event) => setRefinedBelief(event.target.value)}
-                  placeholder="Write the more complete belief here."
-                  rows={4}
-                  className="mt-5 min-h-[120px] w-full resize-none rounded-2xl border border-amber-200/12 bg-[#211912]/80 px-4 py-3 text-sm leading-relaxed text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-amber-200/35 focus:bg-[#251c14]"
-                />
-              </section>
+                {prompt.inputType === "choice" ? (
+                  <div className="flex flex-wrap gap-3">
+                    {prompt.choices?.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        onClick={() => updateAnswer(choice.value)}
+                        className={`rounded-full border px-6 py-3 text-sm transition ${
+                          currentValue === choice.value
+                            ? "border-amber-200/45 bg-amber-100/12 text-amber-100 shadow-[0_0_28px_rgba(214,165,86,0.10)]"
+                            : "border-amber-200/12 bg-[#150f0a]/40 text-stone-400 hover:border-amber-200/28 hover:text-amber-100"
+                        }`}
+                      >
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-[2rem] border border-amber-200/10 bg-[#130e09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur">
+                    <textarea
+                      value={currentValue}
+                      onChange={(event) => updateAnswer(event.target.value)}
+                      placeholder={prompt.placeholder}
+                      rows={7}
+                      className="min-h-[180px] w-full resize-none bg-transparent text-lg leading-relaxed text-stone-100 outline-none placeholder:text-stone-500"
+                    />
+                  </div>
+                )}
 
-              <section className="mb-5 rounded-[2rem] border border-amber-200/16 bg-[#120f0c]/86 p-6 shadow-xl shadow-black/25 backdrop-blur">
-                <p className="mb-2 text-xs uppercase tracking-[0.32em] text-amber-200/65">
-                  Next Honest Step
-                </p>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="text-xs uppercase tracking-[0.26em] text-stone-600 transition hover:text-stone-400"
+                  >
+                    Clear
+                  </button>
 
-                <p className="text-sm leading-relaxed text-stone-300">
-                  {compass.nextHonestStep}
-                </p>
+                  <button
+                    type="button"
+                    disabled={!String(currentValue).trim()}
+                    onClick={continueFlow}
+                    className="rounded-full border border-amber-200/24 bg-amber-100/8 px-6 py-3 text-xs uppercase tracking-[0.24em] text-amber-100 transition hover:bg-amber-100/14 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    Show me the next question
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-200/45 to-transparent" />
 
-                <textarea
-                  value={nextStep}
-                  onChange={(event) => setNextStep(event.target.value)}
-                  placeholder="Write one honest, executable next step."
-                  rows={3}
-                  className="mt-5 min-h-[100px] w-full resize-none rounded-2xl border border-amber-200/12 bg-[#211912]/80 px-4 py-3 text-sm leading-relaxed text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-amber-200/35 focus:bg-[#251c14]"
-                />
-              </section>
-            </>
-          ) : null}
+                <div>
+                  <h2 className="font-serif text-4xl leading-tight text-amber-100">
+                    The next step is visible.
+                  </h2>
 
-          <section className="mt-6 rounded-[2rem] border border-amber-200/22 bg-[#1a130d]/92 p-6 shadow-2xl shadow-black/40">
-            <p className="mb-3 text-xs uppercase tracking-[0.32em] text-amber-200/65">
-              Compass Summary
-            </p>
+                  <p className="mt-5 max-w-xl text-lg leading-relaxed text-stone-300">
+                    Compass classified the move. You named the step.
+                  </p>
+                </div>
 
-            <div className="space-y-3 text-sm leading-relaxed text-stone-300">
-              <SummaryLine label="Your words" value={rawInput} />
-              <SummaryLine label="Exact emotion" value={confirmedEmotion} />
-              <SummaryLine label="Belief" value={confirmedBelief} />
-              <SummaryLine label="Refined belief" value={refinedBelief} />
-              <SummaryLine label="Next honest step" value={nextStep} />
-            </div>
+                <div className="rounded-[2rem] border border-amber-200/10 bg-[#130e09]/58 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur">
+                  <p className="text-[11px] uppercase tracking-[0.26em] text-amber-200/45">
+                    Output type
+                  </p>
+
+                  <p className="mt-3 font-serif text-3xl text-amber-100">
+                    {answers.outputType || "—"}
+                  </p>
+
+                  <div className="mt-8 space-y-6">
+                    <Summary label="What felt off" value={answers.signal} />
+                    <Summary label="Concern" value={answers.projection} />
+                    <Summary label="Reality" value={answers.presentReality} />
+                    <Summary label="Within control" value={answers.control} />
+                    <Summary label="Next step" value={answers.nextStep} />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="rounded-full border border-amber-200/24 bg-amber-100/8 px-6 py-3 text-xs uppercase tracking-[0.24em] text-amber-100 transition hover:bg-amber-100/14"
+                >
+                  Begin again
+                </button>
+              </div>
+            )}
           </section>
         </div>
+
+        <footer className="pb-4 text-center text-[11px] uppercase tracking-[0.32em] text-amber-200/28">
+          Clarity · Direction · Execution
+        </footer>
       </section>
     </main>
   );
 }
 
-function SummaryLine({ label, value }: { label: string; value: string }) {
+function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <p>
-      <span className="font-semibold tracking-[0.16em] text-amber-100">
-        {label}:
-      </span>{" "}
-      <span className="text-stone-300">{value.trim() || "—"}</span>
-    </p>
+    <div>
+      <p className="text-[11px] uppercase tracking-[0.26em] text-amber-200/45">
+        {label}
+      </p>
+      <p className="mt-2 text-base leading-relaxed text-stone-200">
+        {value || "—"}
+      </p>
+    </div>
   );
 }
