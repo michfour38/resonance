@@ -80,14 +80,14 @@ function ProductName({ name }: { name: string }) {
 }
 
 export default function Home() {
-  const [open, setOpen] = useState<string | null>("Resonance");
+  const [open, setOpen] = useState<string | null>(null);
 
   return (
     <main className="min-h-screen bg-[#090806] text-white">
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
         <div className="max-w-3xl">
           <img
-            src="/oremea-logo.png"
+            src="/images/oremea-logo.png"
             alt="Oremea"
             className="h-9 w-auto opacity-90"
           />
