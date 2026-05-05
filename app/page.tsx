@@ -87,9 +87,9 @@ export default function Home() {
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
         <div className="max-w-3xl">
           <img
-            src="/images/oremea-logo.png"
+            src="/images/oremea-logo-wht.png"
             alt="Oremea"
-            className="h-9 w-auto opacity-90"
+            className="mx-auto h-16 w-auto md:h-24 opacity-90"
           />
 
           <h1 className="mt-8 text-5xl font-semibold tracking-tight md:text-7xl">
