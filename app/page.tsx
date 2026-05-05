@@ -87,22 +87,22 @@ export default function Home() {
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
         <div className="max-w-3xl">
           <img
-            src="/images/oremea-logo-wht.png"
-            alt="Oremea"
-            className="mx-auto h-16 w-auto md:h-24 opacity-90"
-          />
+  src="/images/oremea-logo-wht.png"
+  alt="Oremea"
+  className="mx-auto h-16 w-auto md:h-24 opacity-95"
+/>
 
-          <h1 className="mt-8 text-5xl font-semibold tracking-tight md:text-7xl">
+          <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">
             Pattern awareness for people who want to meet life more clearly.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-300">
+          <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-300">
             Oremea is a house of reflective products for self-recognition,
             relational clarity, and intentional movement.
           </p>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4">
+        <div className="mt-12 flex flex-col gap-4">
           {products.map((product) => {
             const isOpen = open === product.name;
 
