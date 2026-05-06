@@ -6,11 +6,11 @@ import Link from "next/link";
 const products = [
   {
     name: "Resonance",
-    href: "/oremea/enter?source=oremea_home",
+    href: "/sign-in?redirect_url=/oremea/enter",
     active: true,
     short:
       "A 10-week guided journey for people who want to understand the patterns they carry into connection.",
-    action: "Enter",
+    action: "Enter Resonance",
     full: [
       "Most people do not repeat relationship patterns because they are careless. They repeat them because the pattern became familiar before it became visible.",
       "Resonance gives you a structured place to notice what happens inside connection: how you trust, protect, hope, withdraw, over-explain, test, soften, shut down, or reach.",
@@ -87,10 +87,10 @@ export default function Home() {
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
         <div className="max-w-3xl">
           <img
-  src="/images/oremea-logo-wht.png"
-  alt="Oremea"
-  className="mx-auto h-16 w-auto md:h-24 opacity-95"
-/>
+            src="/images/oremea-logo-wht.png"
+            alt="Oremea"
+            className="mx-auto h-16 w-auto opacity-95 md:h-24"
+          />
 
           <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">
             Pattern awareness for people who want to meet life more clearly.
@@ -101,21 +101,14 @@ export default function Home() {
             relational clarity, and intentional movement.
           </p>
 
-<div className="mt-6 flex justify-center gap-3">
-  <Link
-    href="/sign-up?redirect_url=/oremea/enter"
-    className="rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#c8a96a] transition hover:bg-[#c8a96a]/10"
-  >
-    Sign up
-  </Link>
-
-  <Link
-    href="/sign-in?redirect_url=/oremea/enter"
-    className="rounded-xl border border-white/15 px-5 py-3 text-sm text-zinc-300 transition hover:bg-white/5 hover:text-white"
-  >
-    Sign in
-  </Link>
-</div>
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/sign-in?redirect_url=/oremea/enter"
+              className="rounded-xl border border-[#c8a96a]/60 px-6 py-3 text-sm text-[#c8a96a] transition hover:bg-[#c8a96a]/10 hover:text-[#f1dfb4]"
+            >
+              Enter Reso<span className="italic">nance</span>
+            </Link>
+          </div>
         </div>
 
         <div className="mt-12 flex flex-col gap-4">
