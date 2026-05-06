@@ -100,6 +100,22 @@ export default function Home() {
             Oremea is a house of reflective products for self-recognition,
             relational clarity, and intentional movement.
           </p>
+
+<div className="mt-6 flex justify-center gap-3">
+  <Link
+    href="/sign-up?redirect_url=/oremea/enter"
+    className="rounded-xl border border-[#c8a96a]/60 px-5 py-3 text-sm text-[#c8a96a] transition hover:bg-[#c8a96a]/10"
+  >
+    Sign up
+  </Link>
+
+  <Link
+    href="/sign-in?redirect_url=/oremea/enter"
+    className="rounded-xl border border-white/15 px-5 py-3 text-sm text-zinc-300 transition hover:bg-white/5 hover:text-white"
+  >
+    Sign in
+  </Link>
+</div>
         </div>
 
         <div className="mt-12 flex flex-col gap-4">

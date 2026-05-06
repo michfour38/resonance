@@ -99,23 +99,28 @@ setIsCheckingState(false);
   }
 
   function buildPaystackHref(plan: Plan) {
-    const params = new URLSearchParams();
+  const params = new URLSearchParams();
 
-    if (firstName) params.set("name", firstName);
-    if (signedInEmail) params.set("email", signedInEmail);
-    if (source) params.set("source", source);
-    params.set("plan", plan);
+  if (firstName) params.set("name", firstName);
+  if (signedInEmail) params.set("email", signedInEmail);
+  if (source) params.set("source", source);
+  params.set("plan", plan);
 
-    if (process.env.NEXT_PUBLIC_DEV_PAY === "true") {
-  return `/oremea/begin?payment=success&plan=${plan}`;
-}
-
-const baseUrl =
-  plan === "mirror" ? MIRROR_PAYSTACK_URL : RESONANCE_PAYSTACK_URL;
-
-const query = params.toString();
-return query ? `${baseUrl}?${query}` : baseUrl;
+  if (process.env.NEXT_PUBLIC_DEV_PAY === "true") {
+    return `/oremea/begin?payment=success&plan=${plan}`;
   }
+
+  const baseUrl =
+    plan === "mirror" ? MIRROR_PAYSTACK_URL : RESONANCE_PAYSTACK_URL;
+
+  // 🔥 CRITICAL FIX
+  params.set(
+    "redirect_url",
+    `${window.location.origin}/oremea/begin?payment=success&plan=${plan}`
+  );
+
+  return `${baseUrl}?${params.toString()}`;
+}
 
   const returnToSelf = buildReturnToSelf();
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnToSelf)}`;
