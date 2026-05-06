@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { MirrorResponseDTO } from "./mirror.service";
+import { continueJourneyDayAction } from "../journey/actions";
+import ContinueDayButton from "../journey/continue-day-button";
 
 interface MirrorOutputProps {
   weekNumber: number;
@@ -161,10 +163,19 @@ export default function MirrorOutput({
         )}
 
         {questions.length > 0 && (
-          <p className="text-xs text-zinc-500">
-            These are drawn directly from what you’ve reflected today.
-          </p>
-        )}
+  <>
+    <p className="text-xs text-zinc-500">
+      These are drawn directly from what you’ve reflected today.
+    </p>
+
+    <form action={continueJourneyDayAction} className="mt-5 flex justify-end">
+      <input type="hidden" name="weekNumber" value={weekNumber} />
+      <input type="hidden" name="dayNumber" value={dayNumber} />
+
+      <ContinueDayButton />
+    </form>
+  </>
+)}
       </div>
     );
   }
