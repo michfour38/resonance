@@ -43,7 +43,7 @@ ${reflections.join("\n\n")}
     return null;
   }
 
-  const text = Array.isArray(data?.content)
+  const text: string = Array.isArray(data?.content)
     ? data.content
         .filter((item: { type?: string; text?: string }) => item?.type === "text")
         .map((item: { text?: string }) => item.text ?? "")
@@ -51,7 +51,7 @@ ${reflections.join("\n\n")}
         .trim()
     : "";
 
-  const questions = text
+  const questions: string[] = text
     .split("\n")
     .map((line: string) =>
       line
@@ -97,8 +97,8 @@ export async function POST(request: Request) {
     select: { response: true },
   });
 
-  const reflections = completions
-    .map((c) => c.response?.trim())
+  const reflections: string[] = completions
+    .map((c: { response: string | null }) => c.response?.trim())
     .filter((value): value is string => Boolean(value));
 
   if (reflections.length === 0) {

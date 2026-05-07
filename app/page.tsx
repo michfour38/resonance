@@ -92,7 +92,7 @@ export default function Home() {
             className="mx-auto h-16 w-auto opacity-95 md:h-24"
           />
 
-          <h1 className="mt-6 text-5xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">
             Pattern awareness for people who want to meet life more clearly.
           </h1>
 
@@ -100,15 +100,6 @@ export default function Home() {
             Oremea is a house of reflective products for self-recognition,
             relational clarity, and intentional movement.
           </p>
-
-          <div className="mt-6 flex justify-center">
-            <Link
-              href="/sign-in?redirect_url=/oremea/enter"
-              className="rounded-xl border border-[#c8a96a]/60 px-6 py-3 text-sm text-[#c8a96a] transition hover:bg-[#c8a96a]/10 hover:text-[#f1dfb4]"
-            >
-              Enter Reso<span className="italic">nance</span>
-            </Link>
-          </div>
         </div>
 
         <div className="mt-12 flex flex-col gap-4">
@@ -140,7 +131,7 @@ export default function Home() {
                     onClick={() => setOpen(isOpen ? null : product.name)}
                     className="shrink-0 text-sm text-[#c8a96a] transition hover:text-[#f1dfb4]"
                   >
-                    {isOpen ? "Close" : "Open"}
+                    {isOpen ? "Collapse" : "Expand"}
                   </button>
                 </div>
 
