@@ -142,14 +142,13 @@ export default function Home() {
                     ))}
 
                     {product.active && product.href ? (
-                      <Link
-                        href={product.href}
-                        className="inline-block pt-2 text-sm text-[#c8a96a] transition hover:text-[#f1dfb4]"
-                      >
-                        Enter Reso<span className="italic">nance</span> →
-                      </Link>
-                    ) : (
-                    )}
+  <Link
+    href={product.href}
+    className="inline-block pt-2 text-sm text-[#c8a96a] transition hover:text-[#f1dfb4]"
+  >
+    Enter Reso<span className="italic">nance</span> →
+  </Link>
+) : null}
                   </div>
                 ) : null}
               </div>
