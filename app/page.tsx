@@ -24,7 +24,7 @@ const products = [
     name: "Harmonize",
     active: false,
     short:
-      "A future relational clarity layer for two people who want to understand the pattern between them.",
+      "COMING SOON... A relational clarity layer for two people who want to understand the pattern between them.",
     action: "Coming soon",
     full: [
       "Harmonize is being designed for two people who are tired of circling the same conflict without understanding the system underneath it.",
@@ -39,7 +39,7 @@ const products = [
     name: "The Compass",
     active: false,
     short:
-      "A future decision layer for turning self-awareness into one executable next step.",
+      "COMING SOON... A decision layer for turning self-awareness into one executable next step.",
     action: "Coming soon",
     full: [
       "The Compass is being designed for the moment after awareness, when you know something is true but still do not know what to do next.",
@@ -54,7 +54,7 @@ const products = [
     name: "The Current",
     active: false,
     short:
-      "A future meeting space for people who have moved through the work and want to meet differently.",
+      "COMING SOON... A meeting space for people who have moved through the work and want to meet differently.",
     action: "Coming soon",
     full: [
       "The Current is the future relational space beyond the individual journey.",
@@ -92,7 +92,7 @@ export default function Home() {
             className="mx-auto h-16 w-auto opacity-95 md:h-24"
           />
 
-          <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight md:text-3xl">
             Pattern awareness for people who want to meet life more clearly.
           </h1>
 
@@ -149,9 +149,6 @@ export default function Home() {
                         Enter Reso<span className="italic">nance</span> →
                       </Link>
                     ) : (
-                      <p className="pt-2 text-sm text-zinc-500">
-                        {product.action}
-                      </p>
                     )}
                   </div>
                 ) : null}
