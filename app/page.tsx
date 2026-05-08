@@ -85,21 +85,23 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#090806] text-white">
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
-<div className="mb-10 flex justify-end">
+<div className="relative mb-12 min-h-[7rem]">
+  <div className="flex justify-center">
+    <img
+      src="/images/oremea-logo-wht.png"
+      alt="Oremea"
+      className="h-16 w-auto opacity-95 md:h-24"
+    />
+  </div>
+
   <Link
     href="/sign-in?redirect_url=/oremea/enter"
-    className="text-sm text-[#c8a96a] underline underline-offset-4 transition hover:text-[#f1dfb4]"
+    className="absolute right-6 top-0 text-sm text-[#c8a96a] underline underline-offset-4 transition hover:text-[#f1dfb4]"
   >
     Login
   </Link>
 </div>
         <div className="max-w-3xl">
-
-          <img
-            src="/images/oremea-logo-wht.png"
-            alt="Oremea"
-            className="mx-auto h-16 w-auto opacity-95 md:h-24"
-          />
 
           <h1 className="mt-6 text-2xl font-semibold tracking-tight md:text-3xl">
             Pattern awareness for people who want to meet life more clearly.
