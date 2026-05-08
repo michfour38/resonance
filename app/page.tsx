@@ -86,7 +86,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#090806] text-white">
       <section className="mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-16">
         <div className="relative max-w-3xl">
-<div className="absolute right-0 top-2">
+<div className="absolute right-0 top-[5.75rem] md:top-[7.5rem]">
   <Link
     href="/sign-in?redirect_url=/oremea/enter"
     className="text-sm text-[#c8a96a] underline underline-offset-4 transition hover:text-[#f1dfb4]"
