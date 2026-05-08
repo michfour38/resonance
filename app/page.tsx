@@ -91,6 +91,14 @@ export default function Home() {
             alt="Oremea"
             className="mx-auto h-16 w-auto opacity-95 md:h-24"
           />
+<div className="mt-5 flex justify-center">
+  <Link
+    href="/sign-in?redirect_url=/oremea/enter"
+    className="text-sm text-[#c8a96a] underline underline-offset-4 transition hover:text-[#f1dfb4]"
+  >
+    Login
+  </Link>
+</div>
 
           <h1 className="mt-6 text-2xl font-semibold tracking-tight md:text-3xl">
             Pattern awareness for people who want to meet life more clearly.
