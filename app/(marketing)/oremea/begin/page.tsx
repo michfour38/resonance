@@ -1,5 +1,6 @@
 "use client";
 
+import { unlockMirrorTier } from "@/app/(member)/mirror/mirror-unlock.service";
 import { Playfair_Display } from "next/font/google";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -108,10 +109,20 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
         if (cancelled) return;
 
         if (access.hasAccess) {
-          setHasAccess(true);
-          setAccessResolved(true);
-          return;
-        }
+  if (params.get("plan") === "mirror" && user?.id) {
+    await unlockMirrorTier({
+      userId: user.id,
+      weekNumber: 1,
+      dayNumber: 1,
+      tier: "full",
+      isPaid: true,
+    });
+  }
+
+  setHasAccess(true);
+  setAccessResolved(true);
+  return;
+}
 
         setHasAccess(false);
         setAccessResolved(true);
