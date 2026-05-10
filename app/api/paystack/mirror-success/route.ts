@@ -1,3 +1,4 @@
+import { unlockMirrorTier } from "@/app/(member)/mirror/mirror-unlock.service";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -28,6 +29,14 @@ export async function GET(request: Request) {
     journey_access_granted: true,
     pathway: "relate",
   },
+});
+
+await unlockMirrorTier({
+  userId: email,
+  weekNumber: 1,
+  dayNumber: 1,
+  tier: "full",
+  isPaid: true,
 });
     } catch (error) {
       console.error("Journey access grant failed:", error);
