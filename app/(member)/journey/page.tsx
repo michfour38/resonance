@@ -423,10 +423,21 @@ fullMirrorUnlocked = mirrorAccess.hasFullMirror;
             <header className="space-y-3">
               {content ? (
                 <>
-                  <h1 className="text-4xl text-white">{content.weekTitle}</h1>
-                  <p className="text-zinc-300">Resonance by Oremea - Journey</p>
-                  <p className="text-zinc-400">{content.weekTheme}</p>
-                </>
+  <h1 className="text-4xl text-white">{content.weekTitle}</h1>
+
+  <p className="text-zinc-300">
+    Resonance by Oremea - Journey
+  </p>
+
+  <p className="text-xs text-zinc-500">
+    Signed in as {signedInEmail} ·{" "}
+    {pathway === "relate"
+      ? "R+M / Relate"
+      : "R / Discover"}
+  </p>
+
+  <p className="text-zinc-400">{content.weekTheme}</p>
+</>
               ) : (
                 <div className="space-y-3">
                   <h1 className="text-4xl text-white">Journey Active</h1>
