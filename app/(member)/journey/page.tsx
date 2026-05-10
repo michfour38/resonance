@@ -180,12 +180,13 @@ const entryLead = await prisma.entry_leads.findUnique({
   },
 });
 
-// FORCE SOLO PATHWAY
-const pathway = "discover";
+const pathway =
+  entryLead?.pathway === "relate" ? "relate" : "discover";
 
 await prisma.profiles.upsert({
   where: { id: userId },
   update: {
+    pathway,
     updated_at: new Date(),
   },
   create: {
@@ -196,7 +197,6 @@ await prisma.profiles.upsert({
     updated_at: new Date(),
   },
 });
-
   const journeyAccess = await prisma.entry_leads.findUnique({
   where: { email: signedInEmail },
   select: {
