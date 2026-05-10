@@ -8,7 +8,7 @@ import MirrorCard from "./mirror-card";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
 import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
 import MemberNav from "../member-nav";
-import { isMirrorTierUnlocked } from "@/app/(member)/mirror/mirror-unlock.service";
+import { getMirrorAccess } from "@/app/(member)/mirror/mirror-access";
 import MirrorOutput from "../mirror/mirror-output";
 import { getMirrorHistory } from "../mirror/mirror.service";
 import { continueJourneyDayAction } from "./actions";
@@ -367,25 +367,15 @@ const progression = testingOverride
           })
       );
 
-      liteMirrorEligible = false;
-      fullMirrorEligible = isJourneyMirrorUpsellEligible(
-        content.weekNumber,
-        content.dayNumber
-      );
+const mirrorAccess = await getMirrorAccess(signedInEmail);
 
-      liteMirrorUnlocked = await isMirrorTierUnlocked({
-        userId,
-        weekNumber: content.weekNumber,
-        dayNumber: content.dayNumber,
-        tier: "lite",
-      });
+liteMirrorEligible = mirrorAccess.has2QOnly;
 
-      fullMirrorUnlocked = await isMirrorTierUnlocked({
-        userId,
-        weekNumber: content.weekNumber,
-        dayNumber: content.dayNumber,
-        tier: "full",
-      });
+fullMirrorEligible = mirrorAccess.hasFullMirror;
+
+liteMirrorUnlocked = mirrorAccess.has2QOnly;
+
+fullMirrorUnlocked = mirrorAccess.hasFullMirror;
 
       const mirrorHistory = await getMirrorHistory(userId);
       currentMirror =
