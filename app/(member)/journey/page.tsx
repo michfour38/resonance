@@ -373,11 +373,11 @@ const progression = testingOverride
 
 const mirrorAccess = await getMirrorAccess(signedInEmail);
 
-liteMirrorEligible = mirrorAccess.has2QOnly;
+liteMirrorEligible = false;
 
-fullMirrorEligible = mirrorAccess.hasFullMirror;
+fullMirrorEligible = mirrorAccess.has2QOnly;
 
-liteMirrorUnlocked = mirrorAccess.has2QOnly;
+liteMirrorUnlocked = false;
 
 fullMirrorUnlocked = mirrorAccess.hasFullMirror;
 
