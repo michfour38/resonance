@@ -185,7 +185,7 @@ export default function MirrorOutput({
 
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#17130d]/65 to-[#17130d]" />
 <a
-  href={`/mirror/unlock?weekNumber=${weekNumber}&dayNumber=${dayNumber}&tier=full`}
+  href={`https://paystack.shop/pay/3utxqlehqj?email=${encodeURIComponent(window.location.href)}`}
   className="absolute left-1/2 top-1/2 z-10 inline-flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border border-[#8b6b2f]/70 bg-[#241b10]/95 px-5 py-3 text-sm text-[#f1dfb4] shadow-[0_0_30px_rgba(0,0,0,0.45)] transition hover:bg-[#2f2314]"
 >
   Unlock Mirror — R720

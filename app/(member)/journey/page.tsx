@@ -381,16 +381,29 @@ liteMirrorUnlocked = false;
 
 fullMirrorUnlocked = mirrorAccess.hasFullMirror;
 
-      const mirrorHistory = await getMirrorHistory(userId);
+      const foundMirror = await prisma.mirror_responses.findFirst({
+  where: {
+    user_id: userId,
+    week_number: content.weekNumber,
+    day_number: content.dayNumber,
+  },
+  orderBy: {
+    created_at: "desc",
+  },
+});
 
-const foundMirror =
-  mirrorHistory.find(
-    (entry) =>
-      entry.weekNumber === content.weekNumber &&
-      entry.dayNumber === content.dayNumber
-  ) ?? null;
-
-currentMirror = mirrorAccess.hasFullMirror ? foundMirror : null;
+currentMirror =
+  mirrorAccess.hasFullMirror && foundMirror
+    ? {
+  id: foundMirror.id,
+  userId: foundMirror.user_id,
+  weekNumber: foundMirror.week_number,
+  dayNumber: foundMirror.day_number,
+  tier: foundMirror.tier as "full" | "lite",
+  output: foundMirror.output,
+  createdAt: foundMirror.created_at.toISOString(),
+}
+    : null;
     } catch (error) {
       console.error("Mirror state failed:", error);
     }
