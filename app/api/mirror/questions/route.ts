@@ -2,6 +2,20 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function parseQuestions(output: string) {
+  return output
+    .split("\n")
+    .map((line: string) =>
+      line
+        .trim()
+        .replace(/^[-•]\s*/, "")
+        .replace(/^\d+[\).\s-]+/, "")
+        .trim()
+    )
+    .filter((line: string) => line.includes("?"))
+    .slice(0, 2);
+}
+
 async function callQuestionAPI(reflections: string[]) {
   const prompt = `
 You are generating exactly TWO guiding reflection questions.
@@ -11,9 +25,6 @@ Use only the user's reflections below.
 Rules:
 - Do not summarize.
 - Do not generate a Mirror synthesis.
-- Do not label sections.
-- Do not write "The mirror shows".
-- Do not write "Two questions".
 - Return exactly two questions.
 - Each question must be specific to the user's reflections.
 - No generic self-help language.
@@ -51,17 +62,7 @@ ${reflections.join("\n\n")}
         .trim()
     : "";
 
-  const questions: string[] = text
-    .split("\n")
-    .map((line: string) =>
-      line
-        .trim()
-        .replace(/^[-•]\s*/, "")
-        .replace(/^\d+[\).\s-]+/, "")
-        .trim()
-    )
-    .filter((line: string) => line.includes("?"))
-    .slice(0, 2);
+  const questions = parseQuestions(text);
 
   return questions.length === 2 ? questions : null;
 }
@@ -79,6 +80,25 @@ export async function POST(request: Request) {
 
   if (!weekNumber || !dayNumber) {
     return NextResponse.json({ error: "Invalid params" }, { status: 400 });
+  }
+
+  const existing = await prisma.mirror_responses.findFirst({
+    where: {
+      user_id: userId,
+      week_number: weekNumber,
+      day_number: dayNumber,
+      tier: "lite",
+    },
+    orderBy: { created_at: "desc" },
+    select: { output: true },
+  });
+
+  if (existing?.output) {
+    const savedQuestions = parseQuestions(existing.output);
+
+    if (savedQuestions.length === 2) {
+      return NextResponse.json({ questions: savedQuestions });
+    }
   }
 
   const completions = await prisma.prompt_completions.findMany({
@@ -113,6 +133,21 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  await prisma.mirror_responses.create({
+  data: {
+    user_id: userId,
+    week_number: weekNumber,
+    day_number: dayNumber,
+    tier: "lite",
+    output: questions.join("\n"),
+    input_snapshot: {
+      type: "two_questions",
+      reflections,
+      questions,
+    },
+  },
+});
 
   return NextResponse.json({ questions });
 }
