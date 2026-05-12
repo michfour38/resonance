@@ -45,6 +45,23 @@ export default function MirrorOutput({
     return () => clearTimeout(timer);
   }, [isGenerating, weekNumber, dayNumber]);
 
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const params = new URLSearchParams(window.location.search);
+
+  const shouldGenerate = params.get("mirror") === "generate";
+
+  if (
+    shouldGenerate &&
+    fullMirrorUnlocked &&
+    !mirror &&
+    !isGenerating
+  ) {
+    setIsGenerating(true);
+  }
+}, [fullMirrorUnlocked, mirror, isGenerating]);
+
   function startGenerate() {
     setIsGenerating(true);
   }

@@ -44,6 +44,6 @@ await unlockMirrorTier({
   }
 
   return NextResponse.redirect(
-  `${APP_URL}/journey#mirror`
+  `${APP_URL}/journey?mirror=generate#mirror`
 );
 }
