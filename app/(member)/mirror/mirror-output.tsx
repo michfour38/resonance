@@ -159,7 +159,7 @@ export default function MirrorOutput({
             <div className="rounded-2xl border border-[#6d5b2b]/35 bg-black/25 p-5">
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-[#c8a96a]">
-                  Mirror preview
+                  Mirror possibility
                 </p>
 
                 <div className="relative overflow-hidden rounded-2xl border border-[#6d5b2b]/25 bg-black/30 p-5">
@@ -180,28 +180,26 @@ export default function MirrorOutput({
                       This is where your answers begin to become a map, not just
                       separate moments.
                     </p>
+
                   </div>
 
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#17130d]/65 to-[#17130d]" />
+<a
+  href={`/mirror/unlock?weekNumber=${weekNumber}&dayNumber=${dayNumber}&tier=full`}
+  className="absolute left-1/2 top-1/2 z-10 inline-flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border border-[#8b6b2f]/70 bg-[#241b10]/95 px-5 py-3 text-sm text-[#f1dfb4] shadow-[0_0_30px_rgba(0,0,0,0.45)] transition hover:bg-[#2f2314]"
+>
+  Unlock Mirror — R720
+</a>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-lg text-[#f4e7c2]">
-                    Unlock the full Mirror
-                  </h3>
-
+                  
                   <p className="text-sm leading-7 text-zinc-300">
                     Your 2 questions point to the next layer. Mirror follows the
                     deeper continuity across your reflections and reveals the
                     pattern forming over time.
                   </p>
 
-                  <a
-                    href={`/mirror/unlock?weekNumber=${weekNumber}&dayNumber=${dayNumber}&tier=full`}
-                    className="inline-flex items-center justify-center rounded-xl border border-[#8b6b2f]/60 bg-[#241b10] px-5 py-3 text-sm text-[#f1dfb4] transition hover:bg-[#2f2314]"
-                  >
-                    Unlock Mirror — R720
-                  </a>
                 </div>
               </div>
             </div>

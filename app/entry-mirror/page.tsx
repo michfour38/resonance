@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type EntryType = "female" | "male" | "neutral";
 
@@ -8,6 +8,12 @@ type Question = {
   key: string;
   text: string;
 };
+
+const LOADING_LINES = [
+  "Reading what you wrote...",
+  "Finding the thread...",
+  "Preparing your reflection...",
+];
 
 type Panel =
   | {
@@ -28,8 +34,8 @@ type Panel =
 
 const QUESTIONS: Record<EntryType, Question[]> = {
   female: [
-    { key: "past_connections_common", text: "What do your past connections have in common — before things go wrong?" },
-    { key: "early_ignored_signal", text: "What did you feel early… that you later ignored?" },
+    { key: "past_connections_common", text: "What do your connections tend to have in common — before things go wrong?" },
+    { key: "early_ignored_signal", text: "What did you notice early that you talked yourself out of trusting?" },
     { key: "fastest_pull", text: "What kind of energy pulls you in fastest?" },
     { key: "adjusting_point", text: "At what point do you start adjusting to keep the connection?" },
     { key: "slightly_off_response", text: "What do you do when something feels slightly off?" },
@@ -91,16 +97,17 @@ export default function EntryMirrorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [mirrorOutput, setMirrorOutput] = useState("");
   const [error, setError] = useState("");
-const loadingLines = [
-  "Noticing repeated language…",
-  "Looking for emotional patterns…",
-  "Separating attraction from clarity…",
-  "Listening for tension beneath the answers…",
-  "Building your Entry Mirror…",
-];
+  const [loadingIndex, setLoadingIndex] = useState(0);
 
-const loadingLine =
-  loadingLines[Math.floor(Date.now() / 2200) % loadingLines.length];
+  useEffect(() => {
+    if (!isGenerating) return;
+
+    const interval = window.setInterval(() => {
+      setLoadingIndex((current) => (current + 1) % LOADING_LINES.length);
+    }, 2200);
+
+    return () => window.clearInterval(interval);
+  }, [isGenerating]);
 
   const panels = useMemo<Panel[]>(() => {
     const questions = QUESTIONS[entryType];
@@ -135,7 +142,7 @@ const loadingLine =
       ...questions.slice(10).map((question) => ({ type: "question" as const, question })),
       {
         type: "statement",
-        title: "The pattern doesn’t break later.\nIt breaks at the beginning.",
+        title: "The moment you notice it, is the moment the pattern can change.",
       },
       {
         type: "statement",
@@ -156,6 +163,15 @@ const loadingLine =
       : answers[currentPanel.question.key]?.trim().length >= 8);
 
   function nextPanel() {
+    if (!canContinue) {
+      setError(
+        currentPanel.type === "capture"
+          ? "Enter your first name and email to continue."
+          : "Write a little more before continuing."
+      );
+      return;
+    }
+
     setError("");
     setPanelIndex((value) => Math.min(value + 1, panels.length - 1));
   }
@@ -176,6 +192,7 @@ const loadingLine =
     try {
       setIsGenerating(true);
       setError("");
+      setLoadingIndex(0);
 
       const formattedAnswers = QUESTIONS[entryType].map((question) => ({
         questionKey: question.key,
@@ -223,27 +240,29 @@ const loadingLine =
 
   if (mirrorOutput) {
     return (
-      <main className="min-h-screen bg-[#0A0A0A] px-6 py-12 text-[#EAEAEA]">
+      <main className="min-h-screen bg-[#0A0A0A] px-6 py-10 text-[#EAEAEA]">
         <section className="mx-auto max-w-3xl">
-          <p className="mb-16 text-sm tracking-[0.35em] text-[#BFBFBF]">OREMEA</p>
+          <p className="mb-12 text-center text-xs tracking-[0.45em] text-[#BFBFBF]">
+            OREMEA
+          </p>
 
-          <h1 className="mb-10 font-serif text-4xl leading-tight md:text-6xl">
+          <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
             Your Entry Mirror
           </h1>
 
-          <div className="whitespace-pre-wrap rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 font-serif text-2xl leading-relaxed text-[#D8D0C0] md:p-10">
+          <div className="whitespace-pre-wrap rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 font-serif text-xl leading-relaxed text-[#D8D0C0] md:p-10 md:text-2xl">
             {mirrorOutput}
           </div>
 
-          <div className="mt-12 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
-            <p className="font-serif text-3xl text-[#EAEAEA]">
+          <div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
+            <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
               You already recognise the pattern.
             </p>
-            <p className="mt-5 font-serif text-2xl leading-relaxed text-[#BFBFBF]">
+            <p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
               What you haven’t done yet… is stay with it long enough to change it.
             </p>
 
-            <div className="mt-8 space-y-4 font-serif text-2xl text-[#BFBFBF]">
+            <div className="mt-8 space-y-4 font-serif text-xl text-[#BFBFBF] md:text-2xl">
               <p>Resonance</p>
               <p>Resonance + Mirror</p>
             </div>
@@ -258,20 +277,19 @@ const loadingLine =
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] px-6 py-10 text-[#EAEAEA]">
-      <section className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-3xl flex-col justify-center">
-        <div className="mb-10 flex items-center justify-between">
-          <p className="text-sm tracking-[0.35em] text-[#BFBFBF]">OREMEA</p>
-          <p className="text-sm tracking-[0.25em] text-[#C6A96B]">{progress}%</p>
+    <main className="min-h-screen bg-[#0A0A0A] px-6 py-8 text-[#EAEAEA]">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center">
+        <div className="mb-8 text-center">
+          <p className="text-xs tracking-[0.45em] text-[#BFBFBF]">OREMEA</p>
         </div>
 
-        <div className="mb-10 h-px bg-[#2A2418]">
+        <div className="mb-8 h-px bg-[#2A2418]">
           <div className="h-px bg-[#C6A96B]" style={{ width: `${progress}%` }} />
         </div>
 
         {currentPanel.type === "capture" ? (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
-            <h1 className="mb-8 font-serif text-4xl leading-tight md:text-6xl">
+            <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
               Begin privately.
             </h1>
 
@@ -286,7 +304,7 @@ const loadingLine =
                     setAnswers({});
                     setError("");
                   }}
-                  className={`rounded-2xl border px-5 py-4 text-left font-serif text-xl capitalize transition ${
+                  className={`rounded-2xl border px-5 py-4 text-left font-serif text-lg capitalize transition md:text-xl ${
                     entryType === type
                       ? "border-[#C6A96B] bg-[#171208] text-[#EAEAEA]"
                       : "border-[#2A2418] bg-[#0A0A0A] text-[#BFBFBF] hover:border-[#A88A4A]"
@@ -302,7 +320,7 @@ const loadingLine =
                 value={firstName}
                 onChange={(event) => setFirstName(event.target.value)}
                 placeholder="First name"
-                className="rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-xl text-[#EAEAEA] outline-none placeholder:text-[#777] focus:border-[#C6A96B]"
+                className="rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-lg text-[#EAEAEA] outline-none placeholder:text-[#777] focus:border-[#C6A96B] md:text-xl"
               />
 
               <input
@@ -310,29 +328,29 @@ const loadingLine =
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="Email"
                 type="email"
-                className="rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-xl text-[#EAEAEA] outline-none placeholder:text-[#777] focus:border-[#C6A96B]"
+                className="rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-lg text-[#EAEAEA] outline-none placeholder:text-[#777] focus:border-[#C6A96B] md:text-xl"
               />
             </div>
           </div>
         ) : currentPanel.type === "statement" ? (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
-            <h1 className="whitespace-pre-wrap font-serif text-5xl leading-tight md:text-7xl">
+            <h1 className="whitespace-pre-wrap font-serif text-4xl leading-[1.05] md:text-6xl">
               {currentPanel.title}
             </h1>
 
             {currentPanel.body ? (
-              <p className="mt-12 whitespace-pre-wrap font-serif text-2xl leading-relaxed text-[#BFBFBF] md:text-3xl">
+              <p className="mt-10 whitespace-pre-wrap font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
                 {currentPanel.body}
               </p>
             ) : null}
           </div>
         ) : currentPanel.type === "question" ? (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
-            <p className="mb-10 text-sm tracking-[0.25em] text-[#C6A96B]">
+            <p className="mb-8 text-xs tracking-[0.25em] text-[#C6A96B]">
               REFLECTION
             </p>
 
-            <h1 className="mb-10 font-serif text-4xl leading-tight md:text-6xl">
+            <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
               {currentPanel.question.text}
             </h1>
 
@@ -343,37 +361,37 @@ const loadingLine =
               }
               rows={7}
               placeholder="Write honestly. This is private."
-              className="w-full resize-none rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-2xl leading-relaxed text-[#EAEAEA] outline-none placeholder:text-[#666] focus:border-[#C6A96B]"
+              className="w-full resize-none rounded-2xl border border-[#2A2418] bg-[#0A0A0A] px-5 py-4 font-serif text-xl leading-relaxed text-[#EAEAEA] outline-none placeholder:text-[#666] focus:border-[#C6A96B] md:text-2xl"
             />
           </div>
         ) : (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
-            <h1 className="font-serif text-5xl leading-tight md:text-7xl">
+            <h1 className="font-serif text-4xl leading-tight md:text-6xl">
               Generate your Entry Mirror.
             </h1>
 
-            <p className="mt-10 font-serif text-2xl leading-relaxed text-[#BFBFBF]">
+            <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
               Your reflection will be generated from your actual answers — not a category, not a quiz result, not a generic summary.
             </p>
 
             {isGenerating ? (
-  <div className="mt-12 rounded-3xl border border-[#2A2418] bg-[#0A0A0A] p-6">
-    <p className="font-serif text-2xl text-[#EAEAEA]">
-      {loadingLine}
-    </p>
-    <p className="mt-4 font-serif text-lg leading-relaxed text-[#BFBFBF]">
-      This is being generated from your actual answers.
-    </p>
-  </div>
-) : (
-  <button
-    type="button"
-    onClick={submitAndGenerate}
-    className="mt-12 rounded-full bg-[#C6A96B] px-8 py-4 font-serif text-xl text-[#0A0A0A] transition"
-  >
-    Generate my Entry Mirror
-  </button>
-)}
+              <div className="mt-10 rounded-3xl border border-[#2A2418] bg-[#0A0A0A] p-6">
+                <p className="font-serif text-2xl text-[#EAEAEA]">
+                  {LOADING_LINES[loadingIndex]}
+                </p>
+                <p className="mt-4 font-serif text-lg leading-relaxed text-[#BFBFBF]">
+                  This is being generated from your actual answers.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={submitAndGenerate}
+                className="mt-10 rounded-full border border-[#D6B97A] bg-[#C6A96B] px-8 py-4 font-serif text-lg tracking-[0.06em] text-[#0A0A0A] shadow-[0_0_28px_rgba(198,169,107,0.18)] transition hover:bg-[#D6B97A]"
+              >
+                Generate my Entry Mirror
+              </button>
+            )}
           </div>
         )}
 
@@ -382,9 +400,9 @@ const loadingLine =
         <div className="mt-8 flex items-center justify-between gap-4">
           <button
             type="button"
-            disabled={panelIndex === 0 || isGenerating}
+            disabled={panelIndex === 0 || panelIndex > 2 || isGenerating}
             onClick={previousPanel}
-            className="rounded-full border border-[#2A2418] px-6 py-3 font-serif text-lg text-[#BFBFBF] disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full border border-[#2A2418] px-6 py-3 font-serif text-base text-[#BFBFBF] transition hover:border-[#A88A4A] disabled:cursor-not-allowed disabled:opacity-30"
           >
             Back
           </button>
@@ -392,9 +410,12 @@ const loadingLine =
           {currentPanel.type !== "generate" ? (
             <button
               type="button"
-              disabled={!canContinue || isGenerating}
               onClick={nextPanel}
-              className="rounded-full bg-[#C6A96B] px-7 py-3 font-serif text-lg text-[#0A0A0A] transition disabled:cursor-not-allowed disabled:opacity-40"
+              className={`rounded-full border px-8 py-3 font-serif text-base tracking-[0.06em] transition ${
+                canContinue
+                  ? "border-[#D6B97A] bg-[#C6A96B] text-[#0A0A0A] shadow-[0_0_28px_rgba(198,169,107,0.18)] hover:bg-[#D6B97A]"
+                  : "border-[#3A2F1C] bg-[#171208] text-[#8F815E] hover:border-[#A88A4A]"
+              }`}
             >
               Continue
             </button>
