@@ -67,6 +67,41 @@ ${reflections.join("\n\n")}
   return questions.length === 2 ? questions : null;
 }
 
+export async function GET(request: Request) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ questions: [] }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const weekNumber = Number(url.searchParams.get("weekNumber"));
+  const dayNumber = Number(url.searchParams.get("dayNumber"));
+
+  if (!weekNumber || !dayNumber) {
+    return NextResponse.json({ questions: [] }, { status: 400 });
+  }
+
+  const existing = await prisma.mirror_responses.findFirst({
+    where: {
+      user_id: userId,
+      week_number: weekNumber,
+      day_number: dayNumber,
+      tier: "lite",
+    },
+    orderBy: { created_at: "desc" },
+    select: { output: true },
+  });
+
+  if (!existing?.output) {
+    return NextResponse.json({ questions: [] });
+  }
+
+  return NextResponse.json({
+    questions: parseQuestions(existing.output),
+  });
+}
+
 export async function POST(request: Request) {
   const { userId } = await auth();
 

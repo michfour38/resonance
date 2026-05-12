@@ -35,6 +35,31 @@ export default function MirrorOutput({
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [questionsError, setQuestionsError] = useState(false);
 
+useEffect(() => {
+  if (fullMirrorUnlocked || questions.length > 0) return;
+
+  async function loadSavedQuestions() {
+    try {
+      const res = await fetch(
+        `/api/mirror/questions?weekNumber=${weekNumber}&dayNumber=${dayNumber}`,
+        { method: "GET" }
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      if (Array.isArray(data?.questions) && data.questions.length === 2) {
+        setQuestions(data.questions);
+      }
+    } catch (error) {
+      console.error("Saved 2Q load failed:", error);
+    }
+  }
+
+  loadSavedQuestions();
+}, [fullMirrorUnlocked, questions.length, weekNumber, dayNumber]);
+
   useEffect(() => {
     if (!isGenerating) return;
 

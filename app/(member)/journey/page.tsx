@@ -159,7 +159,13 @@ const allDone = allPromptsDone && Boolean(continued);
   };
 }
 
-export default async function JourneyPage() {
+export default async function JourneyPage({
+  searchParams,
+}: {
+  searchParams?: {
+    mirror?: string;
+  };
+}) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -170,6 +176,21 @@ const signedInEmail = await getSignedInEmail();
 
 if (!signedInEmail) {
   redirect("/journey/unlock");
+}
+
+const shouldActivateMirror =
+  typeof searchParams?.mirror === "string" &&
+  searchParams.mirror === "generate";
+
+if (shouldActivateMirror) {
+  await prisma.entry_leads.updateMany({
+    where: { email: signedInEmail },
+    data: {
+      pathway: "relate",
+      journey_access_granted: true,
+      journey_paid_at: new Date(),
+    },
+  });
 }
 
 // 👇 ADD THIS BLOCK RIGHT HERE
