@@ -161,14 +161,16 @@ async function callMirrorAPI(prompt: string): Promise<string | null> {
 export async function runMirrorSynthesis(
   userId: string,
   weekNumber: number,
-  dayNumber: number
+  dayNumber: number,
+  tier: "lite" | "full" = "full"
 ): Promise<MirrorResponseDTO | null> {
   const existing = await prisma.mirror_responses.findFirst({
     where: {
-      user_id: userId,
-      week_number: weekNumber,
-      day_number: dayNumber,
-    },
+  user_id: userId,
+  week_number: weekNumber,
+  day_number: dayNumber,
+  tier,
+},
     select: {
       id: true,
       user_id: true,
@@ -192,7 +194,7 @@ export async function runMirrorSynthesis(
     };
   }
 
-  const mode: "lite" | "full" = weekNumber >= 9 ? "full" : "lite";
+  const mode: "lite" | "full" = tier;
 
   const [prewaveResponses, allJourneyCompletions] = await Promise.all([
     prisma.prewave_responses.findMany({

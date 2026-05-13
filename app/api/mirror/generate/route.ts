@@ -35,7 +35,12 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${APP_URL}/journey?mirror=success#mirror`);
   }
 
-  const result = await runMirrorSynthesis(userId, weekNumber, dayNumber);
+  const result = await runMirrorSynthesis(
+  userId,
+  weekNumber,
+  dayNumber,
+  tier
+);
 
   if (!result) {
     return NextResponse.redirect(`${APP_URL}/journey?mirror=error#mirror`);
