@@ -25,7 +25,7 @@ const ENTRY_QUESTIONS: Record<EntryMirrorType, EntryMirrorQuestion[]> = {
     },
     {
       key: "early_ignored_signal",
-      text: "What did you feel early… that you later ignored?",
+      text: "What did you notice early that you talked yourself out of trusting?",
     },
     {
       key: "fastest_pull",
@@ -223,12 +223,14 @@ export function getEntryMirrorQuestions(entryType: EntryMirrorType) {
 function buildEntryMirrorPrompt(params: {
   entryType: EntryMirrorType;
   firstName?: string | null;
+  previousOutput?: string | null;
+  regenerate?: boolean;
   responses: {
     questionText: string;
     response: string;
   }[];
 }) {
-  const { entryType, firstName, responses } = params;
+  const { entryType, firstName, previousOutput, regenerate, responses } = params;
 
   return `
 You are the Oremea Entry Mirror.
@@ -237,6 +239,38 @@ You reflect from the user's entry reflection answers only.
 
 Entry path: ${entryType}
 First name: ${firstName || "Unknown"}
+
+${
+  regenerate && previousOutput
+    ? `
+
+This is a regenerated Entry Mirror.
+
+The user has had a chance to revisit their answers and offer more honest or precise information.
+
+You must reference the first Mirror indirectly and respectfully.
+
+Do not say "your first Mirror was wrong."
+Do not say "updated analysis."
+Do not sound like software.
+Do not mention regeneration mechanics.
+
+You may say something like:
+"I noticed that with the extra information you offered, something becomes clearer..."
+or:
+"With what you added, the reflection moves closer to..."
+
+Your job in this second Mirror is to:
+- honour the first reflection
+- notice what changed or deepened
+- use the new answers as stronger signal
+- make the user feel the difference between surface answers and more precise answers
+
+FIRST MIRROR:
+${previousOutput}
+`
+    : ""
+}
 
 This is not a quiz.
 This is not an archetype test.
@@ -287,14 +321,23 @@ WHAT TO NOTICE:
 
 STRUCTURE:
 
-Use clear section headings.
+Use quiet plain-text section labels only.
 
-The output must have exactly these sections:
+Do not use markdown.
+Do not use # or ##.
+Do not use bullets.
+Do not use numbered lists.
+Do not use bold formatting.
 
-1. What your answers seem to reveal
-2. The tension underneath
-3. What may be repeating
-4. Two questions worth staying with
+Use these exact plain-text section labels only:
+
+What your answers seem to reveal
+
+The tension underneath
+
+What may be repeating
+
+Two questions worth staying with
 
 SECTION RULES:
 
@@ -393,6 +436,7 @@ function extractQuestionsFromOutput(output: string) {
 
 export async function generateEntryMirror(params: {
   sessionId: string;
+  regenerate?: boolean;
 }): Promise<EntryMirrorOutputDTO | null> {
   const session = await prisma.entry_mirror_sessions.findUnique({
     where: { id: params.sessionId },
@@ -413,9 +457,9 @@ export async function generateEntryMirror(params: {
           response: true,
         },
       },
-      entry_mirror_outputs: {
-        orderBy: { created_at: "desc" },
-        take: 1,
+            entry_mirror_outputs: {
+        orderBy: { created_at: "asc" },
+        take: 2,
         select: {
           id: true,
           session_id: true,
@@ -431,18 +475,34 @@ export async function generateEntryMirror(params: {
 
   if (!session) return null;
 
-  const existing = session.entry_mirror_outputs[0];
+    const outputs = session.entry_mirror_outputs;
+  const latest = outputs[outputs.length - 1] ?? null;
+  const firstOutput = outputs[0] ?? null;
 
-  if (existing) {
+  if (!params.regenerate && latest) {
     return {
-      id: existing.id,
-      sessionId: existing.session_id,
-      output: existing.output,
-      questions: existing.questions,
-      themesDetected: existing.themes_detected,
-      tensionsDetected: existing.tensions_detected,
-      createdAt: existing.created_at.toISOString(),
+      id: latest.id,
+      sessionId: latest.session_id,
+      output: latest.output,
+      questions: latest.questions,
+      themesDetected: latest.themes_detected,
+      tensionsDetected: latest.tensions_detected,
+      createdAt: latest.created_at.toISOString(),
     };
+  }
+
+  if (params.regenerate && outputs.length >= 2) {
+    return latest
+      ? {
+          id: latest.id,
+          sessionId: latest.session_id,
+          output: latest.output,
+          questions: latest.questions,
+          themesDetected: latest.themes_detected,
+          tensionsDetected: latest.tensions_detected,
+          createdAt: latest.created_at.toISOString(),
+        }
+      : null;
   }
 
   const cleanResponses = session.entry_mirror_responses
@@ -461,9 +521,11 @@ export async function generateEntryMirror(params: {
     ? (session.entry_type as EntryMirrorType)
     : "neutral";
 
-  const prompt = buildEntryMirrorPrompt({
+    const prompt = buildEntryMirrorPrompt({
     entryType,
     firstName: session.entry_leads.first_name,
+    previousOutput: firstOutput?.output ?? null,
+    regenerate: Boolean(params.regenerate),
     responses: cleanResponses,
   });
 

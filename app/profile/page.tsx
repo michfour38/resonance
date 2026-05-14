@@ -1,0 +1,26 @@
+import { SiteShell } from "@/components/site/site-shell";
+
+import { ProfileAccount } from "@/components/site/sections/profile-account";
+import { ProfileHero } from "@/components/site/sections/profile-hero";
+import { ProfilePolicies } from "@/components/site/sections/profile-policies";
+import { ProfileProducts } from "@/components/site/sections/profile-products";
+import { ProfileProgress } from "@/components/site/sections/profile-progress";
+import { ProfileSupport } from "@/components/site/sections/profile-support";
+
+export default function ProfilePage() {
+  return (
+    <SiteShell>
+      <ProfileHero />
+
+      <ProfileAccount />
+
+      <ProfileProducts />
+
+      <ProfileProgress />
+
+      <ProfileSupport />
+
+      <ProfilePolicies />
+    </SiteShell>
+  );
+}

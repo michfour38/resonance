@@ -9,6 +9,7 @@ type OpenMenu = "archive" | "profile" | null;
 
 export default function MemberNav() {
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -17,93 +18,138 @@ export default function MemberNav() {
   }, [pathname, searchParams]);
 
   return (
-    <nav className="px-6 py-4">
-      <div className="mx-auto flex max-w-2xl items-start justify-end gap-3">
-        {/* Archive */}
-        <div
-          className="relative pb-4"
-          onMouseLeave={() => setOpenMenu(null)}
-        >
-          <button
-            type="button"
-            onClick={() =>
-              setOpenMenu(openMenu === "archive" ? null : "archive")
-            }
-            className="cursor-pointer px-3 text-center text-sm font-medium text-zinc-300 transition hover:text-white"
+    <nav className="px-6 py-5">
+      <div className="mx-auto flex max-w-5xl items-center justify-between">
+        <div className="hidden items-center gap-5 md:flex">
+          <Link
+            href="/"
+            className="text-[11px] uppercase tracking-[0.28em] text-[#C8A96A]/80 transition hover:text-[#f1dfb4]"
           >
-            Archive
-          </button>
+            Oremea
+          </Link>
 
-          {openMenu === "archive" ? (
-            <div className="absolute right-0 top-8 z-30 min-w-[200px] rounded-[1.75rem] border border-zinc-800/80 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)]">
-              <Link
-                href="/journey"
-                className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
-                Return to the present
-              </Link>
+          <Link
+            href="/explore"
+            className="text-[11px] uppercase tracking-[0.18em] text-white/45 transition hover:text-white/80"
+          >
+            Explore
+          </Link>
 
-              <Link
-                href="/journey/archive?view=room"
-                className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
+          <Link
+            href="/compare"
+            className="text-[11px] uppercase tracking-[0.18em] text-white/45 transition hover:text-white/80"
+          >
+            Compare
+          </Link>
 
-By room
-              </Link>
-
-              <Link
-                href="/journey/archive?view=day"
-                className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
-                By day
-              </Link>
-
-              <Link
-                href="/journey/archive?view=search"
-                className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
-                Search
-              </Link>
-            </div>
-          ) : null}
+          <Link
+            href="/contact"
+            className="text-[11px] uppercase tracking-[0.18em] text-white/45 transition hover:text-white/80"
+          >
+            Contact
+          </Link>
         </div>
 
-        {/* Profile */}
-        <div
-          className="relative pb-4"
-          onMouseLeave={() => setOpenMenu(null)}
-        >
-          <button
-            type="button"
-            onClick={() =>
-              setOpenMenu(openMenu === "profile" ? null : "profile")
-            }
-            className="cursor-pointer px-3 text-center text-sm font-medium text-zinc-300 transition hover:text-white"
+        <div className="ml-auto flex items-start justify-end gap-3">
+          {/* Archive */}
+          <div
+            className="relative pb-4"
+            onMouseLeave={() => setOpenMenu(null)}
           >
-            Profile
-          </button>
+            <button
+              type="button"
+              onClick={() =>
+                setOpenMenu(openMenu === "archive" ? null : "archive")
+              }
+              className="cursor-pointer px-3 text-center text-sm font-medium text-zinc-300 transition hover:text-white"
+            >
+              Archive
+            </button>
 
-          {openMenu === "profile" ? (
-            <div className="absolute right-0 top-8 z-30 min-w-[200px] rounded-[1.75rem] border border-zinc-800/80 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)]">
-              <Link
-                href="/profile"
-                className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
-                Profile
-              </Link>
+            {openMenu === "archive" ? (
+              <div className="absolute right-0 top-8 z-30 min-w-[220px] rounded-[1.75rem] border border-zinc-800/80 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)]">
+                <Link
+                  href="/journey"
+                  className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Return to the present
+                </Link>
 
-              <div className="mt-2 border-t border-zinc-800 pt-2">
-                <SignOutButton>
-                  <button
-                    type="button"
-                    className="block w-full rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-                  >
-                    Sign out
-                  </button>
-                </SignOutButton>
+                <Link
+                  href="/journey/archive?view=room"
+                  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  By room
+                </Link>
+
+                <Link
+                  href="/journey/archive?view=day"
+                  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  By day
+                </Link>
+
+                <Link
+                  href="/journey/archive?view=search"
+                  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Search
+                </Link>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
+
+          {/* Profile */}
+          <div
+            className="relative pb-4"
+            onMouseLeave={() => setOpenMenu(null)}
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setOpenMenu(openMenu === "profile" ? null : "profile")
+              }
+              className="cursor-pointer rounded-full border border-white/10 bg-black/20 px-4 py-2 text-center text-sm font-medium text-zinc-300 transition hover:border-white/20 hover:text-white"
+            >
+              Profile
+            </button>
+
+            {openMenu === "profile" ? (
+              <div className="absolute right-0 top-10 z-30 min-w-[240px] rounded-[1.75rem] border border-zinc-800/80 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)]">
+                <Link
+                  href="/profile"
+                  className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Profile
+                </Link>
+
+                <Link
+                  href="/compare"
+                  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Compare Products
+                </Link>
+
+                <Link
+                  href="/contact"
+                  className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                >
+                  Contact Support
+                </Link>
+
+                <div className="mt-2 border-t border-zinc-800 pt-2">
+                  <SignOutButton>
+                    <button
+                      type="button"
+                      className="block w-full rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                    >
+                      Sign out
+                    </button>
+                  </SignOutButton>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </nav>

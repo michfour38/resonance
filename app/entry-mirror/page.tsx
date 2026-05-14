@@ -15,6 +15,8 @@ const LOADING_LINES = [
   "Preparing your reflection...",
 ];
 
+const DRAFT_KEY = "oremea-entry-mirror-draft";
+
 type Panel =
   | {
       type: "statement";
@@ -97,7 +99,40 @@ export default function EntryMirrorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [mirrorOutput, setMirrorOutput] = useState("");
   const [error, setError] = useState("");
+const [usedBackPanels, setUsedBackPanels] = useState<number[]>([]);
   const [loadingIndex, setLoadingIndex] = useState(0);
+
+useEffect(() => {
+  const saved = window.localStorage.getItem(DRAFT_KEY);
+  if (!saved) return;
+
+  try {
+    const draft = JSON.parse(saved);
+
+    if (draft.entryType) setEntryType(draft.entryType);
+    if (draft.firstName) setFirstName(draft.firstName);
+    if (draft.email) setEmail(draft.email);
+    if (draft.answers) setAnswers(draft.answers);
+    if (typeof draft.panelIndex === "number") {
+      setPanelIndex(draft.panelIndex);
+    }
+  } catch {
+    window.localStorage.removeItem(DRAFT_KEY);
+  }
+}, []);
+
+useEffect(() => {
+  window.localStorage.setItem(
+    DRAFT_KEY,
+    JSON.stringify({
+      entryType,
+      firstName,
+      email,
+      panelIndex,
+      answers,
+    })
+  );
+}, [entryType, firstName, email, panelIndex, answers]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -177,16 +212,22 @@ export default function EntryMirrorPage() {
   }
 
   function previousPanel() {
-    setError("");
-    setPanelIndex((value) => Math.max(value - 1, 0));
+  if (usedBackPanels.includes(panelIndex)) {
+    setError("You’ve already gone back from this point.");
+    return;
   }
 
+  setError("");
+  setUsedBackPanels((current) => [...current, panelIndex]);
+  setPanelIndex((value) => Math.max(value - 1, 0));
+}
+
   function updateAnswer(questionKey: string, value: string) {
-    setAnswers((current) => ({
-      ...current,
-      [questionKey]: value,
-    }));
-  }
+  setAnswers((current) => ({
+    ...current,
+    [questionKey]: value,
+  }));
+}
 
   async function submitAndGenerate() {
     try {
@@ -230,6 +271,7 @@ export default function EntryMirrorPage() {
       }
 
       setMirrorOutput(generateData.output.output);
+window.localStorage.removeItem(DRAFT_KEY);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -262,14 +304,21 @@ export default function EntryMirrorPage() {
               What you haven’t done yet… is stay with it long enough to change it.
             </p>
 
-            <div className="mt-8 space-y-4 font-serif text-xl text-[#BFBFBF] md:text-2xl">
-              <p>Resonance</p>
-              <p>Resonance + Mirror</p>
-            </div>
+            <div className="mt-8 space-y-4 font-serif">
+  <p className="text-2xl text-[#EAEAEA] md:text-3xl">
+    Resonance
+  </p>
+  <p className="text-2xl text-[#C6A96B] md:text-3xl">
+    Resonance + Mirror
+  </p>
+</div>
 
-            <p className="mt-8 text-sm tracking-[0.25em] text-[#C6A96B]">
-              ADD YOUR LIVE LINK HERE
-            </p>
+<a
+  href="https://www.oremea.com"
+  className="mt-8 inline-block rounded-full border border-[#C6A96B]/70 px-6 py-3 font-serif text-lg text-[#C6A96B] transition hover:border-[#D6B97A] hover:text-[#D6B97A]"
+>
+  Enter here — www.oremea.com
+</a>
           </div>
         </section>
       </main>
@@ -398,14 +447,18 @@ export default function EntryMirrorPage() {
         {error ? <p className="mt-6 font-serif text-lg text-red-300">{error}</p> : null}
 
         <div className="mt-8 flex items-center justify-between gap-4">
-          <button
-            type="button"
-            disabled={panelIndex === 0 || panelIndex > 2 || isGenerating}
-            onClick={previousPanel}
-            className="rounded-full border border-[#2A2418] px-6 py-3 font-serif text-base text-[#BFBFBF] transition hover:border-[#A88A4A] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            Back
-          </button>
+          {panelIndex >= 3 ? (
+  <button
+    type="button"
+    disabled={usedBackPanels.includes(panelIndex) || isGenerating}
+    onClick={previousPanel}
+    className="rounded-full border border-[#2A2418] px-6 py-3 font-serif text-base text-[#BFBFBF] transition hover:border-[#A88A4A] disabled:cursor-not-allowed disabled:opacity-30"
+  >
+    Back
+  </button>
+) : (
+  <div />
+)}
 
           {currentPanel.type !== "generate" ? (
             <button

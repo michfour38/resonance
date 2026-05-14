@@ -1,5 +1,7 @@
 "use client";
 
+import { SiteNav } from "@/components/site/site-nav";
+import { SiteFooter } from "@/components/site/site-footer";
 import { Playfair_Display } from "next/font/google";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -137,6 +139,7 @@ setIsCheckingState(false);
   if (!user) {
     return (
       <main className="relative min-h-screen overflow-x-hidden overflow-y-auto text-white">
+<SiteNav />
         <div className="fixed inset-0 z-0">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
@@ -187,6 +190,7 @@ setIsCheckingState(false);
             </a>
           </div>
         </div>
+<SiteFooter />
       </main>
     );
   }
@@ -201,14 +205,7 @@ setIsCheckingState(false);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden text-white">
-      <div className="relative z-20 mx-auto flex max-w-6xl justify-end px-6 pt-5">
-        <a
-          href="/sign-out"
-          className="rounded-xl border border-white/15 px-4 py-2 text-xs text-white/75 transition hover:bg-white/5 hover:text-white"
-        >
-          Sign out
-        </a>
-      </div>
+<SiteNav />
 
       <div className="absolute inset-0 z-0">
         <div
@@ -422,28 +419,8 @@ Choose how deeply you want to see.
 </p>
 </div>
 
-        <footer className="mt-8 text-center text-xs leading-6 text-white/40">
-          <a href="/terms" className="hover:text-white/60">
-            Terms
-          </a>
-          <span className="mx-2">·</span>
-          <a href="/privacy" className="hover:text-white/60">
-            Privacy
-          </a>
-          <span className="mx-2">·</span>
-          <a href="/disclaimer" className="hover:text-white/60">
-            Disclaimer
-          </a>
-          <span className="mx-2">·</span>
-          <a href="/refunds" className="hover:text-white/60">
-            Refunds
-          </a>
-          <span className="mx-2">·</span>
-          <a href="/conduct" className="hover:text-white/60">
-            Conduct
-          </a>
-        </footer>
       </div>
+<SiteFooter />
     </main>
   );
 }

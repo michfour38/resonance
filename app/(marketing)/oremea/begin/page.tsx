@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { unlockMirrorTier } from "@/app/(member)/mirror/mirror-unlock.service";
 import { Playfair_Display } from "next/font/google";
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -353,6 +354,17 @@ What is actually there.`}
   if (!accessResolved) {
     return (
       <main className="relative h-[100svh] overflow-hidden text-white">
+<div className="fixed right-4 top-4 z-30 flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
+  <Link href="/explore" className="hover:text-[#f1dfb4]">
+    Explore
+  </Link>
+  <Link href="/compare" className="hover:text-[#f1dfb4]">
+    Compare
+  </Link>
+  <Link href="/profile" className="hover:text-[#f1dfb4]">
+    Profile
+  </Link>
+</div>
         <div className="fixed inset-0 z-0">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
