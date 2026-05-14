@@ -68,14 +68,6 @@ export function CompareCompass() {
                   stronger alignment, and measurable forward movement.
                 </p>
               </div>
-
-              <div className="rounded-2xl border border-amber-200/10 bg-amber-100/[0.03] p-6">
-                <p className="text-sm leading-7 text-zinc-400">
-                  Compass itself is a standalone
-                  structured product layer positioned after
-                  foundational awareness work.
-                </p>
-              </div>
             </div>
           </div>
         </div>
