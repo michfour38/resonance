@@ -1,3 +1,4 @@
+import Link from "next/link";
 export function ProfileProducts() {
   return (
     <section className="border-b border-white/5 bg-zinc-950/60">
@@ -32,13 +33,19 @@ export function ProfileProducts() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <div className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300">
-                Mirror Available
-              </div>
+              <Link
+  href="/journey#mirror"
+  className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/20 hover:text-white"
+>
+  Mirror Available
+</Link>
 
-              <div className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300">
-                Journey Access
-              </div>
+              <Link
+  href="/journey"
+  className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/20 hover:text-white"
+>
+  Journey Access
+</Link>
             </div>
           </div>
 

@@ -76,7 +76,7 @@ export function CompareResonance() {
                 </div>
 
                 <div className="rounded-full border border-amber-200/20 bg-amber-100/[0.05] px-5 py-2 text-sm text-amber-100">
-                  Resonance + Mirror — R720
+                  Resonance + Mirror — R1240
                 </div>
               </div>
             </div>

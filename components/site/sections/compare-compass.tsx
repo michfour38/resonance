@@ -71,9 +71,7 @@ export function CompareCompass() {
 
               <div className="rounded-2xl border border-amber-200/10 bg-amber-100/[0.03] p-6">
                 <p className="text-sm leading-7 text-zinc-400">
-                  Creator entry experiences priced around R49 / ~$3
-                  act as focused introductions into the broader
-                  Oremea ecosystem. Compass itself is a standalone
+                  Compass itself is a standalone
                   structured product layer positioned after
                   foundational awareness work.
                 </p>
