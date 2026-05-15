@@ -383,11 +383,11 @@ window.localStorage.removeItem(DRAFT_KEY);
                   key={type}
                   type="button"
                   onClick={() => {
-                    setEntryType(type);
-                    setPanelIndex(1);
-                    setAnswers({});
-                    setError("");
-                  }}
+  setEntryType(type);
+  setPanelIndex(2);
+  setAnswers({});
+  setError("");
+}}
                   className={`rounded-2xl border px-5 py-4 text-left font-serif text-lg capitalize transition md:text-xl ${
                     entryType === type
                       ? "border-[#C6A96B] bg-[#171208] text-[#EAEAEA]"
