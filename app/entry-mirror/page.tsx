@@ -98,6 +98,8 @@ export default function EntryMirrorPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [mirrorOutput, setMirrorOutput] = useState("");
+const [hasUsedRefineOnce, setHasUsedRefineOnce] = useState(false);
+const [lastSessionId, setLastSessionId] = useState("");
   const [error, setError] = useState("");
 const [usedBackPanels, setUsedBackPanels] = useState<number[]>([]);
   const [loadingIndex, setLoadingIndex] = useState(0);
@@ -229,6 +231,15 @@ useEffect(() => {
   }));
 }
 
+function refineOnce() {
+  if (hasUsedRefineOnce) return;
+
+  setHasUsedRefineOnce(true);
+  setMirrorOutput("");
+  setPanelIndex(2);
+  setError("");
+}
+
   async function submitAndGenerate() {
     try {
       setIsGenerating(true);
@@ -261,7 +272,10 @@ useEffect(() => {
       const generateRes = await fetch("/api/entry-mirror/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sessionData.session.id }),
+        body: JSON.stringify({
+  sessionId: sessionData.session.id,
+  regenerate: hasUsedRefineOnce,
+}),
       });
 
       const generateData = await generateRes.json();
@@ -270,6 +284,7 @@ useEffect(() => {
         throw new Error("Your reflection was saved, but the Mirror could not be generated.");
       }
 
+setLastSessionId(sessionData.session.id);
       setMirrorOutput(generateData.output.output);
 window.localStorage.removeItem(DRAFT_KEY);
     } catch (err) {
@@ -293,10 +308,30 @@ window.localStorage.removeItem(DRAFT_KEY);
           </h1>
 
           <div className="whitespace-pre-wrap rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 font-serif text-xl leading-relaxed text-[#D8D0C0] md:p-10 md:text-2xl">
-            {mirrorOutput}
-          </div>
+  {mirrorOutput}
+</div>
 
-          <div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
+{!hasUsedRefineOnce ? (
+  <div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
+    <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
+      You’ve now seen your Mirror reflection.
+    </p>
+
+    <p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
+      Would you like to answer again with more depth, and see how much more precise the Mirror becomes?
+    </p>
+
+    <button
+      type="button"
+      onClick={refineOnce}
+      className="mt-8 rounded-full border border-[#D6B97A] bg-[#C6A96B] px-8 py-4 font-serif text-lg tracking-[0.06em] text-[#0A0A0A] shadow-[0_0_28px_rgba(198,169,107,0.18)] transition hover:bg-[#D6B97A]"
+    >
+      Answer once more
+    </button>
+  </div>
+) : null}
+
+<div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
             <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
               You already recognise the pattern.
             </p>
