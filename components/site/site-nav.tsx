@@ -68,7 +68,7 @@ export function SiteNav() {
           ) : null}
 
           <Link
-            href={isSignedIn ? "/oremea/enter" : "/sign-in"}
+            href={isSignedIn ? "/profile" : "/sign-in"}
             className="rounded-full border border-amber-200/30 bg-amber-100/[0.05] px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-amber-100 transition hover:border-amber-100/60 hover:bg-amber-100/10"
           >
             {isSignedIn ? "Profile" : "Log In"}

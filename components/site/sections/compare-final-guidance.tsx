@@ -24,19 +24,13 @@ export function CompareFinalGuidance() {
             Resonance
           </div>
 
-          <div className="text-zinc-600">→</div>
-
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-zinc-300">
             Compass
           </div>
 
-          <div className="text-zinc-600">→</div>
-
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-zinc-300">
             Harmonize
           </div>
-
-          <div className="text-zinc-600">→</div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-zinc-300">
             The Current
