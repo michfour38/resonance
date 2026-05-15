@@ -4,6 +4,35 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
+function NavItem({
+  href,
+  label,
+  pathname,
+}: {
+  href: string;
+  label: string;
+  pathname: string;
+}) {
+  const isActive = pathname === href;
+
+  if (isActive) {
+    return (
+      <span className="cursor-default text-amber-100/60">
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className="transition hover:text-amber-100"
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function SiteNav() {
   const { isSignedIn } = useUser();
   const pathname = usePathname();
@@ -22,26 +51,9 @@ export function SiteNav() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-[11px] uppercase tracking-[0.18em] text-zinc-300 md:flex">
-            <Link
-              href="/explore"
-              className="transition hover:text-amber-100"
-            >
-              Explore
-            </Link>
-
-            <Link
-              href="/compare"
-              className="transition hover:text-amber-100"
-            >
-              Compare
-            </Link>
-
-            <Link
-              href="/contact"
-              className="transition hover:text-amber-100"
-            >
-              Contact
-            </Link>
+            <NavItem href="/explore" label="Explore" pathname={pathname} />
+            <NavItem href="/compare" label="Compare" pathname={pathname} />
+            <NavItem href="/contact" label="Contact" pathname={pathname} />
           </nav>
         </div>
 
