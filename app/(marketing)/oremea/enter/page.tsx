@@ -207,7 +207,7 @@ setIsCheckingState(false);
     <main className="relative min-h-screen overflow-x-hidden text-white">
 <SiteNav />
 
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat md:hidden"
           style={{ backgroundImage: "url(/images/mobile/bg-entry.webp)" }}
