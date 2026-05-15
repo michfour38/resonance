@@ -55,19 +55,13 @@ export function ProfileProgress() {
                   Resonance
                 </div>
 
-                <div className="pl-2 text-zinc-600">↓</div>
-
                 <div className="rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-sm tracking-[0.16em] text-zinc-300">
                   Compass
                 </div>
 
-                <div className="pl-2 text-zinc-600">↓</div>
-
                 <div className="rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-sm tracking-[0.16em] text-zinc-300">
                   Harmonize
                 </div>
-
-                <div className="pl-2 text-zinc-600">↓</div>
 
                 <div className="rounded-2xl border border-white/10 bg-black/20 px-5 py-4 text-sm tracking-[0.16em] text-zinc-300">
                   The Current
