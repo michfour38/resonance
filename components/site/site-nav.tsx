@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
 export function SiteNav() {
   const { isSignedIn } = useUser();
+  const pathname = usePathname();
+
+  const isEnterPage = pathname === "/oremea/enter";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
@@ -42,12 +46,14 @@ export function SiteNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/oremea/enter"
-            className="inline-flex rounded-full border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-zinc-300 transition hover:border-white/20 hover:text-whiteder-white/20 hover:text-white md:inline-flex"
-          >
-            Begin Resonance
-          </Link>
+          {!isEnterPage ? (
+            <Link
+              href="/oremea/enter"
+              className="inline-flex rounded-full border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-zinc-300 transition hover:border-white/20 hover:text-white"
+            >
+              Begin Resonance
+            </Link>
+          ) : null}
 
           <Link
             href={isSignedIn ? "/oremea/enter" : "/sign-in"}
