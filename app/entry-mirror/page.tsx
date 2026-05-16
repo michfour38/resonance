@@ -115,9 +115,14 @@ useEffect(() => {
     if (draft.firstName) setFirstName(draft.firstName);
     if (draft.email) setEmail(draft.email);
     if (draft.answers) setAnswers(draft.answers);
-    if (typeof draft.panelIndex === "number") {
-      setPanelIndex(draft.panelIndex);
-    }
+    if (
+  typeof draft.panelIndex === "number" &&
+  draft.firstName &&
+  draft.email &&
+  String(draft.email).includes("@")
+) {
+  setPanelIndex(draft.panelIndex);
+}
   } catch {
     window.localStorage.removeItem(DRAFT_KEY);
   }
@@ -349,7 +354,7 @@ window.localStorage.removeItem(DRAFT_KEY);
 </div>
 
 <a
-  href="https://www.oremea.com"
+  href="/oremea/enter"
   className="mt-8 inline-block rounded-full border border-[#C6A96B]/70 px-6 py-3 font-serif text-lg text-[#C6A96B] transition hover:border-[#D6B97A] hover:text-[#D6B97A]"
 >
   Enter here — www.oremea.com
@@ -384,8 +389,6 @@ window.localStorage.removeItem(DRAFT_KEY);
                   type="button"
                   onClick={() => {
   setEntryType(type);
-  setPanelIndex(2);
-  setAnswers({});
   setError("");
 }}
                   className={`rounded-2xl border px-5 py-4 text-left font-serif text-lg capitalize transition md:text-xl ${
