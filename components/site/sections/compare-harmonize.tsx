@@ -1,4 +1,12 @@
-export function CompareHarmonize() {
+import type { CompareMode } from "@/app/compare/page";
+
+type CompareHarmonizeProps = {
+  mode: CompareMode;
+};
+
+export function CompareHarmonize({
+  mode,
+}: CompareHarmonizeProps) {
   return (
     <section className="border-b border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-24">
@@ -19,69 +27,94 @@ export function CompareHarmonize() {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-10">
-            <div className="space-y-8">
-              <div>
-                <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
-                  Focus
-                </p>
+            {mode === "experience" ? (
+              <div className="space-y-8">
+                <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-8">
+                  <p className="font-serif text-2xl leading-relaxed text-[#EAEAEA] md:text-3xl">
+                    Like finally understanding the pattern between you instead of only defending yourself inside it.
+                  </p>
 
-                <p className="text-base leading-8 text-zinc-300">
-                  Harmonize is designed to support intentional
-                  communication, interaction awareness,
-                  repair structures, and alignment across
-                  shared relational systems.
-                </p>
+                  <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF]">
+                    Like conflict slowing down enough to become visible.
+                  </p>
+
+                  <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF]">
+                    Like hearing each other again beneath the reaction.
+                  </p>
+
+                  <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF]">
+                    Like becoming more aware of what each person is protecting.
+                  </p>
+
+                  <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF]">
+                    Like moving from emotional collision toward relational clarity.
+                  </p>
+                </div>
               </div>
+            ) : (
+              <div className="space-y-8">
+                <div>
+                  <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
+                    Focus
+                  </p>
 
-              <div>
-                <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
-                  Designed For
-                </p>
+                  <p className="text-base leading-8 text-zinc-300">
+                    Harmonize is a structured relational system designed
+                    to support communication awareness, interaction clarity,
+                    repair structures, and alignment across shared emotional dynamics.
+                  </p>
+                </div>
 
-                <ul className="grid gap-3 text-base leading-7 text-zinc-400 md:grid-cols-2">
-                  <li>• couples</li>
-                  <li>• families</li>
-                  <li>• poly dynamics</li>
-                  <li>• intentional relational systems</li>
-                </ul>
+                <div>
+                  <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
+                    Designed For
+                  </p>
+
+                  <ul className="grid gap-3 text-base leading-7 text-zinc-400 md:grid-cols-2">
+                    <li>• couples</li>
+                    <li>• families</li>
+                    <li>• poly dynamics</li>
+                    <li>• intentional relational systems</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
+                    Includes
+                  </p>
+
+                  <ul className="grid gap-3 text-base leading-7 text-zinc-400 md:grid-cols-2">
+                    <li>• shared reflection systems</li>
+                    <li>• communication awareness tools</li>
+                    <li>• alignment frameworks</li>
+                    <li>• repair structures</li>
+                    <li>• multi-perspective interaction systems</li>
+                    <li>• guided relational recognition</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
+                    Expanded Recognition Tools
+                  </p>
+
+                  <p className="text-base leading-8 text-zinc-400">
+                    Etheric Loop provides optional deeper synthesis
+                    across recurring communication loops,
+                    alignment inconsistencies, emotional protection systems,
+                    relational distortions, and evolving interaction patterns over time.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-6">
+                  <p className="text-sm leading-7 text-zinc-400">
+                    Harmonize is positioned after foundational awareness
+                    work through Resonance to support healthier communication,
+                    stronger alignment, and safer relational interaction.
+                  </p>
+                </div>
               </div>
-
-              <div>
-                <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
-                  Includes
-                </p>
-
-                <ul className="grid gap-3 text-base leading-7 text-zinc-400 md:grid-cols-2">
-                  <li>• shared reflection systems</li>
-                  <li>• communication awareness tools</li>
-                  <li>• alignment frameworks</li>
-                  <li>• repair structures</li>
-                  <li>• multi-perspective interaction systems</li>
-                  <li>• guided relational recognition</li>
-                </ul>
-              </div>
-
-              <div>
-                <p className="mb-4 text-sm uppercase tracking-[0.18em] text-zinc-500">
-                  Expanded Recognition Tools
-                </p>
-
-                <p className="text-base leading-8 text-zinc-400">
-                  Etheric Loop provides optional deeper synthesis
-                  across recurring communication loops,
-                  alignment inconsistencies, relational distortions,
-                  and evolving interaction patterns over time.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-6">
-                <p className="text-sm leading-7 text-zinc-400">
-                  Harmonize is positioned after foundational awareness
-                  work through Resonance to support healthier
-                  communication and stronger relational alignment.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
