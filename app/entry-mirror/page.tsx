@@ -92,6 +92,7 @@ const QUESTIONS: Record<EntryType, Question[]> = {
 
 export default function EntryMirrorPage() {
   const [entryType, setEntryType] = useState<EntryType>("neutral");
+const [creatorRef, setCreatorRef] = useState("");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [panelIndex, setPanelIndex] = useState(0);
@@ -105,6 +106,9 @@ const [usedBackPanels, setUsedBackPanels] = useState<number[]>([]);
   const [loadingIndex, setLoadingIndex] = useState(0);
 
 useEffect(() => {
+const params = new URLSearchParams(window.location.search);
+const ref = params.get("ref")?.trim().toLowerCase() || "";
+if (ref) setCreatorRef(ref);
   const saved = window.localStorage.getItem(DRAFT_KEY);
   if (!saved) return;
 
@@ -132,14 +136,15 @@ useEffect(() => {
   window.localStorage.setItem(
     DRAFT_KEY,
     JSON.stringify({
-      entryType,
-      firstName,
-      email,
-      panelIndex,
-      answers,
-    })
+  entryType,
+  firstName,
+  email,
+  creatorRef,
+  panelIndex,
+  answers,
+})
   );
-}, [entryType, firstName, email, panelIndex, answers]);
+}, [entryType, firstName, email, creatorRef, panelIndex, answers]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -263,7 +268,7 @@ function refineOnce() {
           firstName,
           email,
           entryType,
-          source: "entry-mirror-page",
+          source: creatorRef ? `creator:${creatorRef}` : "entry-mirror-page",
           answers: formattedAnswers,
         }),
       });
