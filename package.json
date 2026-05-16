@@ -2,21 +2,21 @@
   "name": "resonance-app-debug",
   "version": "0.1.0",
   "private": true,
-"scripts": {
-  "dev": "next dev",
-  "build": "prisma generate && next build",
-  "start": "next start",
-  "postinstall": "prisma generate",
-  "lint": "next lint",
-  "db:migrate": "prisma migrate dev",
-  "db:push": "prisma db push",
-  "db:studio": "prisma studio",
-  "db:generate": "prisma generate",
-  "typecheck": "tsc --noEmit"
-},
-"prisma": {
-  "seed": "npx tsx prisma/seeds/run-all.ts"
-},
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "lint": "next lint",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "typecheck": "tsc --noEmit"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seeds/run-all.ts"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
     "@clerk/nextjs": "^5.1.0",
@@ -30,6 +30,7 @@
     "next": "^14.2.35",
     "react": "^18",
     "react-dom": "^18",
+    "resend": "^6.12.3",
     "superjson": "^2.2.1",
     "zod": "^3.23.6"
   },
