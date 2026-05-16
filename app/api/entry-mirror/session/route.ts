@@ -85,7 +85,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const lead = await prisma.entry_leads.upsert({
+const existingLead = await prisma.entry_leads.findUnique({
+  where: { email },
+  select: {
+    id: true,
+    entry_mirror_sessions: {
+      select: {
+        entry_mirror_outputs: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+const previousOutputCount =
+  existingLead?.entry_mirror_sessions.reduce(
+    (total, session) => total + session.entry_mirror_outputs.length,
+    0
+  ) ?? 0;
+
+if (previousOutputCount >= 1) {
+  return NextResponse.json(
+    {
+      error:
+        "This Recognition reflection has already been completed for this email. Please check your inbox for your reflection.",
+    },
+    { status: 409 }
+  );
+}    
+
+const lead = await prisma.entry_leads.upsert({
       where: { email },
       update: {
         first_name: firstName || undefined,

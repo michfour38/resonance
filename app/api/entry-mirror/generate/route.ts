@@ -45,10 +45,11 @@ export async function POST(req: NextRequest) {
 
     if (email) {
       await sendRecognitionEmail({
-        to: email,
-        firstName,
-        mirrorOutput: output.output,
-      });
+  to: email,
+  firstName,
+  mirrorOutput: output.output,
+  sessionId,
+});
     }
 
     return NextResponse.json({ output });
