@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { SiteShell } from "@/components/site/site-shell";
@@ -83,6 +83,22 @@ function ProductName({ name }: { name: string }) {
 
 export default function Home() {
   const [open, setOpen] = useState<string | null>(null);
+useEffect(() => {
+  if (window.location.hash === "#resonance") {
+    setOpen("Resonance");
+
+    setTimeout(() => {
+      const section = document.getElementById("resonance-card");
+
+      if (section) {
+        section.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 120);
+  }
+}, []);
 
   return (
     <SiteShell>
@@ -113,7 +129,8 @@ export default function Home() {
 
             return (
               <div
-                key={product.name}
+                id={product.name === "Resonance" ? "resonance-card" : undefined}
+  		key={product.name}
                 className={`rounded-[2rem] border p-6 transition ${
                   product.active
                     ? "border-[#c8a96a]/35 bg-[#15120c]"

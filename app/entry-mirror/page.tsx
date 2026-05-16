@@ -359,7 +359,7 @@ window.localStorage.removeItem(DRAFT_KEY);
 </div>
 
 <a
-  href="/oremea/enter"
+  href="/#resonance"
   className="mt-8 inline-block rounded-full border border-[#C6A96B]/70 px-6 py-3 font-serif text-lg text-[#C6A96B] transition hover:border-[#D6B97A] hover:text-[#D6B97A]"
 >
   Enter here — www.oremea.com
@@ -490,7 +490,7 @@ window.localStorage.removeItem(DRAFT_KEY);
         {error ? <p className="mt-6 font-serif text-lg text-red-300">{error}</p> : null}
 
         <div className="mt-8 flex items-center justify-between gap-4">
-          {panelIndex >= 3 ? (
+          {panelIndex >= 3 && currentPanel.type !== "generate" ? (
   <button
     type="button"
     disabled={usedBackPanels.includes(panelIndex) || isGenerating}
