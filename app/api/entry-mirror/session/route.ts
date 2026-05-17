@@ -111,7 +111,7 @@ if (previousOutputCount >= 1) {
   return NextResponse.json(
     {
       error:
-        "This Recognition reflection has already been completed for this email. Please check your inbox for your reflection.",
+        "This Recognition reflection has already been completed for this email. Please check your inbox for your reflection, or use the “Continue your reflection” link in your email.",
     },
     { status: 409 }
   );

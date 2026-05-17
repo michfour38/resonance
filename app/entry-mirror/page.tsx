@@ -487,7 +487,30 @@ window.localStorage.removeItem(DRAFT_KEY);
           </div>
         )}
 
-        {error ? <p className="mt-6 font-serif text-lg text-red-300">{error}</p> : null}
+        {error ? (
+  error.includes("already been completed") ? (
+    <div className="mt-8 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
+      <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
+        Your Recognition reflection already exists.
+      </p>
+
+      <p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
+        Please check your inbox for your reflection email, or continue exploring Resonance below.
+      </p>
+
+      <a
+        href="/#resonance"
+        className="mt-8 inline-block rounded-full border border-[#C6A96B]/70 px-6 py-3 font-serif text-lg text-[#C6A96B] transition hover:border-[#D6B97A] hover:text-[#D6B97A]"
+      >
+        Continue into Resonance
+      </a>
+    </div>
+  ) : (
+    <p className="mt-6 font-serif text-lg text-red-300">
+      {error}
+    </p>
+  )
+) : null}
 
         <div className="mt-8 flex items-center justify-between gap-4">
           {panelIndex >= 3 && currentPanel.type !== "generate" ? (
