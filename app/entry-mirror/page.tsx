@@ -209,19 +209,46 @@ useEffect(() => {
       ? firstName.trim().length > 0 && email.trim().includes("@")
       : answers[currentPanel.question.key]?.trim().length >= 8);
 
-  function nextPanel() {
-    if (!canContinue) {
-      setError(
-        currentPanel.type === "capture"
-          ? "Enter your first name and email to continue."
-          : "Write a little more before continuing."
-      );
+  async function nextPanel() {
+  if (!canContinue) {
+    setError(
+      currentPanel.type === "capture"
+        ? "Enter your first name and email to continue."
+        : "Write a little more before continuing."
+    );
+    return;
+  }
+
+  if (currentPanel.type === "capture") {
+    try {
+      const res = await fetch("/api/entry-mirror/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data?.alreadyCompleted) {
+        setError(
+          "This Recognition reflection has already been completed for this email."
+        );
+        return;
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Could not verify Recognition status.");
       return;
     }
-
-    setError("");
-    setPanelIndex((value) => Math.min(value + 1, panels.length - 1));
   }
+
+  setError("");
+  setPanelIndex((value) => Math.min(value + 1, panels.length - 1));
+}
 
   function previousPanel() {
   if (usedBackPanels.includes(panelIndex)) {
