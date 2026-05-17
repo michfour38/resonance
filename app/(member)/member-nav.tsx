@@ -84,14 +84,14 @@ export default function MemberNav() {
                   Contact Support
                 </Link>
                 <div className="mt-2 border-t border-zinc-800 pt-2">
-  <SignOutButton redirectUrl="/">
-    <button
-      type="button"
-      className="block w-full rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-    >
-      Sign out
-    </button>
-  </SignOutButton>
+  <SignOutButton signOutOptions={{ redirectUrl: "/" }}>
+  <button
+    type="button"
+    className="block w-full rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+  >
+    Sign out
+  </button>
+</SignOutButton>
 </div>
               </div>
             ) : null}
