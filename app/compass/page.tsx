@@ -213,7 +213,7 @@ export default function CompassPage() {
               aligned execution.
             </p>
 
-            <p className="mt-5 text-sm uppercase tracking-[0.34em] text-amber-100">
+            <p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#c59b52]">
               Embodied momentum matters more than fantasy intensity.
             </p>
           </header>
@@ -296,7 +296,7 @@ export default function CompassPage() {
                       key={response.area}
                       className="rounded-xl border border-zinc-800 p-4"
                     >
-                      <p className="text-sm font-medium text-amber-100">
+                      <p className="text-sm font-medium text-[#c59b52]">
                         {AREA_LABELS[response.area]}
                       </p>
 
@@ -359,7 +359,7 @@ export default function CompassPage() {
               })}
               description={
                 recursiveLayers.length > 0
-                  ? `Previously you mentioned:\n\n"${recursiveLayers[recursiveLayers.length - 1]?.answer}"`
+                  ? "Compass is using your previous response to shape this next question."
                   : `Let's begin exploring why ${selectedAreaLabel.toLowerCase()} matters to you.`
               }
             >
@@ -393,7 +393,7 @@ export default function CompassPage() {
                       key={layer.layer}
                       className="rounded-xl border border-zinc-800 p-4"
                     >
-                      <p className="text-sm text-amber-100">
+                      <p className="text-sm text-[#c59b52]">
                         {layer.question}
                       </p>
 
@@ -522,17 +522,18 @@ export default function CompassPage() {
           margin-top: 1rem;
           width: 100%;
           border-radius: 999px;
-          border: 1px solid #3f3f46;
-          background: #181818;
+          border: 1px solid #b88a3b;
+          background: linear-gradient(180deg, #c59b52, #8f6428);
           padding: 0.95rem 1.2rem;
           font-size: 0.92rem;
-          color: #f4f4f5;
+          color: #120d07;
+          font-weight: 600;
           transition: 180ms ease;
         }
 
         .primary-button:hover {
-          border-color: #71717a;
-          background: #202020;
+          border-color: #d0a65d;
+          background: linear-gradient(180deg, #d3ad67, #9c7032);
         }
 
         .selection-button {
@@ -542,12 +543,12 @@ export default function CompassPage() {
           padding: 1rem;
           text-align: left;
           font-size: 0.92rem;
-          color: #fbbf24;
+          color: #c59b52;
           transition: 180ms ease;
         }
 
         .selection-button:hover {
-          border-color: #52525b;
+          border-color: #b88a3b;
           background: #1a1a1a;
         }
 
@@ -571,7 +572,7 @@ export default function CompassPage() {
         }
 
         .compass-textarea:focus {
-          border-color: #71717a;
+          border-color: #b88a3b;
           background: #1f1710;
         }
       `}</style>
@@ -598,7 +599,7 @@ function CompassCard({
         </p>
       )}
 
-      <h1 className="font-serif text-3xl text-amber-100 sm:text-4xl">
+      <h1 className="font-serif text-3xl text-[#c59b52] sm:text-4xl">
         {title}
       </h1>
 

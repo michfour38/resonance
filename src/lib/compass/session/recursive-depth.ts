@@ -27,13 +27,13 @@ const VALUE_WORDS = [
 
 export function getRecursiveQuestion(layer: number): string {
   const questions = [
-    "Why is this important to you right now?",
-    "What would change if this became consistent?",
-    "What would this allow you to feel, experience, or become?",
-    "What feels restricted, unresolved, or incomplete without this?",
-    "What deeper value might be underneath this?",
-    "If this became real, what would finally feel possible?",
-    "What is the deepest reason this still matters to you?",
+    "Why does this matter to you right now?",
+    "What hurts, frustrates, or feels unresolved around this?",
+    "What fear, pressure, or belief seems connected to this?",
+    "What would change if this no longer held the same weight over you?",
+    "What would you be able to choose, build, or become if this shifted?",
+    "What does this reveal about what you deeply need or value?",
+    "What is the truest reason this still matters to you?",
   ]
 
   return questions[layer - 1] ?? questions[questions.length - 1]
@@ -77,51 +77,48 @@ export function buildAdaptiveRecursiveQuestion({
   const reference = cleanReference(previousAnswer || firstAnswer || "")
 
   if (!reference) {
-    return `Why is ${selectedAreaLabel.toLowerCase()} important to you right now?`
+    return `Why does ${selectedAreaLabel.toLowerCase()} matter to you right now?`
   }
 
   if (layer === 1) {
-    return `Why is “${reference}” important to you right now?`
+    return `You wrote: “${reference}” — why does this matter to you right now?`
   }
 
   if (layer === 2) {
-    return `You wrote: “${reference}” — why does that matter to you?`
+    return `What feels painful, frustrating, unfair, or unresolved inside “${reference}”?`
   }
 
   if (layer === 3) {
-    return `What would it mean if “${reference}” became more consistent in your life?`
+    return `What fear, belief, pressure, or old pattern might be sitting underneath “${reference}”?`
   }
 
   if (layer === 4) {
-    return `What feels restricted, unresolved, or incomplete without “${reference}”?`
+    return `If “${reference}” did not carry the same emotional weight, what would change for you?`
   }
 
   if (layer === 5) {
-    return `What deeper value might sit underneath “${reference}”?`
+    return `What would you be able to choose, build, protect, or become if this shifted?`
   }
 
   if (layer === 6) {
-    return `If “${reference}” became real, what would finally feel possible?`
+    return `What does “${reference}” show you about what you deeply need, value, or refuse to keep living without?`
   }
 
-  return `What is the deepest reason “${reference}” still matters to you?`
+  return `What is the truest reason “${reference}” still matters to you?`
 }
 
 function cleanReference(input: string): string {
   const trimmed = input.trim().replace(/\s+/g, " ")
 
-  if (trimmed.length <= 140) {
+  if (trimmed.length <= 90) {
     return trimmed
   }
 
-  return `${trimmed.slice(0, 140)}...`
+  return `${trimmed.slice(0, 90)}...`
 }
 
 function extractReasonWords(input: string): string[] {
-  const words = input
-    .toLowerCase()
-    .split(/\W+/)
-    .filter(Boolean)
+  const words = input.toLowerCase().split(/\W+/).filter(Boolean)
 
   const ignored = [
     "the",
@@ -144,9 +141,7 @@ function extractReasonWords(input: string): string[] {
 
   return [
     ...new Set(
-      words.filter(
-        (word) => word.length > 4 && !ignored.includes(word),
-      ),
+      words.filter((word) => word.length > 4 && !ignored.includes(word)),
     ),
   ]
 }
