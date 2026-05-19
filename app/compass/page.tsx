@@ -7,6 +7,7 @@ import {
   COMPASS_AREA_QUESTIONS,
   analyzeAreaResponse,
   buildAdaptiveRecursiveQuestion,
+  buildAreaMirrorReflection,
   calibrateExecutionStep,
   createRecursiveLayer,
   evaluateResonanceBridge,
@@ -25,6 +26,7 @@ type CompassPhase =
   | "intro"
   | "area"
   | "analyzing"
+  | "area_mirror"
   | "area_confirmation"
   | "depth_intro"
   | "depth"
@@ -64,6 +66,11 @@ export default function CompassPage() {
   const [finalStep, setFinalStep] = useState("");
 
   const currentArea = COMPASS_AREA_QUESTIONS[areaIndex];
+
+  const areaMirror = useMemo(
+    () => buildAreaMirrorReflection(areaResponses),
+    [areaResponses],
+  );
 
   const primaryReflection = useMemo(
     () => reflectPrimaryArea(areaResponses),
@@ -108,7 +115,7 @@ export default function CompassPage() {
       return;
     }
 
-    pauseThen(() => setPhase("area_confirmation"));
+    pauseThen(() => setPhase("area_mirror"));
   }
 
   function chooseArea(area: CompassGoalArea) {
@@ -213,7 +220,7 @@ export default function CompassPage() {
               aligned execution.
             </p>
 
-            <p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#c59b52]">
+            <p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#d8b15f]">
               Embodied momentum matters more than fantasy intensity.
             </p>
           </header>
@@ -271,10 +278,53 @@ export default function CompassPage() {
 
               <p className={`text-xs leading-relaxed ${BODY_TEXT}`}>
                 Your answers do not need to match the examples above. Those are
-                only there to help if you feel stuck.
+                only there to help if you feel stuck. The more you open up, the
+                more direction you might find.
               </p>
 
               <button onClick={submitAreaAnswer} className="primary-button">
+                Continue
+              </button>
+            </CompassCard>
+          )}
+
+          {phase === "area_mirror" && (
+            <CompassCard
+              title="Compass reflection"
+              description={areaMirror.reflection}
+            >
+              <details className="rounded-2xl border border-zinc-800 bg-[#131313] p-4">
+                <summary className={`cursor-pointer text-sm ${BODY_TEXT}`}>
+                  Review your eight answers
+                </summary>
+
+                <div className="mt-4 space-y-4">
+                  {areaResponses.map((response) => (
+                    <div
+                      key={response.area}
+                      className="rounded-xl border border-zinc-800 p-4"
+                    >
+                      <p className="text-sm font-medium text-[#d8b15f]">
+                        {AREA_LABELS[response.area]}
+                      </p>
+
+                      <p className={`mt-2 whitespace-pre-line text-sm ${BODY_TEXT}`}>
+                        {response.answer}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+
+              <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
+                If anything feels misunderstood, you can use that awareness when
+                choosing your priority on the next page.
+              </p>
+
+              <button
+                onClick={() => pauseThen(() => setPhase("area_confirmation"))}
+                className="primary-button"
+              >
                 Continue
               </button>
             </CompassCard>
@@ -296,7 +346,7 @@ export default function CompassPage() {
                       key={response.area}
                       className="rounded-xl border border-zinc-800 p-4"
                     >
-                      <p className="text-sm font-medium text-[#c59b52]">
+                      <p className="text-sm font-medium text-[#d8b15f]">
                         {AREA_LABELS[response.area]}
                       </p>
 
@@ -336,7 +386,8 @@ export default function CompassPage() {
               </p>
 
               <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
-                We are looking for the deeper value underneath the goal itself.
+                We are looking for what sits beneath the goal: the pressure, the
+                pain, the need, the belief, and the reason to keep moving.
               </p>
 
               <button onClick={() => setPhase("depth")} className="primary-button">
@@ -359,7 +410,7 @@ export default function CompassPage() {
               })}
               description={
                 recursiveLayers.length > 0
-                  ? "Compass is using your previous response to shape this next question."
+                  ? "We are incorporating your answers into the questions as the process evolves. The more you provide, the more direction may appear."
                   : `Let's begin exploring why ${selectedAreaLabel.toLowerCase()} matters to you.`
               }
             >
@@ -379,7 +430,7 @@ export default function CompassPage() {
 
           {phase === "core_reflection" && (
             <CompassCard
-              title="Core value reflection"
+              title="Core pattern reflection"
               description={coreReflection.reflection}
             >
               <details className="rounded-2xl border border-zinc-800 bg-[#131313] p-4">
@@ -393,7 +444,7 @@ export default function CompassPage() {
                       key={layer.layer}
                       className="rounded-xl border border-zinc-800 p-4"
                     >
-                      <p className="text-sm text-[#c59b52]">
+                      <p className="text-sm text-[#d8b15f]">
                         {layer.question}
                       </p>
 
@@ -467,7 +518,7 @@ export default function CompassPage() {
           {phase === "execution_check" && (
             <CompassCard
               title="Do you feel able to execute this?"
-              description="If not, Compass will reduce the pressure further."
+              description="If this still feels too large, unclear, public, emotionally loaded, or difficult to begin, Compass will reduce the pressure further."
             >
               <textarea
                 value={executionFeeling}
@@ -522,8 +573,8 @@ export default function CompassPage() {
           margin-top: 1rem;
           width: 100%;
           border-radius: 999px;
-          border: 1px solid #b88a3b;
-          background: linear-gradient(180deg, #c59b52, #8f6428);
+          border: 1px solid #d8b15f;
+          background: linear-gradient(180deg, #d8b15f, #9f7332);
           padding: 0.95rem 1.2rem;
           font-size: 0.92rem;
           color: #120d07;
@@ -532,8 +583,8 @@ export default function CompassPage() {
         }
 
         .primary-button:hover {
-          border-color: #d0a65d;
-          background: linear-gradient(180deg, #d3ad67, #9c7032);
+          border-color: #e2c374;
+          background: linear-gradient(180deg, #e2c374, #a87a38);
         }
 
         .selection-button {
@@ -543,12 +594,12 @@ export default function CompassPage() {
           padding: 1rem;
           text-align: left;
           font-size: 0.92rem;
-          color: #c59b52;
+          color: #d8b15f;
           transition: 180ms ease;
         }
 
         .selection-button:hover {
-          border-color: #b88a3b;
+          border-color: #d8b15f;
           background: #1a1a1a;
         }
 
@@ -572,7 +623,7 @@ export default function CompassPage() {
         }
 
         .compass-textarea:focus {
-          border-color: #b88a3b;
+          border-color: #d8b15f;
           background: #1f1710;
         }
       `}</style>
@@ -599,7 +650,7 @@ function CompassCard({
         </p>
       )}
 
-      <h1 className="font-serif text-3xl text-[#c59b52] sm:text-4xl">
+      <h1 className="font-serif text-3xl text-[#d8b15f] sm:text-4xl">
         {title}
       </h1>
 

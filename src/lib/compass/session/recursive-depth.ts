@@ -23,16 +23,21 @@ const VALUE_WORDS = [
   "confidence",
   "sovereignty",
   "consistency",
+  "choice",
+  "independence",
+  "capacity",
+  "protection",
+  "provision",
 ]
 
 export function getRecursiveQuestion(layer: number): string {
   const questions = [
     "Why does this matter to you right now?",
-    "What hurts, frustrates, or feels unresolved around this?",
-    "What fear, pressure, or belief seems connected to this?",
-    "What would change if this no longer held the same weight over you?",
-    "What would you be able to choose, build, or become if this shifted?",
-    "What does this reveal about what you deeply need or value?",
+    "What feels painful, frustrating, unfair, unresolved, or heavy inside this?",
+    "What fear, pressure, belief, or old pattern might be sitting underneath this?",
+    "If this no longer held the same emotional weight, what would change in your daily life, decisions, body, or relationships?",
+    "What would you be able to choose, build, protect, or become if that pressure began to shift?",
+    "What does this show you about what you deeply need, value, or refuse to keep living without?",
     "What is the truest reason this still matters to you?",
   ]
 
@@ -75,46 +80,47 @@ export function buildAdaptiveRecursiveQuestion({
   firstAnswer?: string
 }): string {
   const reference = cleanReference(previousAnswer || firstAnswer || "")
+  const area = selectedAreaLabel.toLowerCase()
 
   if (!reference) {
-    return `Why does ${selectedAreaLabel.toLowerCase()} matter to you right now?`
+    return `Why does ${area} matter to you right now?`
   }
 
   if (layer === 1) {
-    return `You wrote: “${reference}” — why does this matter to you right now?`
+    return `You chose ${area}. In your own words, why does “${reference}” matter to you right now?`
   }
 
   if (layer === 2) {
-    return `What feels painful, frustrating, unfair, or unresolved inside “${reference}”?`
+    return `When you describe “${reference}”, what feels painful, frustrating, unfair, unresolved, or emotionally heavy inside it?`
   }
 
   if (layer === 3) {
-    return `What fear, belief, pressure, or old pattern might be sitting underneath “${reference}”?`
+    return `Under “${reference}”, what fear, pressure, belief, or old pattern might be quietly driving the weight of this goal?`
   }
 
   if (layer === 4) {
-    return `If “${reference}” did not carry the same emotional weight, what would change for you?`
+    return `If “${reference}” no longer carried the same emotional weight, what would change in your daily life, decisions, body, relationships, or sense of self?`
   }
 
   if (layer === 5) {
-    return `What would you be able to choose, build, protect, or become if this shifted?`
+    return `If the pressure inside “${reference}” began to shift, what would you be able to choose, build, protect, or become that feels difficult right now?`
   }
 
   if (layer === 6) {
-    return `What does “${reference}” show you about what you deeply need, value, or refuse to keep living without?`
+    return `Looking at “${reference}”, what does this reveal about what you deeply need, value, or refuse to keep living without?`
   }
 
-  return `What is the truest reason “${reference}” still matters to you?`
+  return `After everything you have written, what is the truest reason “${reference}” still matters to you?`
 }
 
 function cleanReference(input: string): string {
   const trimmed = input.trim().replace(/\s+/g, " ")
 
-  if (trimmed.length <= 90) {
+  if (trimmed.length <= 110) {
     return trimmed
   }
 
-  return `${trimmed.slice(0, 90)}...`
+  return `${trimmed.slice(0, 110)}...`
 }
 
 function extractReasonWords(input: string): string[] {
@@ -137,6 +143,10 @@ function extractReasonWords(input: string): string[] {
     "their",
     "about",
     "right",
+    "what",
+    "when",
+    "where",
+    "which",
   ]
 
   return [
