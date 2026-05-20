@@ -718,7 +718,7 @@ export default function CompassPage() {
         </div>
       </section>
 
-      <style jsx>{`
+      <style jsx global>{`
         .primary-button {
           margin-top: 1rem;
           width: 100%;
