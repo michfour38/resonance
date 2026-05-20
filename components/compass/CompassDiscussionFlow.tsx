@@ -49,7 +49,7 @@ export function CompassDiscussionFlow({
       <textarea
         value={discussionInput}
         onChange={(event) => onDiscussionInputChange(event.target.value)}
-        placeholder="Reply here. If you feel blocked, say that. If you feel resistant, say that. If you feel ready, say that too."
+        placeholder="Reply here. Compass will use your exact response to keep narrowing the next question. Short answers are okay, but if you feel blocked, try describing what feels hard to name."
         rows={6}
         className="compass-textarea"
       />

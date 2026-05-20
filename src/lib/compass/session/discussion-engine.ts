@@ -26,14 +26,16 @@ export function continueCompassDiscussion({
   proposedStep: string
 }): CompassDiscussionResult {
   const normalized = latestAnswer.toLowerCase().trim()
+  const previousParticipantAnswers = messages
+    .filter((message) => message.role === "participant")
+    .map((message) => message.content)
 
   if (isBlockedAnswer(normalized)) {
     return {
       shouldContinueDiscussion: true,
       detectedPattern: "blocked",
       suggestedMicroStep: null,
-      compassReply:
-        "That may be true, but it may also be protecting you from looking more closely. Is it closer to: you do not know what to do, you know but it feels too much, or you do not trust yourself to follow through yet?",
+      compassReply: buildBlockedReply(previousParticipantAnswers),
     }
   }
 
@@ -42,8 +44,7 @@ export function continueCompassDiscussion({
       shouldContinueDiscussion: true,
       detectedPattern: "self_trust",
       suggestedMicroStep: buildMicroStep(proposedStep),
-      compassReply:
-        "Confidence in the self to follow through is built through kept agreements. What is one tiny promise you could keep today — not to impress anyone, but simply to experience yourself following through?",
+      compassReply: buildSelfTrustReply(latestAnswer),
     }
   }
 
@@ -52,8 +53,7 @@ export function continueCompassDiscussion({
       shouldContinueDiscussion: true,
       detectedPattern: "overwhelm",
       suggestedMicroStep: buildMicroStep(proposedStep),
-      compassReply:
-        "This may not need a bigger plan yet. It may need a smaller entry point. What is the tiniest version of this action that still counts as movement?",
+      compassReply: buildOverwhelmReply(latestAnswer),
     }
   }
 
@@ -62,8 +62,7 @@ export function continueCompassDiscussion({
       shouldContinueDiscussion: true,
       detectedPattern: "avoidance",
       suggestedMicroStep: buildMicroStep(proposedStep),
-      compassReply:
-        "The core here may be staying with the discomfort instead of escaping it. What do you usually do immediately after discomfort appears?",
+      compassReply: buildAvoidanceReply(latestAnswer),
     }
   }
 
@@ -71,9 +70,9 @@ export function continueCompassDiscussion({
     return {
       shouldContinueDiscussion: false,
       detectedPattern: "ready",
-      suggestedMicroStep: proposedStep,
+      suggestedMicroStep: buildMicroStep(proposedStep),
       compassReply:
-        "Good. Then the next step should stay small enough to complete and clear enough to know when it is done. Do it once. Return after completion if you want to refine the next move.",
+        "Good. Keep the next step small enough to complete and clear enough to know when it is done.",
     }
   }
 
@@ -81,9 +80,118 @@ export function continueCompassDiscussion({
     shouldContinueDiscussion: true,
     detectedPattern: "unclear",
     suggestedMicroStep: buildMicroStep(proposedStep),
-    compassReply:
-      "There is useful information in what you wrote. Before we finalize the step, what part feels most true: the goal itself, the resistance, the fear of starting, or the pressure to get it right?",
+    compassReply: buildEvolvingReply(latestAnswer, previousParticipantAnswers),
   }
+}
+
+function buildBlockedReply(previousAnswers: string[]): string {
+  const lastUseful = previousAnswers
+    .slice()
+    .reverse()
+    .find((answer) => answer.split(/\s+/).length > 4)
+
+  if (!lastUseful) {
+    return `
+“I don’t know” may be true.
+
+It may also mean the step is still too large.
+
+Let’s make it smaller.
+
+What is one tiny thing you could do for yourself today that would count as keeping a promise to yourself?
+`.trim()
+  }
+
+  return `
+You said: “${cleanReference(lastUseful)}”
+
+Now you are saying you do not know how to do it.
+
+That may point to a gap between desire and self-trust.
+
+What is the smallest visible action connected to that answer — so small it would almost feel too easy?
+`.trim()
+}
+
+function buildSelfTrustReply(answer: string): string {
+  return `
+You are pointing toward self-trust.
+
+Confidence in the self to follow through is built through kept agreements.
+
+Looking at what you wrote — “${cleanReference(answer)}” — what is one tiny agreement you could keep today, simply to prove:
+
+“I said I would do it, and I did it.”
+`.trim()
+}
+
+function buildOverwhelmReply(answer: string): string {
+  return `
+This sounds like the step may still be too large.
+
+You wrote: “${cleanReference(answer)}”
+
+Let’s reduce the pressure.
+
+What is the smallest version of this action that would create movement without asking your nervous system to perform?
+`.trim()
+}
+
+function buildAvoidanceReply(answer: string): string {
+  return `
+This may be the core of the section:
+
+sitting with the discomfort instead of escaping it.
+
+You wrote: “${cleanReference(answer)}”
+
+What do you usually do immediately after that discomfort appears?
+`.trim()
+}
+
+function buildEvolvingReply(
+  latestAnswer: string,
+  previousAnswers: string[],
+): string {
+  const answerCount = previousAnswers.length
+
+  if (answerCount <= 1) {
+    return `
+There is useful information in what you wrote:
+
+“${cleanReference(latestAnswer)}”
+
+Before we finalize a step, what feels most active here:
+the goal itself,
+the fear of starting,
+the pressure to get it right,
+or not trusting yourself to follow through?
+`.trim()
+  }
+
+  if (answerCount === 2) {
+    return `
+You are adding more context now.
+
+When you say “${cleanReference(latestAnswer)}”, does the real blockage feel practical, emotional, or self-trust based?
+`.trim()
+  }
+
+  if (answerCount === 3) {
+    return `
+Let’s move this toward something physical.
+
+What is one action connected to “${cleanReference(latestAnswer)}” that could be completed in less than five minutes?
+`.trim()
+  }
+
+  return `
+We may have enough.
+
+Small motion is still motion.
+
+What is the smallest action you are willing to do today — not to finish the goal, but to keep one agreement with yourself?
+`.trim()
 }
 
 function isBlockedAnswer(value: string): boolean {
@@ -107,6 +215,7 @@ function mentionsSelfTrust(value: string): boolean {
   return (
     value.includes("trust myself") ||
     value.includes("self trust") ||
+    value.includes("self-trust") ||
     value.includes("follow through") ||
     value.includes("i never do") ||
     value.includes("i don't do") ||
@@ -163,4 +272,14 @@ Aim for one kept agreement.
 Suggested micro-step:
 ${proposedStep}
 `.trim()
+}
+
+function cleanReference(input: string): string {
+  const trimmed = input.trim().replace(/\s+/g, " ")
+
+  if (trimmed.length <= 120) {
+    return trimmed
+  }
+
+  return `${trimmed.slice(0, 120)}...`
 }
