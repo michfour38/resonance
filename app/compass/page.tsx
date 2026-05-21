@@ -451,16 +451,21 @@ fetch("/api/compass/session", {
     setProposedStep(step);
 
     setDiscussionMessages([
-      {
-        role: "compass",
-        content:
-          "Before we finalize the next step, let’s sit with the resistance for a moment. The aim is not to force intensity. It is to find the smallest honest movement you can actually keep.",
-      },
-      {
-        role: "compass",
-        content: step,
-      },
-    ]);
+  {
+    role: "compass",
+    content: `
+Before we move forward, let’s stay with what feels difficult for a moment.
+
+There is no need to force intensity, urgency, or performance here.
+
+Sometimes the real next step is not bigger action — it is reducing the emotional weight surrounding the action first.
+`.trim(),
+  },
+  {
+    role: "compass",
+    content: step,
+  },
+]);
 
     pauseThen(() => setPhase("discussion"));
   }

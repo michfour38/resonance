@@ -61,10 +61,11 @@ Complete one imperfect but real action today instead of waiting for ideal condit
   }
 
   return `
-Based on your responses, the clearest next step is likely smaller, calmer, and more executable than you initially imagined.
+Based on your responses, it seems the pressure surrounding this goal may currently be heavier than the action itself.
 
-Choose one physical action you can complete today that moves this goal forward without creating unnecessary emotional resistance.
+So rather than forcing momentum, Compass will help narrow this into something emotionally sustainable.
 
-Then return to Compass after completion.
+The goal is not intensity.
+The goal is rebuilding movement without abandoning yourself in the process.
 `.trim()
 }

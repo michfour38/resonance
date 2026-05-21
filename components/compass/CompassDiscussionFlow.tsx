@@ -20,7 +20,7 @@ export function CompassDiscussionFlow({
   return (
     <CompassCard
       title="Let’s sit with this before we move."
-      description="This is where Compass helps you find the smallest truthful next step."
+      description="This is where Compass helps reduce the pressure enough for movement to become possible again."
     >
       <div className="space-y-5">
         {discussionMessages.map((message, index) => (

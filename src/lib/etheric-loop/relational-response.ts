@@ -3,6 +3,8 @@ import {
   type EthericLoopStateResult,
 } from "./state-detection";
 
+import { analyzeTrajectory } from "./trajectory-analysis"
+
 export type EthericLoopResponseInput = {
   latestAnswer: string;
   previousAnswers?: string[];
@@ -22,6 +24,7 @@ export function generateEthericLoopResponse({
   proposedStep,
 }: EthericLoopResponseInput): EthericLoopResponse {
   const state = detectEthericLoopState(latestAnswer);
+  const trajectory = analyzeTrajectory([...previousAnswers, latestAnswer])
 
   return {
     state,
@@ -30,6 +33,7 @@ export function generateEthericLoopResponse({
       previousAnswers,
       proposedStep,
       state,
+      trajectory,
     }),
     suggestedMicroStep: proposedStep ? softenStep(proposedStep) : null,
     shouldContinue: state.primaryState !== "ready",
@@ -41,14 +45,41 @@ function buildReply({
   previousAnswers,
   proposedStep,
   state,
+  trajectory,
 }: {
   latestAnswer: string;
   previousAnswers: string[];
   proposedStep?: string;
   state: EthericLoopStateResult;
+  trajectory: ReturnType<typeof analyzeTrajectory>;
 }) {
   const reference = cleanReference(latestAnswer);
   const previous = previousAnswers.filter(Boolean).slice(-2);
+
+  if (
+    trajectory.recurringStates.length > 0 &&
+    trajectory.movementTrend === "stagnant"
+  ) {
+    return `
+This is not appearing as a one-time block anymore.
+
+A similar state is repeating across what you have shared.
+
+That usually means the problem is not simply “what do I do next?”
+
+It may be:
+
+the step is too large,
+the emotional cost feels too high,
+or part of you does not yet trust that you will stay with yourself after you begin.
+
+You wrote: “${reference}”
+
+What feels most true:
+you do not know the next step,
+or you know enough to begin but do not yet feel safe following through?
+`.trim();
+  }
 
   if (state.primaryState === "self_trust_gap") {
     return `
@@ -144,7 +175,11 @@ You wrote: “${reference}”
 
 Let’s separate movement from rescue.
 
-What is the next useful action if it does not need to fix the whole situation today?
+What part feels heaviest right now:
+starting,
+deciding,
+failing,
+or carrying this alone?
 `.trim();
   }
 
