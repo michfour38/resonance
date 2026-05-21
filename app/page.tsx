@@ -79,11 +79,22 @@ function ProductName({ name }: { name: string }) {
     );
   }
 
-  if (name === "The Compass") {
+if (name === "The Compass") {
   return (
-    <span className="font-serif tracking-[0.08em] text-[#c8a96a]">
-      <span className="text-[1.08em]">T</span>he{" "}
-      <span className="text-[1.08em]">C</span>ompass
+    <span className="inline-flex items-baseline font-serif text-[#c8a96a]">
+      <span className="text-[1.08em] leading-none">T</span>
+
+      <span className="text-[0.82em] tracking-[0.00em] leading-none">
+        HE
+      </span>
+
+      <span className="ml-[0.18em] text-[1.08em] leading-none">
+        C
+      </span>
+
+      <span className="text-[0.82em] tracking-[0.00em] leading-none">
+        OMPASS
+      </span>
     </span>
   );
 }
