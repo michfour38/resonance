@@ -81,8 +81,9 @@ function ProductName({ name }: { name: string }) {
 
   if (name === "The Compass") {
   return (
-    <span className="font-serif uppercase tracking-[0.16em] text-[#c8a96a]">
-      The Compass
+    <span className="font-serif tracking-[0.08em] text-[#c8a96a]">
+      <span className="text-[1.08em]">T</span>he{" "}
+      <span className="text-[1.08em]">C</span>ompass
     </span>
   );
 }
