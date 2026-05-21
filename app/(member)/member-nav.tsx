@@ -18,7 +18,7 @@ export default function MemberNav() {
   }, [pathname, searchParams]);
 
   return (
-    <nav className="border-b border-white/5 px-6 py-2 backdrop-blur-sm">
+    <nav className="relative z-[300] border-b border-white/5 bg-black/40 px-6 py-2 backdrop-blur-sm">
       <div className="mx-auto flex h-12 max-w-5xl items-center justify-between">
         <div className="hidden h-12 items-center gap-5 md:flex">
           <Link href="/" className="text-[11px] uppercase tracking-[0.28em] text-[#C8A96A]/80 transition hover:text-[#f1dfb4]">
