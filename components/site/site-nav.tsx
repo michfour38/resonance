@@ -58,14 +58,6 @@ export function SiteNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          {!isEnterPage ? (
-            <Link
-              href="/oremea/enter"
-              className="inline-flex rounded-full border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-zinc-300 transition hover:border-white/20 hover:text-white"
-            >
-              Begin Resonance
-            </Link>
-          ) : null}
 
           <Link
             href={isSignedIn ? "/profile" : "/sign-in"}

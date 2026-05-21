@@ -48,6 +48,12 @@ export function SiteFooter() {
               >
                 Begin Resonance
               </Link>
+<Link
+  href="/compass"
+  className="transition hover:text-[#f1dfb4]"
+>
+  Begin Compass
+</Link>
             </div>
           </div>
 

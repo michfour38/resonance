@@ -12,7 +12,7 @@ export function CompareHero({ mode, setMode }: CompareHeroProps) {
 
       <div className="relative mx-auto max-w-4xl px-5 py-28 text-center">
         <p className="mb-6 text-xs uppercase tracking-[0.32em] text-amber-200/70">
-          Explore The Ecosystem
+          Compare The Ecosystem
         </p>
 
         <h1 className="mx-auto max-w-3xl text-4xl font-light leading-tight text-zinc-100 md:text-6xl">
