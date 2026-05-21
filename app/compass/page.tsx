@@ -86,6 +86,7 @@ export default function CompassPage() {
     useState<StoredCompassSession | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(true);
 
   const [areaIndex, setAreaIndex] = useState(0);
   const [answer, setAnswer] = useState("");
@@ -133,13 +134,14 @@ export default function CompassPage() {
   useEffect(() => {
     async function loadSession() {
       try {
+        setIsRestoring(true);
+
         const response = await fetch("/api/compass/session", {
           method: "GET",
         });
 
         if (!response.ok) {
           setPhase("intro");
-          setSessionLoaded(true);
           return;
         }
 
@@ -151,10 +153,12 @@ export default function CompassPage() {
         } else {
           setPhase("intro");
         }
-      } catch {
+      } catch (error) {
+        console.error("Failed to load Compass session:", error);
         setPhase("intro");
       } finally {
         setSessionLoaded(true);
+        setIsRestoring(false);
       }
     }
 
@@ -504,6 +508,14 @@ export default function CompassPage() {
     pauseThen(() => setPhase("complete"));
   }
 
+  if (isRestoring) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#090909] text-stone-100">
+        Loading Compass...
+      </main>
+    );
+  }
+
   const showBackButton = !["loading", "resume", "intro", "analyzing"].includes(
     phase,
   );
@@ -547,17 +559,6 @@ export default function CompassPage() {
             >
               ← Back
             </button>
-          )}
-
-          {phase === "loading" && (
-            <CompassCard
-              title="Opening Compass"
-              description="Checking whether there is an active session to resume."
-            >
-              <div className={`flex justify-center py-8 text-5xl ${BODY_TEXT}`}>
-                ...
-              </div>
-            </CompassCard>
           )}
 
           {phase === "resume" && (
@@ -737,7 +738,7 @@ export default function CompassPage() {
           background: linear-gradient(180deg, #e2c374, #a87a38);
         }
 
-        .secondary-button {
+                .secondary-button {
           margin-top: 0.25rem;
           width: 100%;
           border-radius: 999px;
