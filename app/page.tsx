@@ -37,21 +37,22 @@ const products = [
       "Harmonize is for couples, families, and poly dynamics who want to stop fighting the surface and begin understanding the movement underneath.",
     ],
   },
-  {
-    name: "The Compass",
-    active: false,
-    short:
-      "COMING SOON... A goalsetting and execution layer for turning awareness into one executable next step.",
-    action: "Coming soon",
-    full: [
-      "The Compass is being designed for the moment after awareness, when you know something is true but still do not know what to do next.",
-      "Most people do not stay stuck because they lack insight. They stay stuck because insight creates too many possible directions.",
-      "The Compass narrows the field.",
-      "It helps translate a situation, goal, or repeating loop into a clear state, condition, action, repair point, and next step.",
-      "It can support individuals, couples, families, and aligned groups who want to goalset as a unit.",
-      "The Compass is for people who want clarity to become behavior, not just another thought they carry around.",
-    ],
-  },
+{
+  name: "The Compass",
+  href: "/compass",
+  active: true,
+  short:
+    "Turn self-awareness into one executable next step. Clarity. Direction. Execution.",
+  action: "Begin Compass",
+  full: [
+    "The Compass is for the moment after awareness, when you know something matters but still do not know what to do next.",
+    "It helps you move from scattered goals into one clear priority, then takes you deeper into why it matters.",
+    "Compass does not rush you into fantasy intensity. It helps you find embodied momentum: the smallest honest next step you can actually take.",
+    "Through layered reflection and discussion, Compass helps reveal what interrupts movement, where resistance lives, and what kind of action your nervous system can realistically hold.",
+    "Confidence in the self to follow through is built through kept agreements. Compass helps you begin there.",
+  ],
+},
+
   {
     name: "The Current",
     active: false,
@@ -72,13 +73,21 @@ const products = [
 function ProductName({ name }: { name: string }) {
   if (name === "Resonance") {
     return (
-      <>
+      <span className="font-serif">
         Reso<span className="italic text-[#c8a96a]">nance</span>
-      </>
+      </span>
     );
   }
 
-  return <>{name}</>;
+  if (name === "The Compass") {
+    return (
+      <span className="font-serif">
+        The <span className="italic text-[#c8a96a]">Compass</span>
+      </span>
+    );
+  }
+
+  return <span className="font-serif">{name}</span>;
 }
 
 export default function Home() {
@@ -151,7 +160,7 @@ export default function Home() {
                         href={product.href}
                         className="inline-block pt-2 text-sm text-[#c8a96a] transition hover:text-[#f1dfb4]"
                       >
-                        Enter Reso<span className="italic">nance</span> →
+                        {product.action} →
                       </Link>
                     ) : null}
                   </div>
