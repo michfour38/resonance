@@ -4,6 +4,16 @@ import { CompassCard } from "./CompassCard";
 
 const BODY_TEXT = "text-zinc-400";
 
+function isPermissionMessage(content: string) {
+  return (
+    content.includes("Would you like me to reflect") ||
+    content.includes("Would you like me to reflect what") ||
+    content.includes("Would you like to pause here") ||
+    content.includes("A pattern may be repeating here") ||
+    content.includes("Would you like help working through this privately")
+  );
+}
+
 export function CompassDiscussionFlow({
   discussionMessages,
   discussionInput,
@@ -17,6 +27,13 @@ export function CompassDiscussionFlow({
   onSend: () => void;
   onReady: () => void;
 }) {
+  const latestMessage =
+    discussionMessages[discussionMessages.length - 1];
+
+  const showPermissionChoices =
+    latestMessage?.role === "compass" &&
+    isPermissionMessage(latestMessage.content);
+
   return (
     <CompassCard
       title="Let’s sit with this before we move."
@@ -25,27 +42,69 @@ export function CompassDiscussionFlow({
       <div className="space-y-6">
         {discussionMessages.map((message, index) => (
           <div
-  key={`${message.role}-${index}`}
-  className={`text-sm leading-relaxed ${
-    message.role === "compass"
-      ? "rounded-[1.4rem] border border-[#2A2418] bg-[#12100D] p-5"
-      : "rounded-[1.4rem] border border-zinc-800 bg-[#121212] p-5"
-  }`}
->
+            key={`${message.role}-${index}`}
+            className={`text-sm leading-relaxed ${
+              message.role === "compass"
+                ? "rounded-[1.4rem] border border-[#2A2418] bg-[#12100D] p-5"
+                : "rounded-[1.4rem] border border-zinc-800 bg-[#121212] p-5"
+            }`}
+          >
             <p
               className={`whitespace-pre-line ${
-                message.role === "compass" ? BODY_TEXT : "text-zinc-100"
+                message.role === "compass"
+                  ? BODY_TEXT
+                  : "text-zinc-100"
               }`}
             >
               {message.content}
             </p>
+
+            {index === discussionMessages.length - 1 &&
+              showPermissionChoices && (
+                <div className="mt-5 grid gap-3">
+                  <button
+                    onClick={() =>
+                      onDiscussionInputChange(
+                        "Yes, reflect.",
+                      )
+                    }
+                    className="primary-button !mt-0"
+                  >
+                    Yes, reflect
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      onDiscussionInputChange(
+                        "Not right now.",
+                      )
+                    }
+                    className="secondary-button !mt-0"
+                  >
+                    Not right now
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      onDiscussionInputChange(
+                        "Ugh fine — tell me more.",
+                      )
+                    }
+                    className="secondary-button !mt-0"
+                  >
+                    Ugh fine — tell me more
+                  </button>
+                </div>
+              )}
           </div>
         ))}
       </div>
 
       <textarea
         value={discussionInput}
-        onChange={(event) => onDiscussionInputChange(event.target.value)}
+        onChange={(event) =>
+          onDiscussionInputChange(event.target.value)
+        }
         placeholder="Let’s discuss openly. Often we struggle to take the next step because we may not yet trust ourselves to do what we said we would do.
 
 If you feel resistance, uncertainty, pressure, avoidance, or emotional exhaustion around taking action, describe it honestly here.
@@ -55,11 +114,17 @@ Compass will work through it with you and help uncover the next best step."
         className="compass-textarea"
       />
 
-      <button onClick={onSend} className="primary-button">
+      <button
+        onClick={onSend}
+        className="primary-button"
+      >
         Send
       </button>
 
-      <button onClick={onReady} className="secondary-button">
+      <button
+        onClick={onReady}
+        className="secondary-button"
+      >
         I’m ready to choose the next step
       </button>
     </CompassCard>
@@ -82,13 +147,18 @@ export function CompassExecutionCheck({
     >
       <textarea
         value={executionFeeling}
-        onChange={(event) => onExecutionFeelingChange(event.target.value)}
+        onChange={(event) =>
+          onExecutionFeelingChange(event.target.value)
+        }
         placeholder="Does this feel realistic, emotionally safe, sustainable, too large, too public, unclear, or difficult to begin?"
         rows={6}
         className="compass-textarea"
       />
 
-      <button onClick={onFinalize} className="primary-button">
+      <button
+        onClick={onFinalize}
+        className="primary-button"
+      >
         Finalize next step
       </button>
     </CompassCard>
@@ -119,15 +189,21 @@ export function CompassComplete({
 
       {resonanceReflection && (
         <div className="rounded-[1.5rem] border border-zinc-800 bg-[#121212] p-5">
-          <p className={`whitespace-pre-line text-sm leading-relaxed ${BODY_TEXT}`}>
+          <p
+            className={`whitespace-pre-line text-sm leading-relaxed ${BODY_TEXT}`}
+          >
             {resonanceReflection}
           </p>
 
           <a
-            href={resonanceCtaHref ?? "https://www.oremea.com/?open=resonance"}
+            href={
+              resonanceCtaHref ??
+              "https://www.oremea.com/?open=resonance"
+            }
             className="primary-button inline-flex items-center justify-center"
           >
-            {resonanceCtaLabel ?? "Explore Resonance"}
+            {resonanceCtaLabel ??
+              "Explore Resonance"}
           </a>
         </div>
       )}
