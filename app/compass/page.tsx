@@ -504,7 +504,7 @@ Sometimes the real next step is not bigger action — it is reducing the emotion
   ...nextMessages,
   {
     role: "compass",
-    content: "...",
+    content: "•••",
   },
 ]);
 
@@ -520,7 +520,7 @@ window.setTimeout(() => {
     ...current.slice(0, -1),
     compassMessage,
   ]);
-}, 2800);
+}, calculateTypingDelay(result.compassReply));
 
     if (!result.shouldContinueDiscussion) {
       setFinalStep(result.suggestedMicroStep ?? proposedStep);
@@ -842,6 +842,26 @@ window.setTimeout(() => {
       `}</style>
     </main>
   );
+}
+
+function calculateTypingDelay(
+  response: string,
+): number {
+  const length = response.length
+
+  if (length < 120) {
+    return 1800
+  }
+
+  if (length < 260) {
+    return 2600
+  }
+
+  if (length < 420) {
+    return 3400
+  }
+
+  return 4200
 }
 
 function normalizePhase(value: string | null | undefined): CompassPhase {

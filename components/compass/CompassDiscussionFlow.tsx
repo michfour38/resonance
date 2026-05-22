@@ -40,24 +40,38 @@ export function CompassDiscussionFlow({
       description="This is where Compass helps reduce the pressure enough for movement to become possible again."
     >
       <div className="space-y-6">
-        {discussionMessages.map((message, index) => (
-          <div
-            key={`${message.role}-${index}`}
-            className={`text-sm leading-relaxed ${
-              message.role === "compass"
-                ? "rounded-[1.4rem] border border-[#2A2418] bg-[#12100D] p-5"
-                : "rounded-[1.4rem] border border-zinc-800 bg-[#121212] p-5"
-            }`}
-          >
-            <p
-              className={`whitespace-pre-line ${
-                message.role === "compass"
-                  ? BODY_TEXT
-                  : "text-zinc-100"
-              }`}
-            >
-              {message.content}
-            </p>
+  {discussionMessages.map((message, index) => (
+    <div
+      key={`${message.role}-${index}`}
+      className={`text-sm leading-relaxed ${
+        message.role === "compass"
+          ? "text-zinc-300"
+          : "text-zinc-100"
+      }`}
+    >
+            {message.content === "•••" ? (
+  <div className="flex items-center gap-1 py-2">
+    <span className="h-2 w-2 animate-pulse rounded-full bg-[#d8b15f]" />
+    <span
+      className="h-2 w-2 animate-pulse rounded-full bg-[#d8b15f]"
+      style={{ animationDelay: "180ms" }}
+    />
+    <span
+      className="h-2 w-2 animate-pulse rounded-full bg-[#d8b15f]"
+      style={{ animationDelay: "360ms" }}
+    />
+  </div>
+) : (
+  <p
+    className={`whitespace-pre-line ${
+      message.role === "compass"
+        ? BODY_TEXT
+        : "text-zinc-100"
+    }`}
+  >
+    {message.content}
+  </p>
+)}
 
             {index === discussionMessages.length - 1 &&
               showPermissionChoices && (
