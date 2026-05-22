@@ -20,7 +20,10 @@ import {
 } from "@/components/compass/CompassResistanceFlow";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-
+import {
+  buildPossibilityMirror,
+  getPossibilityQuestion,
+} from "@/src/lib/compass/session/possibility-expansion";
 import {
   COMPASS_AREA_QUESTIONS,
   analyzeAreaResponse,
@@ -44,6 +47,8 @@ import {
 
 type CompassPhase =
   | "loading"
+| "possibility"
+| "possibility_mirror"
   | "resume"
   | "intro"
   | "area"
@@ -63,6 +68,7 @@ type StoredCompassSession = {
   selected_area?: string | null;
   area_responses?: unknown;
   recursive_layers?: unknown;
+possibility_answers?: unknown;
   resistance_map?: unknown;
   discussion_messages?: unknown;
   proposed_step?: string | null;
@@ -97,6 +103,10 @@ export default function CompassPage() {
   const [recursiveLayers, setRecursiveLayers] = useState<CompassRecursiveLayer[]>([]);
   const [recursiveAnswer, setRecursiveAnswer] = useState("");
   const [extraReflection, setExtraReflection] = useState("");
+
+const [possibilityAnswers, setPossibilityAnswers] = useState<string[]>([]);
+const [possibilityAnswer, setPossibilityAnswer] = useState("");
+
   const [resistanceAnswer, setResistanceAnswer] = useState("");
   const [resistanceMap, setResistanceMap] =
     useState<CompassResistanceMap | null>(null);
@@ -123,6 +133,24 @@ export default function CompassPage() {
     () => reflectCoreValues(recursiveLayers),
     [recursiveLayers],
   );
+
+const possibilityQuestion = useMemo(
+  () =>
+    getPossibilityQuestion({
+      selectedArea,
+      index: possibilityAnswers.length,
+    }),
+  [selectedArea, possibilityAnswers.length],
+);
+
+const possibilityMirror = useMemo(
+  () =>
+    buildPossibilityMirror({
+      selectedArea,
+      possibilityAnswers,
+    }),
+  [selectedArea, possibilityAnswers],
+);
 
   const resonanceBridge = useMemo(
     () => evaluateResonanceBridge(areaResponses),
@@ -210,6 +238,7 @@ export default function CompassPage() {
           selectedArea,
           areaResponses,
           recursiveLayers,
+possibilityAnswers,
           resistanceMap,
           discussionMessages,
           proposedStep,
@@ -275,6 +304,52 @@ export default function CompassPage() {
       setPhase("depth_intro");
       return;
     }
+
+if (phase === "possibility") {
+  return (
+    <CompassCard
+      title="Let’s explore what becomes possible"
+      description={possibilityQuestion.question}
+    >
+      <textarea
+        value={possibilityAnswer}
+        onChange={(event) =>
+          setPossibilityAnswer(event.target.value)
+        }
+        placeholder="Describe this in your own words."
+        rows={6}
+        className="compass-textarea"
+      />
+
+      <button
+        onClick={submitPossibilityAnswer}
+        className="primary-button"
+      >
+        Continue
+      </button>
+    </CompassCard>
+  );
+}
+
+if (phase === "possibility_mirror") {
+  return (
+    <CompassCard
+      title="Compass reflection"
+      description={possibilityMirror}
+    >
+      <button
+        onClick={() =>
+          pauseThen(() =>
+            setPhase("resistance"),
+          )
+        }
+        className="primary-button"
+      >
+        Continue
+      </button>
+    </CompassCard>
+  );
+}
 
     if (phase === "core_reflection") {
       setPhase("depth");
@@ -351,6 +426,7 @@ fetch("/api/compass/session", {
 
     setAreaResponses(restoredAreaResponses);
     setRecursiveLayers(restoredRecursiveLayers);
+setPossibilityAnswers(toArray<string>(savedSession.possibility_answers));
     setDiscussionMessages(restoredMessages);
     setResistanceMap(toObject<CompassResistanceMap>(savedSession.resistance_map));
     setProposedStep(savedSession.proposed_step ?? "");
@@ -432,8 +508,31 @@ fetch("/api/compass/session", {
       return;
     }
 
-    pauseThen(() => setPhase("core_reflection"));
+    pauseThen(() => setPhase("possibility"));
   }
+
+function submitPossibilityAnswer() {
+  if (!possibilityAnswer.trim()) return;
+
+  setHasStarted(true);
+
+  const updated = [
+    ...possibilityAnswers,
+    possibilityAnswer,
+  ];
+
+  setPossibilityAnswers(updated);
+  setPossibilityAnswer("");
+
+  if (updated.length < 4) {
+    pauseThen(() => setPhase("possibility"));
+    return;
+  }
+
+  pauseThen(() =>
+    setPhase("possibility_mirror"),
+  );
+}
 
   function submitResistance() {
     if (!resistanceAnswer.trim()) return;

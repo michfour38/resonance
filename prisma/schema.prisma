@@ -32,6 +32,7 @@ model compass_sessions {
 
   area_responses     Json?
   recursive_layers   Json?
+possibility_answers Json?
   resistance_map     Json?
   discussion_messages Json?
 

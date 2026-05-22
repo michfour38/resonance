@@ -6,6 +6,7 @@ export type CompassSessionSaveInput = {
   selectedArea?: string | null
   areaResponses?: unknown
   recursiveLayers?: unknown
+possibilityAnswers?: unknown
   resistanceMap?: unknown
   discussionMessages?: unknown
   proposedStep?: string | null
@@ -41,6 +42,7 @@ export async function saveCompassSession({
   selectedArea,
   areaResponses,
   recursiveLayers,
+possibilityAnswers,
   resistanceMap,
   discussionMessages,
   proposedStep,
@@ -58,6 +60,7 @@ export async function saveCompassSession({
         selected_area: selectedArea,
         area_responses: areaResponses as object,
         recursive_layers: recursiveLayers as object,
+possibility_answers: possibilityAnswers as object,
         resistance_map: resistanceMap as object,
         discussion_messages: discussionMessages as object,
         proposed_step: proposedStep,
@@ -76,6 +79,7 @@ export async function saveCompassSession({
       selected_area: selectedArea,
       area_responses: areaResponses as object,
       recursive_layers: recursiveLayers as object,
+possibility_answers: possibilityAnswers as object,
       resistance_map: resistanceMap as object,
       discussion_messages: discussionMessages as object,
       proposed_step: proposedStep,
