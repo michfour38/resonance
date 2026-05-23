@@ -338,11 +338,12 @@ fetch("/api/compass/session", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    phase: "intro",
-    areaResponses: [],
-    recursiveLayers: [],
-    discussionMessages: [],
-  }),
+  phase: "intro",
+  areaResponses: [],
+  recursiveLayers: [],
+  possibilityAnswers: [],
+  discussionMessages: [],
+}),
 }).catch(() => {});
     setHasStarted(true);
     setAreaIndex(0);
@@ -352,7 +353,9 @@ fetch("/api/compass/session", {
     setRecursiveLayers([]);
     setRecursiveAnswer("");
     setExtraReflection("");
-    setResistanceAnswer("");
+setPossibilityAnswers([]);
+setPossibilityAnswer("");
+setResistanceAnswer("");
     setResistanceMap(null);
     setProposedStep("");
     setExecutionFeeling("");
