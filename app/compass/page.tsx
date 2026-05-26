@@ -161,6 +161,12 @@ const possibilityMirror = useMemo(
     ? AREA_LABELS[selectedArea]
     : "your chosen goal";
 
+useEffect(() => {
+  if (phase === "depth" && recursiveLayers.length >= 7) {
+    setPhase("possibility");
+  }
+}, [phase, recursiveLayers.length]);
+
   useEffect(() => {
     async function loadSession() {
       try {
@@ -314,6 +320,8 @@ if (phase === "possibility") {
     return;
   }
 
+  setRecursiveLayers((current) => current.slice(0, -1));
+  setRecursiveAnswer("");
   setPhase("depth");
   return;
 }
