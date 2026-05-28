@@ -1,4 +1,9 @@
 import {
+  detectReflectionStyleAction,
+  mapStyleActionToStyle,
+} from "./reflection-style-actions"
+
+import {
   detectReflectionAction,
 } from "./reflection-actions"
 
@@ -17,11 +22,17 @@ import {
 
 import { analyzeTrajectory } from "./trajectory-analysis"
 
+import type {
+  ELReflectionStyle,
+} from "./reflection-style"
+
 export type EthericLoopResponseInput = {
   latestAnswer: string
   previousAnswers?: string[]
   proposedStep?: string
   isSharedContext?: boolean
+  reflectionStyle?: ELReflectionStyle
+  permissionPromptCount?: number
 }
 
 export type EthericLoopResponse = {
@@ -36,9 +47,35 @@ export function generateEthericLoopResponse({
   previousAnswers = [],
   proposedStep,
   isSharedContext = false,
+  reflectionStyle = "mixed",
+permissionPromptCount = 0,
 }: EthericLoopResponseInput): EthericLoopResponse {
   const state = detectEthericLoopState(latestAnswer)
   const reflectionAction = detectReflectionAction(latestAnswer)
+
+const styleAction = detectReflectionStyleAction(latestAnswer)
+const selectedStyle = mapStyleActionToStyle(styleAction)
+
+if (selectedStyle) {
+  return {
+    state,
+    reply: `
+Done.
+
+I’ll work with you in ${
+      selectedStyle === "gentle"
+        ? "a gentler style and ask before reflecting."
+        : selectedStyle === "direct"
+          ? "a more direct style with fewer permission checks."
+          : "a mixed style — direct when useful, slower when the emotional weight increases."
+    }
+
+Now continue in your own words.
+`.trim(),
+    suggestedMicroStep: null,
+    shouldContinue: true,
+  }
+}
 
   if (reflectionAction === "decline_reflection") {
     return {
@@ -100,11 +137,13 @@ What part feels hardest to honestly admit here?
   })
 
   const permission = evaluateReflectionPermission({
-    state,
-    trajectory,
-    boundaries,
-    isSharedContext,
-  })
+  state,
+  trajectory,
+  boundaries,
+  isSharedContext,
+  reflectionStyle,
+  permissionPromptCount,
+})
 
   if (permission.shouldOfferReflection && permission.prompt) {
     return {

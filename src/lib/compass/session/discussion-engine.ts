@@ -33,11 +33,20 @@ export function continueCompassDiscussion({
     .filter((message) => message.role === "participant")
     .map((message) => message.content)
 
+  const permissionPromptCount =
+    messages.filter(
+      (message) =>
+        message.role === "compass" &&
+        isPermissionPrompt(message.content),
+    ).length
+
   const response = generateEthericLoopResponse({
     latestAnswer,
     previousAnswers: previousParticipantAnswers,
     proposedStep,
     isSharedContext: false,
+    reflectionStyle: "mixed",
+    permissionPromptCount,
   })
 
   return {
@@ -48,6 +57,15 @@ export function continueCompassDiscussion({
       response.state.primaryState,
     ),
   }
+}
+
+function isPermissionPrompt(content: string): boolean {
+  return (
+    content.includes("Would you like me to reflect") ||
+    content.includes("A pattern may be repeating here") ||
+    content.includes("Would you like to pause here") ||
+    content.includes("Would you like help working through this privately")
+  )
 }
 
 function mapStateToPattern(

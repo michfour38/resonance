@@ -47,18 +47,49 @@ export default function MemberNav() {
 
             {openMenu === "archive" ? (
               <div className="absolute right-0 top-12 z-[200] min-w-[220px] rounded-[1.75rem] border border-zinc-800/80 bg-zinc-950/95 p-4 shadow-[0_10px_40px_rgba(0,0,0,0.45)]">
-                <Link href="/journey" className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
-                  Return to the present
-                </Link>
-                <Link href="/journey/archive?view=room" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
-                  By room
-                </Link>
-                <Link href="/journey/archive?view=day" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
-                  By day
-                </Link>
-                <Link href="/journey/archive?view=search" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
-                  Search
-                </Link>
+                <div className="mb-2 px-3 pb-2">
+  <p className="text-[10px] uppercase tracking-[0.18em] text-[#C8A96A]/70">
+    Oremea archive
+  </p>
+
+  <div className="mt-3 flex flex-wrap gap-2">
+    {["Resonance", "Current", "Compass", "Harmonize"].map((product) => (
+      <span
+        key={product}
+        className="rounded-full border border-[#3A3224] bg-[#17130D] px-3 py-1 text-[11px] text-[#E7C98B]"
+      >
+        {product}
+      </span>
+    ))}
+  </div>
+</div>
+
+<div className="border-t border-zinc-800 pt-2">
+  <Link href="/journey" className="block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+  Return to Resonance
+</Link>
+
+<Link href="/journey/archive?view=room" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+  Resonance by Room
+</Link>
+
+<Link href="/journey/archive?view=day" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+  Resonance by Day
+</Link>
+
+<Link href="/journey/archive?view=search" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+  Search Resonance
+</Link>
+  <Link href="/current" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+    Current
+  </Link>
+  <Link href="/compass" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+    Compass
+  </Link>
+  <Link href="/harmonize" className="mt-1 block rounded-xl px-4 py-3 text-center text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white">
+    Harmonize
+  </Link>
+</div>
               </div>
             ) : null}
           </div>

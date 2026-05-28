@@ -49,14 +49,14 @@ Compass noticed stronger emotional and cognitive weighting around ${strongest.ar
 This does not mean Compass is deciding for you.
 
 You may feel this area truly is most important right now,
-or you may feel another area matters more deeply.
+or you may feel another area matters more deeply in service of the life you are trying to build.
 
 Sometimes people speak most emotionally about:
 - what hurts most,
 - what feels most urgent,
-- or what supports another deeper goal.
+- what feels most neglected,
+- or what quietly supports the deeper goal beneath the surface.
 
-Does this reflection feel accurate to you?
 `.trim(),
   }
 }

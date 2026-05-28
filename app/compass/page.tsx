@@ -262,10 +262,18 @@ const possibilityMirror = useMemo(
     finalStep,
   ]);
 
-  function pauseThen(next: () => void) {
+  function pauseThen(
+  next: () => void,
+  options: { showAnalyzing?: boolean } = {},
+) {
+  const showAnalyzing = options.showAnalyzing ?? true;
+
+  if (showAnalyzing) {
     setPhase("analyzing");
-    window.setTimeout(next, 1800);
   }
+
+  window.setTimeout(next, showAnalyzing ? 1800 : 250);
+}
 
   function goBackInsideCompass() {
     if (phase === "area") {
@@ -608,9 +616,11 @@ window.setTimeout(() => {
   }
 
   function moveToExecutionCheck() {
-    setHasStarted(true);
-    pauseThen(() => setPhase("execution_check"));
-  }
+  setHasStarted(true);
+  pauseThen(() => setPhase("execution_check"), {
+    showAnalyzing: false,
+  });
+}
 
   function submitExecutionFeeling() {
     if (!executionFeeling.trim()) return;
@@ -759,7 +769,11 @@ window.setTimeout(() => {
               description={areaMirror.reflection}
               areaResponses={areaResponses}
               reviewLabel="Review your eight answers"
-              onContinue={() => pauseThen(() => setPhase("area_confirmation"))}
+              onContinue={() =>
+  pauseThen(() => setPhase("area_confirmation"), {
+    showAnalyzing: false,
+  })
+}
             />
           )}
 
