@@ -759,9 +759,15 @@ window.setTimeout(() => {
     Compass will not tell you what to do.
   </p>
 
-  <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
-    Compass helps reveal where your attention already lives, what matters most, what reality your choices are creating, and where movement is most likely to produce meaningful change.
-  </p>
+  <p
+  className={`mx-auto max-w-2xl text-base leading-relaxed ${BODY_TEXT} sm:text-lg`}
+>
+  Turn self-awareness into one executable next step.
+</p>
+
+<p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#d8b15f]">
+  Clarity. Direction. Execution.
+</p>
 
   <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
     You may discover that the area demanding your attention is not the area you expected.
@@ -991,28 +997,29 @@ description=""
         }
 
         .compass-textarea {
-          min-height: 170px;
-          width: 100%;
-          resize: none;
-          border-radius: 1.5rem;
-          border: 1px solid #3f3f46;
-          background: #18110b;
-          padding: 1rem 1.2rem;
-          font-size: 0.95rem;
-          line-height: 1.8;
-          color: #f4f4f5;
-          outline: none;
-          transition: 180ms ease;
-        }
+  min-height: 170px;
+  width: 100%;
+  resize: none;
+  border-radius: 1.5rem;
+  border: 2px solid rgba(216, 177, 95, 0.45);
+  background: #18110b;
+  padding: 1rem 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #f4f4f5;
+  outline: none;
+  transition: 180ms ease;
+}
 
         .compass-textarea::placeholder {
           color: #a1a1aa;
         }
 
         .compass-textarea:focus {
-          border-color: #d8b15f;
-          background: #1f1710;
-        }
+  border-color: #d8b15f;
+  background: #1f1710;
+  box-shadow: 0 0 0 1px rgba(216, 177, 95, 0.15);
+}
       `}</style>
     </main>
   );
