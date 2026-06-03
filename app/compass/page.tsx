@@ -712,12 +712,14 @@ window.setTimeout(() => {
             </div>
 
             <p
-              className={`mx-auto max-w-2xl text-base leading-relaxed ${BODY_TEXT} sm:text-lg`}
-            >
-              Compass helps you discover what matters most to you, understand why
-              it matters, identify what interrupts it, and build momentum through
-              aligned execution.
-            </p>
+  className={`mx-auto max-w-2xl text-base leading-relaxed ${BODY_TEXT} sm:text-lg`}
+>
+  Turn self-awareness into one executable next step.
+</p>
+
+<p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#d8b15f]">
+  Clarity. Direction. Execution.
+</p>
 
           </header>
 
@@ -758,16 +760,6 @@ window.setTimeout(() => {
 
     Compass will not tell you what to do.
   </p>
-
-  <p
-  className={`mx-auto max-w-2xl text-base leading-relaxed ${BODY_TEXT} sm:text-lg`}
->
-  Turn self-awareness into one executable next step.
-</p>
-
-<p className="mt-5 text-sm uppercase tracking-[0.34em] text-[#d8b15f]">
-  Clarity. Direction. Execution.
-</p>
 
   <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
     You may discover that the area demanding your attention is not the area you expected.
