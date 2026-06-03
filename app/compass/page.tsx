@@ -104,6 +104,7 @@ export default function CompassPage() {
   const [recursiveLayers, setRecursiveLayers] = useState<CompassRecursiveLayer[]>([]);
   const [recursiveAnswer, setRecursiveAnswer] = useState("");
   const [extraReflection, setExtraReflection] = useState("");
+const [compassMirrorOutput, setCompassMirrorOutput] = useState("");
 
 const [possibilityAnswers, setPossibilityAnswers] = useState<string[]>([]);
 const [possibilityAnswer, setPossibilityAnswer] = useState("");
@@ -132,9 +133,14 @@ const backLockRef = useRef(false);
   );
 
   const coreReflection = useMemo(
-    () => reflectCoreValues(recursiveLayers),
-    [recursiveLayers],
-  );
+  () =>
+    reflectCoreValues({
+      areaResponses,
+      selectedArea,
+      layers: recursiveLayers,
+    }),
+  [areaResponses, selectedArea, recursiveLayers],
+);
 
 const possibilityQuestion = useMemo(
   () =>
@@ -493,6 +499,36 @@ setPossibilityAnswers(toArray<string>(savedSession.possibility_answers));
     pauseThen(() => setPhase("depth_intro"));
   }
 
+async function generateCompassMirror(
+  updatedLayers: CompassRecursiveLayer[],
+) {
+  try {
+    const response = await fetch("/api/compass/mirror", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        areaResponses,
+        selectedArea,
+        recursiveLayers: updatedLayers,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data?.ok && typeof data.output === "string") {
+      setCompassMirrorOutput(data.output);
+      return;
+    }
+
+    setCompassMirrorOutput("");
+  } catch (error) {
+    console.error("Compass Mirror failed:", error);
+    setCompassMirrorOutput("");
+  }
+}
+
   function submitRecursiveAnswer() {
     if (!recursiveAnswer.trim()) return;
 
@@ -532,7 +568,10 @@ setPossibilityAnswers(toArray<string>(savedSession.possibility_answers));
       return;
     }
 
-    pauseThen(() => setPhase("core_reflection"));
+    pauseThen(async () => {
+  await generateCompassMirror(updated);
+  setPhase("core_reflection");
+});
   }
 
 function submitPossibilityAnswer() {
@@ -888,7 +927,7 @@ description=""
 
           {phase === "core_reflection" && (
             <CompassCoreReflection
-              reflection={coreReflection.reflection}
+              reflection={compassMirrorOutput || coreReflection.reflection}
               recursiveLayers={recursiveLayers}
               extraReflection={extraReflection}
               onExtraReflectionChange={setExtraReflection}

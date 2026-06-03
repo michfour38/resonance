@@ -51,34 +51,26 @@ function buildReflection({
 
   if (!strongestCluster) {
     return `
-Compass is not choosing for you.
-
 ${strongestQuotes}
 
-The clearest bridge is not fully visible yet.
+Some themes appear stronger than others.
 
-Which area would create the most movement if it became stronger first?
+A clear direction has not fully emerged yet.
+
+Where does movement create the greatest change?
 `.trim()
   }
 
   return `
-Compass is not choosing for you.
-
 ${strongestQuotes}
 
-These answers do not appear to be separate goals.
+Several of your answers appear connected through ${strongestCluster.label}.
 
-Several of them appear connected through ${strongestCluster.label}.
+This appears across ${formatAreaList(strongestCluster.supportingAreas)}.
 
-This shows up across ${formatAreaList(strongestCluster.supportingAreas)}.
+Movement in one area can sometimes create movement across several others.
 
-That does not mean ${strongestCluster.label} is the only thing that matters.
-
-It means ${strongestCluster.label} may be carrying leverage because movement there could create movement elsewhere.
-
-The next question is not which area sounds deepest.
-
-The next question is which area creates the strongest bridge between your current reality and the reality you want to create.
+Where does movement create the greatest change?
 `.trim()
 }
 

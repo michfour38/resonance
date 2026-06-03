@@ -42,25 +42,17 @@ export function reflectPrimaryArea(
     detectedArea,
 
     reflection: `
-Compass noticed that several of your answers appear connected through ${strongestCluster.label}.
+Several of your answers appear connected through ${strongestCluster.label}.
 
-This does not mean Compass is deciding for you.
+This appears across ${strongestCluster.supportingAreas.join(", ")}.
 
-It also does not mean ${strongestCluster.label} is the only thing that matters.
+A decision in one area can create movement across several others.
 
-It means movement there may create movement elsewhere.
+This choice is not only about what feels biggest.
 
-Sometimes the most important area is not the one carrying the most emotion.
+It is about where movement creates the greatest change.
 
-Sometimes it is the area carrying the most leverage.
-
-The question is not:
-
-"What feels biggest?"
-
-The question is:
-
-"What creates the strongest bridge between your current reality and the reality you want to create?"
+Select the area that acts as the strongest lever for everything else you want to build.
 `.trim(),
   }
 }

@@ -75,9 +75,11 @@ export function buildPrimaryAreaReflection(
 export function buildCoreValueReflection(
   session: CompassSession,
 ) {
-  return reflectCoreValues(
-    session.recursiveLayers,
-  )
+  return reflectCoreValues({
+    areaResponses: session.areaResponses,
+    selectedArea: session.selectedArea,
+    layers: session.recursiveLayers,
+  })
 }
 
 export function buildResistanceMap({

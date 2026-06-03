@@ -1,6 +1,10 @@
 import type {
+  CompassAreaResponse,
+  CompassGoalArea,
   CompassRecursiveLayer,
 } from "./session-types"
+
+import { buildCompassTrajectoryMirror } from "./compass-trajectory-mirror"
 
 export type CoreValueReflection = {
   detectedValues: string[]
@@ -28,9 +32,15 @@ const CORE_REALITY_WORDS = [
   "sovereignty",
 ]
 
-export function reflectCoreValues(
-  layers: CompassRecursiveLayer[],
-): CoreValueReflection {
+export function reflectCoreValues({
+  areaResponses,
+  selectedArea,
+  layers,
+}: {
+  areaResponses: CompassAreaResponse[]
+  selectedArea: CompassGoalArea | null
+  layers: CompassRecursiveLayer[]
+}): CoreValueReflection {
   const valueCounts = new Map<string, number>()
 
   for (const layer of layers) {
@@ -48,7 +58,11 @@ export function reflectCoreValues(
   return {
     detectedValues: sortedValues,
     primaryValue,
-    reflection: buildCoreRealityReflection(layers, sortedValues, primaryValue),
+    reflection: buildCompassTrajectoryMirror({
+  areaResponses,
+  selectedArea,
+  recursiveLayers: layers,
+}),
   }
 }
 
@@ -69,13 +83,6 @@ Compass needs your own words before it should say anything back.
 
   const deepestLayers = usableLayers.slice(-3)
 
-  const combinedDeepText = deepestLayers
-    .map((layer) => layer.answer)
-    .join(" ")
-    .toLowerCase()
-
-  const coreMatches = uniqueMatches(combinedDeepText, CORE_REALITY_WORDS)
-
   const strongestLines = deepestLayers
     .map(
       (layer) =>
@@ -83,19 +90,18 @@ Compass needs your own words before it should say anything back.
     )
     .join("\n\n")
 
-  const strongestCore =
-    coreMatches[0] ??
-    values[0] ??
-    primaryValue ??
-    null
+  const combinedDeepText = deepestLayers
+    .map((layer) => layer.answer)
+    .join(" ")
+    .toLowerCase()
 
-  const coreLine = strongestCore
-    ? `The clearest core reality appears to be ${strongestCore}.`
-    : "The core reality has not fully named itself yet."
+  const coreMatches = uniqueMatches(
+    combinedDeepText,
+    CORE_REALITY_WORDS,
+  )
 
-const realityLine = strongestCore
-  ? `Again and again, your answers return to ${strongestCore}.`
-  : "A recurring reality appears to be emerging from your answers."
+  const realityLine =
+  "Something consistent appears throughout your most recent answers."
 
   return `
 A core reality is beginning to take shape.
@@ -104,17 +110,15 @@ Look at what you wrote most recently:
 
 ${strongestLines}
 
-${coreLine}
-
-This does not appear to be only about achieving the original goal.
-
-It appears to be about the reality that goal would make possible.
-
 ${realityLine}
 
-Looking at everything you have written:
+Goals often point toward something deeper than the goal itself.
 
-If more of this reality became available in your life, what would become possible that is not fully possible today?
+The question is not only what you want.
+
+The question is what reality you are trying to build through it.
+
+As more of this reality becomes available in your life, what becomes possible that is difficult, restricted, or unavailable today?
 `.trim()
 }
 

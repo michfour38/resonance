@@ -30,7 +30,7 @@ export function CompassDepthIntro({
   return (
     <CompassCard
       title="The Descent"
-      description={`You have chosen ${selectedAreaLabel}. You have chosen {selectedAreaLabel}. Now Compass begins identifying what matters most beneath the surface of that choice.`}
+      description={`You have chosen ${selectedAreaLabel}. Now Compass begins identifying what matters most beneath the surface of that choice.`}
     >
       <p className={`text-sm leading-relaxed ${BODY_TEXT}`}>
   Over the next seven layers, Compass will approach this goal from several
@@ -101,7 +101,7 @@ export function CompassDepthFlow({
       <textarea
         value={recursiveAnswer}
         onChange={(event) => onAnswerChange(event.target.value)}
-        placeholder="Answer with as much specific reality as you can. Answer with as much specific reality as you can. What exists today, what needs attention, and what would create meaningful movement?"
+        placeholder="Answer with as much specific reality as you can. What exists today, what needs attention, and what would create meaningful movement?"
         rows={7}
         className="compass-textarea"
       />
