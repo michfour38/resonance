@@ -23,26 +23,26 @@ model circle_members {
 }
 
 model compass_sessions {
-  id                 String   @id @default(cuid())
-  user_id            String
-  status             String   @default("active")
+  id      String @id @default(cuid())
+  user_id String
+  status  String @default("active")
 
-  phase              String?
-  selected_area      String?
+  phase         String?
+  selected_area String?
 
-  area_responses     Json?
-  recursive_layers   Json?
-possibility_answers Json?
-  resistance_map     Json?
+  area_responses      Json?
+  recursive_layers    Json?
+  possibility_answers Json?
+  resistance_map      Json?
   discussion_messages Json?
 
-  proposed_step      String?
-  final_step         String?
+  proposed_step String?
+  final_step    String?
 
-  detected_patterns  Json?
+  detected_patterns Json?
 
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([user_id])
   @@index([status])
@@ -354,18 +354,18 @@ model mirror_responses {
 }
 
 model profiles {
-  id                                         String                @id
+  id                                         String                   @id
   display_name                               String
   pathway                                    Pathway
-  worldview_tags                             String[]              @default([])
-  value_themes                               String[]              @default([])
-  journey_status                             JourneyStatus         @default(waiting)
-  onboarding_done                            Boolean               @default(false)
-  is_admin                                   Boolean               @default(false)
+  worldview_tags                             String[]                 @default([])
+  value_themes                               String[]                 @default([])
+  journey_status                             JourneyStatus            @default(waiting)
+  onboarding_done                            Boolean                  @default(false)
+  is_admin                                   Boolean                  @default(false)
   invited_by                                 String?
   timezone                                   String?
-  created_at                                 DateTime              @default(now()) @db.Timestamptz(6)
-  updated_at                                 DateTime              @db.Timestamptz(6)
+  created_at                                 DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                                 DateTime                 @db.Timestamptz(6)
   circle_members                             circle_members[]
   circle_posts                               circle_posts[]
   circle_prompts                             circle_prompts[]
@@ -376,16 +376,18 @@ model profiles {
   mirror_responses                           mirror_responses[]
   notifications                              notifications[]
   post_witnesses                             post_witnesses[]
-  profiles                                   profiles?             @relation("profilesToprofiles", fields: [invited_by], references: [id])
-  other_profiles                             profiles[]            @relation("profilesToprofiles")
+  profiles                                   profiles?                @relation("profilesToprofiles", fields: [invited_by], references: [id])
+  other_profiles                             profiles[]               @relation("profilesToprofiles")
   prompt_analyses                            prompt_analyses[]
   prompt_completions                         prompt_completions[]
   prompt_reactions                           prompt_reactions[]
   reflection_sessions                        reflection_sessions[]
-  reports_reports_reported_user_idToprofiles reports[]             @relation("reports_reported_user_idToprofiles")
-  reports_reports_reporter_idToprofiles      reports[]             @relation("reports_reporter_idToprofiles")
-  reports_reports_reviewed_byToprofiles      reports[]             @relation("reports_reviewed_byToprofiles")
+  reports_reports_reported_user_idToprofiles reports[]                @relation("reports_reported_user_idToprofiles")
+  reports_reports_reporter_idToprofiles      reports[]                @relation("reports_reporter_idToprofiles")
+  reports_reports_reviewed_byToprofiles      reports[]                @relation("reports_reviewed_byToprofiles")
   user_insights                              user_insights[]
+  harmonize_systems                          harmonize_systems[]
+  harmonize_participants                     harmonize_participants[]
 }
 
 model reflection_messages {
@@ -581,6 +583,143 @@ model entry_mirror_outputs {
   @@index([session_id])
 }
 
+model harmonize_systems {
+  id         String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mode       HarmonizeMode
+  name       String?
+  status     HarmonizeSystemStatus @default(active)
+  created_by String
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  profiles     profiles                 @relation(fields: [created_by], references: [id])
+  participants harmonize_participants[]
+  cycles       harmonize_cycles[]
+
+  @@index([mode])
+  @@index([status])
+  @@index([created_by])
+}
+
+model harmonize_participants {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  system_id  String @db.Uuid
+  profile_id String
+
+  role     HarmonizeRole
+  is_minor Boolean       @default(false)
+
+  birthdate            DateTime? @db.Date
+  minor_access_enabled Boolean   @default(false)
+  guardian_verified    Boolean   @default(false)
+
+  active Boolean @default(true)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  systems  harmonize_systems @relation(fields: [system_id], references: [id], onDelete: Cascade)
+  profiles profiles          @relation(fields: [profile_id], references: [id])
+
+  entries harmonize_entries[]
+
+  @@unique([system_id, profile_id])
+  @@index([system_id])
+  @@index([profile_id])
+  @@index([role])
+}
+
+model harmonize_cycles {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  system_id String @db.Uuid
+
+  title  String?
+  status HarmonizeCycleStatus @default(active)
+
+  signal_snapshot  Json @default("{}")
+  pattern_snapshot Json @default("{}")
+  system_snapshot  Json @default("{}")
+
+  started_at  DateTime  @default(now()) @db.Timestamptz(6)
+  reviewed_at DateTime? @db.Timestamptz(6)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @updatedAt @db.Timestamptz(6)
+
+  systems harmonize_systems   @relation(fields: [system_id], references: [id], onDelete: Cascade)
+  entries harmonize_entries[]
+  reviews harmonize_reviews[]
+
+  @@index([system_id])
+  @@index([status])
+}
+
+model harmonize_entries {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cycle_id       String @db.Uuid
+  participant_id String @db.Uuid
+
+  scope   HarmonizeScope
+  content String
+
+  question_key String?
+  phase        String?
+
+  share_risk_level            Int     @default(0)
+  requires_review_before_send Boolean @default(false)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  cycles        harmonize_cycles          @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+  participants  harmonize_participants    @relation(fields: [participant_id], references: [id], onDelete: Cascade)
+  share_reviews harmonize_share_reviews[]
+
+  @@index([cycle_id])
+  @@index([participant_id])
+  @@index([scope])
+}
+
+model harmonize_share_reviews {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entry_id String @db.Uuid
+
+  risk_level Int    @default(0)
+  risk_type  String
+  reason     String
+
+  approved    Boolean   @default(false)
+  reviewed_at DateTime? @db.Timestamptz(6)
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  entries harmonize_entries @relation(fields: [entry_id], references: [id], onDelete: Cascade)
+
+  @@index([entry_id])
+  @@index([risk_type])
+}
+
+model harmonize_reviews {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cycle_id String @db.Uuid
+
+  outcome HarmonizeOutcome
+  summary String?
+
+  same_within_self      String?
+  different_within_self String?
+  different_in_system   String?
+  newly_visible         String?
+  five_percent_practice String?
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  cycles harmonize_cycles @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+
+  @@index([cycle_id])
+  @@index([outcome])
+}
+
 enum AnalysisStatus {
   private
   requested_public
@@ -676,4 +815,49 @@ enum CohortMembershipState {
   ACTIVE
   COMPLETED
   WITHDRAWN
+}
+
+enum HarmonizeMode {
+  couple
+  family_adults
+  team
+  parallel_parenting_adults
+}
+
+enum HarmonizeSystemStatus {
+  active
+  paused
+  completed
+  archived
+}
+
+enum HarmonizeRole {
+  partner
+  parent
+  adult_family_member
+  team_member
+  team_lead
+  child
+}
+
+enum HarmonizeCycleStatus {
+  active
+  paused
+  review_due
+  reviewed
+  incomplete
+}
+
+enum HarmonizeScope {
+  private
+  shared
+  pause
+  system
+}
+
+enum HarmonizeOutcome {
+  integration
+  repetition
+  mimicry
+  incomplete
 }

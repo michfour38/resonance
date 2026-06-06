@@ -1,0 +1,102 @@
+"use client"
+
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+export default function HarmonizeSystemPage({
+  params,
+}: {
+  params: { systemId: string }
+}) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  async function startCycle() {
+    setLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("/api/harmonize/cycle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ systemId: params.systemId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Unable to start cycle")
+      }
+
+      router.push(
+        `/harmonize/system/${params.systemId}/cycle/${data.cycle.id}/private`,
+      )
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong starting the cycle.",
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-[#0b0b0b] text-[#f4f1ea]">
+      <section className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 py-20">
+        <Link href="/harmonize" className="mb-8 text-sm text-[#c6a96b]">
+          ← Harmonize
+        </Link>
+
+        <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[#c6a96b]">
+          Harmonize System
+        </p>
+
+        <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+          Your Harmonize space has been created.
+        </h1>
+
+        <p className="mt-6 text-sm leading-6 text-[#bfb8aa]">
+          System ID: {params.systemId}
+        </p>
+
+        <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+          <h2 className="text-lg font-medium">Next step</h2>
+
+          <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
+            Invite participants or begin private witness.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href={`/harmonize/system/${params.systemId}/invite`}
+              className="inline-flex rounded-full border border-[#c6a96b]/40 px-5 py-2 text-sm font-medium text-[#c6a96b]"
+            >
+              Invite participants
+            </Link>
+
+            <button
+              type="button"
+              onClick={startCycle}
+              disabled={loading}
+              className="inline-flex rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Starting..." : "Start private witness"}
+            </button>
+          </div>
+        </div>
+
+        {error ? (
+          <p className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+            {error}
+          </p>
+        ) : null}
+      </section>
+    </main>
+  )
+}
