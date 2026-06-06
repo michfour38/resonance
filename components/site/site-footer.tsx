@@ -124,6 +124,9 @@ export function SiteFooter() {
               <p className="text-zinc-500">
                 South Africa
               </p>
+              <p className="text-zinc-500">
+                Local is Lekker
+              </p>
             </div>
           </div>
         </div>

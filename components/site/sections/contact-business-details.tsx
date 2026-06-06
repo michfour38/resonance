@@ -27,6 +27,9 @@ export function ContactBusinessDetails() {
                 <p className="mt-2 text-zinc-200">
                   South Africa
                 </p>
+                <p className="text-zinc-500">
+                Local is Lekker
+              </p>
               </div>
 
               <div>
