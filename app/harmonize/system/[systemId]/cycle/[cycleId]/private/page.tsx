@@ -1,6 +1,6 @@
 "use client"
 
-import { getQuestionByKey } from "@/lib/harmonize/questions"
+import { getFirstQuestion } from "@/lib/harmonize/flow"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -21,6 +21,7 @@ export default function HarmonizePrivatePage({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+const firstQuestion = getFirstQuestion()
 
   async function loadEntries() {
     setLoadingEntries(true)
@@ -60,10 +61,12 @@ export default function HarmonizePrivatePage({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          cycleId: params.cycleId,
-          scope: "private",
-          content,
-        }),
+  cycleId: params.cycleId,
+  scope: "private",
+  content,
+  questionKey: "tell_me_what_happened",
+  phase: "witness",
+}),
       })
 
       const data = await response.json()
@@ -120,7 +123,7 @@ export default function HarmonizePrivatePage({
           </p>
 
           <p className="mt-4 text-xl leading-8 text-[#f4f1ea]">
-  {getQuestionByKey("tell_me_what_happened")?.text ?? "Tell me what happened."}
+  {firstQuestion?.text ?? "Tell me what happened."}
 </p>
 
           <textarea
@@ -179,11 +182,11 @@ export default function HarmonizePrivatePage({
         </div>
 
         <Link
-          href={`/harmonize/system/${params.systemId}/cycle/${params.cycleId}/recognition`}
-          className="mt-8 inline-flex w-fit rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black"
-        >
-          Continue to recognition
-        </Link>
+  href={`/harmonize/system/${params.systemId}/cycle/${params.cycleId}/question/what_stayed_with_you`}
+  className="mt-8 inline-flex w-fit rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black"
+>
+  Continue privately
+</Link>
       </section>
     </main>
   )
