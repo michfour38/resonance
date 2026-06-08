@@ -23,20 +23,22 @@ const products = [
     ],
   },
   {
-    name: "Harmonize",
-    active: false,
-    short:
-      "COMING SOON... A relational clarity layer for couples, families, and poly dynamics who want to understand the pattern between them.",
-    action: "Coming soon",
-    full: [
-      "Harmonize is being designed for people who are tired of circling the same conflict without understanding the system underneath it.",
-      "It does not decide who is right. It does not assign blame. It helps people see the pattern that forms between them.",
-      "One person may pursue while the other withdraws. One may explain while the other defends. One may ask for closeness while the other hears pressure.",
-      "Harmonize slows that loop down so people can recognize what they are protecting, what they are needing, and how their responses affect the space between them.",
-      "The focus is not correction. The focus is relational visibility, communication awareness, and alignment.",
-      "Harmonize is for couples, families, and poly dynamics who want to stop fighting the surface and begin understanding the movement underneath.",
-    ],
-  },
+  name: "Harmonize",
+  href: "/harmonize",
+  active: true,
+  short:
+    "A structured relational reflection space that helps people understand the pattern forming between them.",
+  action: "Enter Harmonize",
+  full: [
+    "Most relational conflict repeats because people can feel the tension but cannot see the pattern creating it.",
+    "Harmonize is a structured relational reflection space for couples, families, friendships, business partnerships, and poly dynamics who want to understand what is happening between them.",
+    "It does not decide who is right. It does not assign blame. It slows the interaction down enough for each person to see what they are protecting, what they are needing, and how their responses shape the shared space.",
+    "Private reflection remains private. Shared repair is chosen, not extracted. Each participant decides what they bring forward into the relationship.",
+    "As cycles unfold, Harmonize helps reveal recurring movements: pursuit and withdrawal, explanation and defensiveness, closeness and pressure, rupture and repair.",
+    "The goal is not perfect agreement. The goal is greater visibility, greater ownership, and a more conscious relationship with the pattern forming between people.",
+  ],
+},
+
 {
   name: "The Compass",
   href: "/compass",
