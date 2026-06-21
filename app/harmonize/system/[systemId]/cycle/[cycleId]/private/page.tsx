@@ -1,11 +1,8 @@
 "use client"
 
-import { buildLiveWitnessSessionState } from "@/src/lib/harmonize/witness-live-state"
 import { HarmonizeDrawer } from "@/components/harmonize/harmonize-drawer"
-import { WitnessEmergencePanel } from "@/src/components/harmonize/WitnessEmergencePanel"
 import { cycleStatusMessage } from "@/lib/harmonize/cycle-status"
 import { privateWitnessEngine } from "@/src/lib/harmonize/private-witness-engine"
-import { buildWitnessMeaningPanelModel } from "@/src/lib/harmonize/witness-meaning-panel-model"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -24,22 +21,47 @@ export default function HarmonizePrivatePage({
   const [content, setContent] = useState("")
   const [entries, setEntries] = useState<HarmonizeEntry[]>([])
   const [loadingEntries, setLoadingEntries] = useState(true)
+  const [loadingQuestion, setLoadingQuestion] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
   const [cycleStatus, setCycleStatus] = useState("")
+  const [nextQuestion, setNextQuestion] = useState("")
+const [showWitnessFeedback, setShowWitnessFeedback] = useState(false)
+const [witnessFeedback, setWitnessFeedback] = useState("")
+const [savingFeedback, setSavingFeedback] = useState(false)
 
   const witness = privateWitnessEngine(entries)
 
-  const meaningPanelModel = buildWitnessMeaningPanelModel(
-  buildLiveWitnessSessionState({
-    cycleId: params.cycleId,
-    anchorDefinition: witness.anchorDefinition,
-    strongestSignal: witness.strongestSignal,
-    nextQuestion: witness.nextQuestion,
-    readyForSharedSpace: witness.readyForSharedSpace,
-  }),
-)
+  async function loadWitnessQuestion() {
+    if (loadingQuestion) return
+
+    setLoadingQuestion(true)
+
+    try {
+      const response = await fetch("/api/harmonize/witness-question", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cycleId: params.cycleId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success && data.nextQuestion) {
+        setNextQuestion(data.nextQuestion)
+        return
+      }
+
+      setNextQuestion("")
+    } catch {
+      setNextQuestion("")
+    } finally {
+      setLoadingQuestion(false)
+    }
+  }
 
   async function loadEntries() {
     setLoadingEntries(true)
@@ -76,8 +98,9 @@ export default function HarmonizePrivatePage({
   }
 
   async function saveEntry() {
+    if (saving) return
+
     setSaving(true)
-    setSaved(false)
     setError("")
 
     try {
@@ -91,7 +114,7 @@ export default function HarmonizePrivatePage({
           scope: "private",
           content,
           questionKey: "private_witness",
-          promptText: witness.nextQuestion,
+          promptText: nextQuestion,
           phase: "witness",
         }),
       })
@@ -103,8 +126,8 @@ export default function HarmonizePrivatePage({
       }
 
       setContent("")
-      setSaved(true)
-      await loadEntries()
+setNextQuestion("")
+await loadEntries()
     } catch (err) {
       setError(
         err instanceof Error
@@ -116,10 +139,60 @@ export default function HarmonizePrivatePage({
     }
   }
 
+async function saveWitnessFeedback() {
+  if (!witnessFeedback.trim()) return
+
+  setSavingFeedback(true)
+  setError("")
+
+  try {
+    const latestEntry = entries[entries.length - 1]
+
+    const response = await fetch("/api/harmonize/witness-feedback", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cycleId: params.cycleId,
+        latestAnswer: latestEntry?.content ?? content,
+        witnessReply: nextQuestion,
+        feedback: witnessFeedback,
+        strongestAnchor: witness.anchorDefinition?.anchor ?? null,
+        strongestSignal: witness.strongestSignal?.source ?? null,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Unable to save witness feedback")
+    }
+
+    setWitnessFeedback("")
+    setShowWitnessFeedback(false)
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Something went wrong saving witness feedback.",
+    )
+  } finally {
+    setSavingFeedback(false)
+  }
+}
+
   useEffect(() => {
     loadEntries()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.cycleId])
+
+  useEffect(() => {
+    if (!loadingEntries && entries.length >= 0) {
+      loadWitnessQuestion()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries.length, loadingEntries])
 
   return (
     <main
@@ -180,13 +253,47 @@ export default function HarmonizePrivatePage({
               </div>
             ))}
 
-            <div className="mr-auto max-w-[85%] rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-[#d8d2c6]">
-              {witness.nextQuestion}
-            </div>
-          </div>
+            {nextQuestion ? (
+              <div className="mr-auto max-w-[85%] rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-[#d8d2c6]">
+                {nextQuestion}
+              </div>
+            ) : null}
 
-          <div className="mt-8">
-            <WitnessEmergencePanel model={meaningPanelModel} />
+<button
+  type="button"
+  onClick={() => setShowWitnessFeedback((current) => !current)}
+  className="text-left text-xs text-[#8f8778] underline-offset-4 hover:text-[#c6a96b] hover:underline"
+>
+  The witness missed something
+</button>
+
+{showWitnessFeedback ? (
+  <div className="rounded-2xl border border-[#c6a96b]/20 bg-black/25 p-4">
+    <p className="text-sm leading-6 text-[#d8d2c6]">
+      [Etheric Loop] appears to have lost the thread. Something emerged in your
+      response that it did not know how to hold well. What did it overlook?
+      What felt most alive, most important, or most easily misunderstood? If
+      you were sitting in the witness seat, where would your curiosity have gone
+      next?
+    </p>
+
+    <textarea
+      value={witnessFeedback}
+      onChange={(event) => setWitnessFeedback(event.target.value)}
+      placeholder="Teach Etheric Loop what it missed..."
+      className="mt-4 min-h-[120px] w-full rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-[#f4f1ea] outline-none placeholder:text-[#777] focus:border-[#c6a96b]/60"
+    />
+
+    <button
+      type="button"
+      onClick={saveWitnessFeedback}
+      disabled={savingFeedback || !witnessFeedback.trim()}
+      className="mt-4 rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {savingFeedback ? "Saving..." : "Share insight"}
+    </button>
+  </div>
+) : null}
           </div>
 
           <textarea
@@ -202,29 +309,25 @@ export default function HarmonizePrivatePage({
             </p>
           ) : null}
 
-          <button
-            type="button"
-            onClick={saveEntry}
-            disabled={saving || !content.trim()}
-            className="mt-5 rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? "Saving…" : "Save private entry"}
-          </button>
-
-          {saved ? (
-            <p className="mt-4 text-sm text-[#bfb8aa]">
-              Saved. The witness trail has been updated.
-            </p>
-          ) : null}
-
-          {witness.readyForSharedSpace ? (
-            <Link
-              href={`/harmonize/system/${params.systemId}/cycle/${params.cycleId}/shared`}
-              className="mt-6 inline-flex rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black"
+          <div className="mt-5 flex flex-wrap gap-4">
+            <button
+              type="button"
+              onClick={saveEntry}
+              disabled={saving || !content.trim()}
+              className="rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Enter shared space
-            </Link>
-          ) : null}
+              {saving ? "Saving…" : "Save private entry"}
+            </button>
+
+            {witness.readyForSharedSpace ? (
+              <Link
+                href={`/harmonize/system/${params.systemId}/cycle/${params.cycleId}/shared`}
+                className="inline-flex items-center rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black"
+              >
+                Enter shared space
+              </Link>
+            ) : null}
+          </div>
         </div>
       </section>
     </main>

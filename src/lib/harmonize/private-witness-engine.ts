@@ -7,6 +7,7 @@ import {
 
 type PrivateWitnessEntry = {
   content: string
+  prompt_text?: string | null
 }
 
 type PrivateWitnessEngineResult = {
@@ -15,6 +16,12 @@ type PrivateWitnessEngineResult = {
   anchorDefinition: AnchorDefinition | null
   strongestSignal: WitnessSignal | null
   witnessTrail: string[]
+}
+
+function previousQuestions(entries: PrivateWitnessEntry[]) {
+  return entries
+    .map((entry) => entry.prompt_text ?? "")
+    .filter(Boolean)
 }
 
 function clean(text: string) {
@@ -53,7 +60,12 @@ export function privateWitnessEngine(
     anchorDefinition.confidence >= 0.7
 
   return {
-    nextQuestion: buildWitnessQuestion(anchorDefinition),
+    nextQuestion: buildWitnessQuestion({
+  anchor: anchorDefinition,
+  latestEntry: entries[entries.length - 1]?.content ?? "",
+previousQuestion: entries[entries.length - 1]?.prompt_text ?? null,
+  witnessTrail,
+}),
     readyForSharedSpace: enoughBehavioralDefinition && entries.length >= 4,
     anchorDefinition,
     strongestSignal,

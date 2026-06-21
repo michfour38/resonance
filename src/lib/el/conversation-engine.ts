@@ -48,7 +48,7 @@ export async function runELConversation({
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20250929",
         max_tokens: 650,
         messages: [{ role: "user", content: prompt }],
       }),
@@ -108,6 +108,30 @@ ${product}
 
 Stage:
 ${stage}
+
+${
+  product === "harmonize" && stage === "private_witness"
+    ? `
+PRIVATE WITNESS MODE:
+
+Return only the next witness question.
+
+Do not include recognition text.
+
+Do not repeat the participant's answer.
+
+Do not mirror their wording back as the whole response.
+
+Do not answer their question.
+
+Do not explain.
+
+Ask one question that follows the strongest living signal in the latest answer.
+
+The question must be specific to what changed, contradicted, intensified, or became newly visible in the latest answer.
+`
+    : ""
+}
 
 Your task is to read:
 - the product context

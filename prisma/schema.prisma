@@ -632,8 +632,9 @@ model harmonize_participants {
 }
 
 model harmonize_cycles {
-  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  system_id String @db.Uuid
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  system_id        String             @db.Uuid
+  witness_feedback witness_feedback[]
 
   title  String?
   status HarmonizeCycleStatus @default(active)
@@ -917,4 +918,26 @@ enum HarmonizeOutcome {
   repetition
   mimicry
   incomplete
+}
+
+model witness_feedback {
+  id String @id @default(cuid())
+
+  cycle_id       String @db.Uuid
+  participant_id String @db.Uuid
+
+  latest_answer String  @db.Text
+  witness_reply String? @db.Text
+
+  strongest_anchor String?
+  strongest_signal String?
+
+  feedback String @db.Text
+
+  created_at DateTime @default(now())
+
+  cycle harmonize_cycles @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+
+  @@index([cycle_id])
+  @@index([participant_id])
 }

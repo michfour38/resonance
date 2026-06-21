@@ -10,7 +10,6 @@ export type AnchorType =
 export type AnchorDefinition = {
   anchor: string
   type: AnchorType
-  behavioralQuestion: string
   behavioralMarkers: string[]
   evidence: string[]
   confidence: number
@@ -25,7 +24,6 @@ type AnchorRule = {
     evidence: string
   }>
   behavioralMarkers: string[]
-  behavioralQuestion: string
   baseConfidence: number
 }
 
@@ -79,8 +77,6 @@ const ANCHOR_RULES: AnchorRule[] = [
       "Does not outsource intimacy while maintaining performance with me",
       "Returns to me with reality, not a farce",
     ],
-    behavioralQuestion:
-      "When you imagine being chosen here, what would they have done differently? Not what would they have felt — what would they have done?",
     baseConfidence: 0.72,
   },
   {
@@ -111,9 +107,42 @@ const ANCHOR_RULES: AnchorRule[] = [
       "Responds to what I actually said",
       "Lets my reality affect the conversation",
     ],
-    behavioralQuestion:
-      "If you were being witnessed here, what would they have stayed present for?",
     baseConfidence: 0.64,
+  },
+  {
+    anchor: "Co-regulation",
+    type: "need",
+    signals: [
+      "regulate",
+      "regulated",
+      "co regulate",
+      "co-regulate",
+      "calm",
+      "compassion",
+      "escalate",
+      "escalation",
+    ],
+    evidenceRules: [
+      {
+        pattern: /regulate|regulated/i,
+        evidence: "Regulation appears central.",
+      },
+      {
+        pattern: /compassion/i,
+        evidence: "Compassion becomes possible under different conditions.",
+      },
+      {
+        pattern: /escalate|escalation/i,
+        evidence: "Escalation interrupts connection.",
+      },
+    ],
+    behavioralMarkers: [
+      "Can stay connected during activation",
+      "Can remain compassionate while upset",
+      "Can slow escalation before it compounds",
+      "Can return to regulation together",
+    ],
+    baseConfidence: 0.78,
   },
   {
     anchor: "Emotional outsourcing",
@@ -138,14 +167,19 @@ const ANCHOR_RULES: AnchorRule[] = [
       "Returns without bringing the real conversation back",
       "Lets others witness what the partner is excluded from",
     ],
-    behavioralQuestion:
-      "When they take that emotional truth elsewhere, what never makes it back into the room with you?",
     baseConfidence: 0.68,
   },
   {
     anchor: "Safety through distance",
     type: "behavior",
-    signals: ["message", "text", "not in my face", "calmer", "softer", "distance"],
+    signals: [
+      "message",
+      "text",
+      "not in my face",
+      "calmer",
+      "softer",
+      "distance",
+    ],
     evidenceRules: [
       {
         pattern: /message|text/i,
@@ -170,8 +204,6 @@ const ANCHOR_RULES: AnchorRule[] = [
       "Can access calm when there is distance",
       "May lose softness in direct proximity",
     ],
-    behavioralQuestion:
-      "What becomes possible by message that does not feel possible face-to-face?",
     baseConfidence: 0.7,
   },
   {
@@ -202,8 +234,6 @@ const ANCHOR_RULES: AnchorRule[] = [
       "Brings hidden conversations into shared reality",
       "Lets repair begin from truth instead of image",
     ],
-    behavioralQuestion:
-      "What truth would need to be brought into the room before repair could be real?",
     baseConfidence: 0.66,
   },
 ]
@@ -237,7 +267,6 @@ function buildDefinition(text: string, rule: AnchorRule): AnchorDefinition {
   return {
     anchor: rule.anchor,
     type: rule.type,
-    behavioralQuestion: rule.behavioralQuestion,
     behavioralMarkers: rule.behavioralMarkers,
     evidence: evidence.length > 0 ? evidence : [text],
     confidence: clampConfidence(
@@ -266,20 +295,8 @@ export function defineAnchorFromEntry(entry: string): AnchorDefinition | null {
   return {
     anchor: "Unclear load-bearing meaning",
     type: "meaning",
-    behavioralQuestion:
-      "What would have happened differently if this moment had gone the way your body expected it to?",
     behavioralMarkers: [],
     evidence: [text],
     confidence: 0.35,
   }
-}
-
-export function getNextWitnessQuestion(entry: string): string {
-  const definition = defineAnchorFromEntry(entry)
-
-  if (!definition) {
-    return "What happened?"
-  }
-
-  return definition.behavioralQuestion
 }
