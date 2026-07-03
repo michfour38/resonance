@@ -1,5 +1,6 @@
 "use client"
 
+import MemberNav from "@/app/(member)/member-nav"
 import { HarmonizeDrawer } from "@/components/harmonize/harmonize-drawer"
 import { cycleStatusMessage } from "@/lib/harmonize/cycle-status"
 import { privateWitnessEngine } from "@/src/lib/harmonize/private-witness-engine"
@@ -241,6 +242,9 @@ async function loadConversationTitle() {
   }, [entries.length, currentQuestion, loadingQuestion])
 
   return (
+  <>
+    <MemberNav />
+
     <main
       className="min-h-screen text-[#f4f1ea]"
       style={{
@@ -407,5 +411,6 @@ Your suggestions help improve future conversations.`}
         </div>
       </section>
     </main>
-  )
+</>
+)
 }

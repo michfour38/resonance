@@ -1,5 +1,6 @@
 "use client"
 
+import MemberNav from "@/app/(member)/member-nav"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -126,7 +127,10 @@ export default function HarmonizeSystemPage({
   }
 
   return (
-    <main
+    <>
+  <MemberNav />
+
+  <main
       className="min-h-screen text-[#f4f1ea]"
       style={{
         backgroundImage:
@@ -418,5 +422,6 @@ export default function HarmonizeSystemPage({
         ) : null}
       </section>
     </main>
+</>
   )
 }

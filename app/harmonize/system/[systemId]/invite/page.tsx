@@ -1,5 +1,6 @@
 "use client"
 
+import MemberNav from "@/app/(member)/member-nav"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -159,6 +160,9 @@ async function saveInvites() {
 }
 
   return (
+  <>
+    <MemberNav />
+
     <main
       className="min-h-screen text-[#f4f1ea]"
       style={{
@@ -369,5 +373,6 @@ Shared repair is chosen, not extracted.`}
         </Link>
       </section>
     </main>
+  </>
   )
 }
