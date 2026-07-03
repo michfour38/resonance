@@ -17,13 +17,26 @@ export async function POST(request: Request) {
     const { userId } = auth();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
+  return NextResponse.json(
+    { error: "Unauthorized" },
+    { status: 401 },
+  );
+}
 
-    const body = await request.json();
+await prisma.profiles.upsert({
+  where: {
+    id: userId,
+  },
+  update: {},
+  create: {
+    id: userId,
+    display_name: "Harmonize participant",
+    pathway: "harmonize",
+    updated_at: new Date(),
+  },
+});
+
+const body = await request.json();
 
     if (!ALLOWED_MODES.includes(body.mode)) {
       return NextResponse.json(

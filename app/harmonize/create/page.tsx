@@ -120,24 +120,18 @@ export default function HarmonizeCreatePage() {
       }}
     >
       <section className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 py-20">
-        <Link
-          href={`/harmonize/agreement?mode=${mode}`}
-          className="mb-8 text-sm text-[#c6a96b] hover:underline"
-        >
-          ← Back
-        </Link>
-
+        
         <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[#c6a96b]">
           Harmonize by Oremea
         </p>
 
         <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-          Your {modeLabels[mode]} space
-        </h1>
+  Create your {modeLabels[mode]} container
+</h1>
 
         <p className="mt-6 text-base leading-7 text-[#d8d2c6]">
-          Resume your existing Harmonize container or create a separate
-          container for a different relationship structure.
+          You're about to create a protected Harmonize container.
+Once created, you'll continue directly into your new container.
         </p>
 
         {loadingSystems ? (
