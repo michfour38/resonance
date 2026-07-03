@@ -301,31 +301,6 @@ export default function HarmonizeSystemPage({
               </div>
             </div>
 
-            {memory ? (
-              <div className="mt-8 rounded-3xl border border-[#c6a96b]/30 bg-[#c6a96b]/10 p-6">
-                <h2 className="text-lg font-medium text-[#f4f1ea]">
-                  Container memory
-                </h2>
-
-                <div className="mt-4 grid gap-3 text-sm leading-6 text-[#d8d2c6] md:grid-cols-2">
-                  <p>{memory.totalCycles} conversation(s) started.</p>
-                  <p>{memory.reviewedCycles} conversation(s) reviewed.</p>
-                  <p>
-                    Visible shift appeared in {memory.integrationCycles} reviewed
-                    conversation(s).
-                  </p>
-                  <p>
-                    Repetition appeared in {memory.repetitionCycles} reviewed
-                    conversation(s).
-                  </p>
-                  <p>
-                    Words/behavior gap appeared in {memory.mimicryCycles} reviewed
-                    conversation(s).
-                  </p>
-                </div>
-              </div>
-            ) : null}
-
             <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
               <h2 className="text-lg font-medium text-[#f4f1ea]">
                 Begin a new conversation

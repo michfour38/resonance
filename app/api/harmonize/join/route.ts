@@ -13,8 +13,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+await prisma.profiles.upsert({
+  where: {
+    id: userId,
+  },
+  update: {},
+  create: {
+    id: userId,
+    display_name: "Harmonize participant",
+    pathway: "harmonize",
+    updated_at: new Date(),
+  },
+})
+
     const body = await request.json()
     const systemId = body.systemId
+
+console.log("JOIN BODY:", body)
+console.log("JOIN SYSTEM ID:", systemId)
+console.log("TYPE:", typeof systemId)
 
     if (!systemId) {
       return NextResponse.json({ error: "Missing systemId" }, { status: 400 })
