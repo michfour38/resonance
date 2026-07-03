@@ -21,29 +21,30 @@ export async function GET(request: Request) {
     }
 
     const cycle = await prisma.harmonize_cycles.findUnique({
-      where: { id: cycleId },
-      include: {
-  reviews: {
-    orderBy: {
-      created_at: "desc",
-    },
-    take: 1,
-  },
-  systems: {
-          include: {
-            participants: true,
-          },
-        },
+  where: { id: cycleId },
+  include: {
+    reviews: {
+      orderBy: {
+        created_at: "desc",
       },
-    })
+      take: 1,
+    },
+    participant_labels: true,
+    systems: {
+      include: {
+        participants: true,
+      },
+    },
+  },
+})
 
     if (!cycle) {
       return NextResponse.json({ error: "Cycle not found" }, { status: 404 })
     }
 
-    const participant = cycle.systems.participants.find(
-      (p) => p.profile_id === userId && p.active,
-    )
+const participant = cycle.systems.participants.find(
+  (p) => p.profile_id === userId && p.active,
+)
 
     if (!participant) {
       return NextResponse.json(
@@ -52,11 +53,16 @@ export async function GET(request: Request) {
       )
     }
 
+const participantLabel = cycle.participant_labels.find(
+  (label) => label.participant_id === participant?.id,
+)
+
     return NextResponse.json({
       success: true,
       cycle: {
   id: cycle.id,
   status: cycle.status,
+  displayTitle: participantLabel?.label || "Conversation",
   signalSnapshot: cycle.signal_snapshot,
   patternSnapshot: cycle.pattern_snapshot,
   systemSnapshot: cycle.system_snapshot,

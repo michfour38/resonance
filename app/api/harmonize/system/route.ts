@@ -36,23 +36,20 @@ export async function POST(request: Request) {
   data: {
     mode: body.mode,
     created_by: userId,
+    owner_profile_id: userId,
     status: "active",
     consent_snapshot: body.consentSnapshot || {},
   },
 });
 
     await prisma.harmonize_participants.create({
-      data: {
-        system_id: system.id,
-        profile_id: userId,
-        role:
-          body.mode === "team"
-            ? "team_lead"
-            : body.mode === "parallel_parenting_adults"
-            ? "parent"
-            : "partner",
-      },
-    });
+  data: {
+    system_id: system.id,
+    profile_id: userId,
+    role: "other",
+    relationship_context: null,
+  },
+});
 
     return NextResponse.json({
       success: true,

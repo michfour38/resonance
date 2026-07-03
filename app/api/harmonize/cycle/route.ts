@@ -15,6 +15,10 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const systemId = body.systemId
+    const title =
+      typeof body.title === "string" && body.title.trim()
+        ? body.title.trim()
+        : "Untitled Thread"
 
     if (!systemId) {
       return NextResponse.json({ error: "Missing systemId" }, { status: 400 })
@@ -35,33 +39,21 @@ export async function POST(request: Request) {
       )
     }
 
-    const existingCycle = await prisma.harmonize_cycles.findFirst({
-      where: {
-        system_id: systemId,
-        status: {
-          in: ["active", "paused", "review_due"],
-        },
-      },
-      orderBy: {
-        started_at: "desc",
-      },
-    })
-
-    if (existingCycle) {
-      return NextResponse.json({
-        success: true,
-        cycle: existingCycle,
-        resumed: true,
-      })
-    }
-
     const cycle = await prisma.harmonize_cycles.create({
-      data: {
-        system_id: systemId,
-        status: "active",
-        title: "Harmonize Cycle",
-      },
-    })
+  data: {
+    system_id: systemId,
+    status: "active",
+    title: null,
+  },
+})
+
+await prisma.harmonize_cycle_labels.create({
+  data: {
+    cycle_id: cycle.id,
+    participant_id: participant.id,
+    label: title,
+  },
+})
 
     return NextResponse.json({
       success: true,
@@ -72,7 +64,7 @@ export async function POST(request: Request) {
     console.error("POST /api/harmonize/cycle failed:", error)
 
     return NextResponse.json(
-      { success: false, error: "Failed to create or resume Harmonize cycle" },
+      { success: false, error: "Failed to create Harmonize cycle" },
       { status: 500 },
     )
   }

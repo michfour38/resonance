@@ -33,18 +33,25 @@ export async function GET(request: Request) {
       include: {
         participants: true,
         cycles: {
-          orderBy: {
-            started_at: "desc",
-          },
-          include: {
-            reviews: {
-              orderBy: {
-                created_at: "desc",
-              },
-              take: 1,
-            },
-          },
+  orderBy: {
+    started_at: "desc",
+  },
+  include: {
+    reviews: {
+      orderBy: {
+        created_at: "desc",
+      },
+      take: 1,
+    },
+    participant_labels: {
+      where: {
+        participants: {
+          profile_id: userId,
         },
+      },
+    },
+  },
+},
       },
     })
 
@@ -55,10 +62,69 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      system,
-    })
+const cycles = system.cycles.map((cycle) => {
+  const myLabel = cycle.participant_labels?.[0]?.label
+
+  const participantCount = system.participants.length
+
+  const otherParticipants = 1
+
+  return {
+    ...cycle,
+
+    displayTitle: myLabel || "Conversation",
+
+    hasPrivateWitness: Boolean(myLabel),
+
+    otherParticipants,
+
+    waitingForYou: !myLabel,
+  }
+})
+
+const memory = {
+  totalCycles: system.cycles.length,
+
+  reviewedCycles: system.cycles.filter(
+    (cycle) => cycle.reviews.length > 0,
+  ).length,
+
+  integrationCycles: system.cycles.filter(
+    (cycle) => cycle.reviews?.[0]?.outcome === "integration",
+  ).length,
+
+  repetitionCycles: system.cycles.filter(
+    (cycle) => cycle.reviews?.[0]?.outcome === "repetition",
+  ).length,
+
+  mimicryCycles: system.cycles.filter(
+    (cycle) => cycle.reviews?.[0]?.outcome === "mimicry",
+  ).length,
+}
+
+return NextResponse.json({
+  success: true,
+  system: {
+  ...system,
+
+  participants: system.participants.map((participant) => ({
+    ...participant,
+
+    isOwner:
+      participant.profile_id === system.owner_profile_id,
+
+    displayName:
+  participant.profile_id === userId
+    ? "You"
+    : "Participant",
+
+relationshipContext: participant.relationship_context,
+  })),
+
+  cycles,
+},
+  memory,
+})
   } catch (error) {
     console.error("GET /api/harmonize/system/summary failed:", error)
 

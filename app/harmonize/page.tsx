@@ -4,54 +4,35 @@ import { SiteShell } from "@/components/site/site-shell"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
-const modes = [
-  {
-    key: "couple",
-    title: "Couple",
-    description: "For two adults navigating a relationship pattern together.",
-  },
-  {
-    key: "family_adults",
-    title: "Family Adults",
-    description: "For adult family members navigating recurring family dynamics.",
-  },
-  {
-    key: "team",
-    title: "Team",
-    description: "For teams navigating communication, trust, responsibility, and repair.",
-  },
-  {
-    key: "parallel_parenting_adults",
-    title: "Parallel Parenting Adults",
-    description:
-      "For separated parents who need structure, boundaries, and child-centered coordination without forced emotional exposure.",
-  },
-]
+function modeLabel(mode?: string) {
+  if (mode === "couple") return "Couple"
+  if (mode === "family_adults") return "Family Adults"
+  if (mode === "team") return "Team"
+  if (mode === "parallel_parenting_adults") return "Parallel Parenting Adults"
+  return "Harmonize"
+}
 
 export default function HarmonizePage() {
-  const [existingSystem, setExistingSystem] = useState<any>(null)
-  const [loadingSystem, setLoadingSystem] = useState(true)
-const forceNew = typeof window !== "undefined"
-  ? new URLSearchParams(window.location.search).get("new") === "1"
-  : false
+  const [systems, setSystems] = useState<any[]>([])
+  const [loadingSystems, setLoadingSystems] = useState(true)
 
   useEffect(() => {
-    async function loadExistingSystem() {
+    async function loadSystems() {
       try {
         const response = await fetch("/api/harmonize/systems")
         const data = await response.json()
 
-        if (!forceNew && response.ok && data.success && data.systems?.length) {
-  setExistingSystem(data.systems[0])
-}
+        if (response.ok && data.success) {
+          setSystems(data.systems || [])
+        }
       } catch {
-        // If resume check fails, still allow page to render.
+        // Keep page usable if lookup fails.
       } finally {
-        setLoadingSystem(false)
+        setLoadingSystems(false)
       }
     }
 
-    loadExistingSystem()
+    loadSystems()
   }, [])
 
   return (
@@ -78,82 +59,67 @@ const forceNew = typeof window !== "undefined"
 and parallel parenting relationships who want to understand the pattern forming between them.`}
           </p>
 
-          {loadingSystem ? (
-            <p className="mt-8 text-center text-sm text-[#bfb8aa]">
-              Checking for your Harmonize container...
+          <div className="mx-auto mt-8 max-w-4xl rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+            <h2 className="text-lg font-medium text-[#f4f1ea]">
+              Your Harmonize containers
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-[#bfb8aa]">
+              Keep separate relationship systems in separate containers while
+              Harmonize continues recognizing the wider pattern across time.
             </p>
-          ) : existingSystem ? (
-            <div className="mx-auto mt-8 max-w-3xl rounded-3xl border border-[#c6a96b]/30 bg-[#c6a96b]/10 p-6 text-center">
-              <h2 className="text-lg font-medium text-[#f4f1ea]">
-                Your Harmonize container is ready.
-              </h2>
 
-              <p className="mt-3 text-sm leading-6 text-[#d8d2c6]">
-                One Harmonize container is connected to your account. Resume
-                from where you left off.
+            {loadingSystems ? (
+              <p className="mt-6 text-sm text-[#bfb8aa]">
+                Checking for containers...
               </p>
+            ) : null}
 
-              <Link
-                href={`/harmonize/system/${existingSystem.id}`}
-                className="mt-6 inline-flex rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black transition hover:opacity-90"
-              >
-                Resume container
-              </Link>
-            </div>
-          ) : (
-            <div className="mx-auto mt-6 max-w-4xl rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+            {!loadingSystems && !systems.length ? (
+              <p className="mt-6 text-sm leading-6 text-[#bfb8aa]">
+                No containers yet.
+              </p>
+            ) : null}
 
-<div className="mb-6 rounded-3xl border border-[#c6a96b]/30 bg-[#c6a96b]/10 p-6">
-  <h2 className="text-lg font-medium text-[#f4f1ea]">
-    Harmonize Pricing
-  </h2>
-
-  <div className="mt-4 space-y-3 text-sm leading-6 text-[#d8d2c6]">
-    <p>
-      Harmonize includes <strong>2 participants</strong> at
-      <strong> R1200/month</strong>.
-    </p>
-
-    <p>
-      Additional participants are
-      <strong> R300/month</strong> each.
-    </p>
-
-    <p>
-      Self-serve containers support up to
-      <strong> 10 participants</strong>.
-    </p>
-
-    <p>
-      Larger groups, organizations, schools, communities, and extended
-      family systems can request a custom setup.
-    </p>
-  </div>
-</div>
-
-              <h2 className="text-lg font-medium text-[#f4f1ea]">
-                Choose your container type
-              </h2>
-
+            {systems.length ? (
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {modes.map((mode) => (
+                {systems.map((system) => (
                   <Link
-                    key={mode.key}
-                    href={`/harmonize/start?mode=${mode.key}`}
-                    className="group rounded-2xl border border-white/10 bg-black/20 p-5 transition hover:border-[#c6a96b]/60 hover:bg-[#c6a96b]/10"
+                    key={system.id}
+                    href={`/harmonize/system/${system.id}`}
+                    className="block rounded-2xl border border-white/10 bg-black/20 p-5 transition hover:border-[#c6a96b]/60 hover:bg-[#c6a96b]/10"
                   >
                     <h3 className="text-lg font-medium text-[#f4f1ea]">
-                      {mode.title}
+                      {system.name || modeLabel(system.mode)}
                     </h3>
+
                     <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
-                      {mode.description}
+                      {modeLabel(system.mode)}
                     </p>
-                    <p className="mt-4 text-sm text-[#c6a96b]">Begin →</p>
+
+                    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
+                      Participants: {system.participants?.length || 0}
+                    </p>
+
+                    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
+                      Conversations: {system.cycles?.length || 0}
+                    </p>
+
+                    <p className="mt-4 text-sm text-[#c6a96b]">
+                      Resume container →
+                    </p>
                   </Link>
                 ))}
               </div>
-            </div>
-          )}
+            ) : null}
+
+            <Link
+              href="/harmonize/start"
+              className="mt-8 inline-flex rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-black transition hover:opacity-90"
+            >
+              + Create a Container
+            </Link>
+          </div>
         </section>
       </main>
     </SiteShell>

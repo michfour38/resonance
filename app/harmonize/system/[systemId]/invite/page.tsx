@@ -2,26 +2,62 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+
 const BASE_INCLUDED_PARTICIPANTS = 2
 const BASE_PRICE = 1200
 const EXTRA_PARTICIPANT_PRICE = 300
 const SELF_SERVE_MAX_PARTICIPANTS = 10
+
+const RELATIONSHIP_CONTEXTS = [
+  "Partner",
+  "Co-parent",
+  "Sibling",
+  "Parent",
+  "Adult child",
+  "Friend",
+  "Colleague",
+  "Client",
+  "Other",
+]
+
+type InviteParticipant = {
+  email: string
+  relationshipContext: string
+}
 
 export default function HarmonizeInvitePage({
   params,
 }: {
   params: { systemId: string }
 }) {
-  const [emails, setEmails] = useState<string[]>([""])
+  const [participants, setParticipants] = useState<InviteParticipant[]>([
+    { email: "", relationshipContext: "Partner" },
+  ])
   const [copied, setCopied] = useState("")
   const [error, setError] = useState("")
   const [inviteLink, setInviteLink] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    setInviteLink(
-      `${window.location.origin}/harmonize/join/${params.systemId}`,
-    )
+    setInviteLink(`${window.location.origin}/harmonize/join/${params.systemId}`)
   }, [params.systemId])
+
+  const validParticipants = participants.filter(
+    (participant) =>
+      participant.email.trim() && participant.email.includes("@"),
+  )
+
+  const bccList = validParticipants
+    .map((participant) => participant.email.trim())
+    .join(", ")
+
+  const relationshipLines = validParticipants
+    .map(
+      (participant) =>
+        `${participant.email.trim()} — ${participant.relationshipContext}`,
+    )
+    .join("\n")
 
   const subject = "Invitation to join a Harmonize container"
 
@@ -31,6 +67,9 @@ Harmonize is a structured relational reflection space.
 Private reflections remain private.
 Shared repair is chosen not extracted.
 
+Your relationship context in this container:
+${relationshipLines || "Your role will be confirmed when you join."}
+
 Join here:
 ${inviteLink}
 
@@ -38,26 +77,41 @@ Please create or sign into your Oremea account before joining.
 
 Harmonize by Oremea`
 
+  const totalParticipants = participants.length + 1
+  const extraParticipants = Math.max(
+    0,
+    totalParticipants - BASE_INCLUDED_PARTICIPANTS,
+  )
+  const monthlyPrice =
+    BASE_PRICE + extraParticipants * EXTRA_PARTICIPANT_PRICE
+
+  const overSelfServeLimit =
+    totalParticipants > SELF_SERVE_MAX_PARTICIPANTS
+
   function addParticipant() {
-    setEmails((current) => [...current, ""])
+    setParticipants((current) => [
+      ...current,
+      { email: "", relationshipContext: "Other" },
+    ])
   }
 
   function removeParticipant(index: number) {
-    setEmails((current) => current.filter((_, i) => i !== index))
+    setParticipants((current) => current.filter((_, i) => i !== index))
   }
 
-  function updateEmail(index: number, value: string) {
-    setEmails((current) => {
+  function updateParticipant(
+    index: number,
+    field: keyof InviteParticipant,
+    value: string,
+  ) {
+    setParticipants((current) => {
       const next = [...current]
-      next[index] = value
+      next[index] = {
+        ...next[index],
+        [field]: value,
+      }
       return next
     })
-  }
-
-  function validEmails() {
-    return emails
-      .map((email) => email.trim())
-      .filter((email) => email && email.includes("@"))
   }
 
   async function copyText(label: string, text: string) {
@@ -71,17 +125,38 @@ Harmonize by Oremea`
     }
   }
 
-  const bccList = validEmails().join(", ")
-const totalParticipants = emails.length + 1
-const extraParticipants = Math.max(
-  0,
-  totalParticipants - BASE_INCLUDED_PARTICIPANTS,
-)
-const monthlyPrice =
-  BASE_PRICE + extraParticipants * EXTRA_PARTICIPANT_PRICE
+async function saveInvites() {
+  setError("")
+  setSaved(false)
+  setSaving(true)
 
-const overSelfServeLimit =
-  totalParticipants > SELF_SERVE_MAX_PARTICIPANTS
+  try {
+    const response = await fetch("/api/harmonize/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemId: params.systemId,
+        invites: participants,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unable to save invites.")
+    }
+
+    setSaved(true)
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Unable to save invites.",
+    )
+  } finally {
+    setSaving(false)
+  }
+}
 
   return (
     <main
@@ -99,7 +174,7 @@ const overSelfServeLimit =
           href={`/harmonize/system/${params.systemId}`}
           className="mb-8 text-sm text-[#c6a96b]"
         >
-          ← Back to system
+          ← Back to container
         </Link>
 
         <p className="mb-4 text-xs uppercase tracking-[0.35em] text-[#c6a96b]">
@@ -111,12 +186,11 @@ const overSelfServeLimit =
         </h1>
 
         <p className="mt-6 whitespace-pre-line text-base leading-7 text-[#d8d2c6]">
-          {`Invite participants privately.
+          {`Invite people into this container.
 
-Each participant joins with their own account.
+Relationship context is not hierarchy. It only helps Harmonize understand how this person is connected to the container.
 
 Private reflections remain private.
-
 Shared repair is chosen, not extracted.`}
         </p>
 
@@ -126,7 +200,7 @@ Shared repair is chosen, not extracted.`}
               <p className="text-sm text-[#f4f1ea]">Participants</p>
 
               <p className="mt-1 text-xs text-[#bfb8aa]">
-                Add the people you would like to invite.
+                Add each person and how they are connected to this container.
               </p>
             </div>
 
@@ -139,28 +213,55 @@ Shared repair is chosen, not extracted.`}
             </button>
           </div>
 
-          <div className="mt-6 space-y-4">
-            {emails.map((email, index) => (
-              <div key={index}>
+          <div className="mt-6 space-y-5">
+            {participants.map((participant, index) => (
+              <div
+                key={index}
+                className="rounded-2xl border border-white/10 bg-black/20 p-4"
+              >
                 <label className="block text-sm leading-6 text-[#f4f1ea]">
                   Participant {index + 1} email
                 </label>
 
                 <input
                   type="email"
-                  value={email}
-                  onChange={(event) => updateEmail(index, event.target.value)}
+                  value={participant.email}
+                  onChange={(event) =>
+                    updateParticipant(index, "email", event.target.value)
+                  }
                   placeholder="participant@example.com"
                   className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-[#f4f1ea] outline-none placeholder:text-[#777] focus:border-[#c6a96b]/60"
                 />
 
-                {emails.length > 1 ? (
+                <label className="mt-4 block text-sm leading-6 text-[#f4f1ea]">
+                  Relationship context
+                </label>
+
+                <select
+                  value={participant.relationshipContext}
+                  onChange={(event) =>
+                    updateParticipant(
+                      index,
+                      "relationshipContext",
+                      event.target.value,
+                    )
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-[#f4f1ea] outline-none focus:border-[#c6a96b]/60"
+                >
+                  {RELATIONSHIP_CONTEXTS.map((context) => (
+                    <option key={context} value={context}>
+                      {context}
+                    </option>
+                  ))}
+                </select>
+
+                {participants.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => removeParticipant(index)}
-                    className="mt-2 text-xs text-red-300"
+                    className="mt-3 text-xs text-red-300"
                   >
-                    Remove
+                    Remove participant
                   </button>
                 ) : null}
               </div>
@@ -196,6 +297,14 @@ Shared repair is chosen, not extracted.`}
             </div>
           </div>
 
+          {overSelfServeLimit ? (
+            <p className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+              Self-serve containers support up to{" "}
+              {SELF_SERVE_MAX_PARTICIPANTS} participants. Larger systems need a
+              custom setup.
+            </p>
+          ) : null}
+
           {error ? (
             <p className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
               {error}
@@ -206,7 +315,24 @@ Shared repair is chosen, not extracted.`}
             <p className="mt-4 text-sm text-[#c6a96b]">{copied} copied.</p>
           ) : null}
 
+          <p className="mt-5 text-sm leading-6 text-[#d8d2c6]">
+            Estimated monthly total: R{monthlyPrice}
+          </p>
+
           <div className="mt-6 flex flex-wrap gap-3">
+<button
+  type="button"
+  onClick={saveInvites}
+  disabled={saving || overSelfServeLimit}
+  className="rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black disabled:opacity-50"
+>
+  {saving
+    ? "Saving..."
+    : saved
+      ? "Invites saved"
+      : "Save invites"}
+</button>
+
             <button
               type="button"
               onClick={() => copyText("Subject", subject)}
@@ -225,13 +351,13 @@ Shared repair is chosen, not extracted.`}
             </button>
 
             <button
-  type="button"
-  onClick={() => copyText("Message", body)}
-  disabled={overSelfServeLimit}
-  className="rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black disabled:opacity-50"
->
-  Copy message
-</button>
+              type="button"
+              onClick={() => copyText("Message", body)}
+              disabled={overSelfServeLimit}
+              className="rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black disabled:opacity-50"
+            >
+              Copy message
+            </button>
           </div>
         </div>
 

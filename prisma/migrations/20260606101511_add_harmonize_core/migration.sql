@@ -5,7 +5,7 @@ CREATE TYPE "HarmonizeMode" AS ENUM ('couple', 'family_adults', 'team', 'paralle
 CREATE TYPE "HarmonizeSystemStatus" AS ENUM ('active', 'paused', 'completed', 'archived');
 
 -- CreateEnum
-CREATE TYPE "HarmonizeRole" AS ENUM ('partner', 'parent', 'adult_family_member', 'team_member', 'team_lead', 'child');
+CREATE TYPE "HarmonizeRole" AS ENUM ('partner', 'parent', 'sibling', 'colleague', 'child');
 
 -- CreateEnum
 CREATE TYPE "HarmonizeCycleStatus" AS ENUM ('active', 'paused', 'review_due', 'reviewed', 'incomplete');

@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 
 const agreements = [
   "Private reflections remain private.",
@@ -15,28 +15,39 @@ const agreements = [
 ]
 
 export default function HarmonizeAgreementPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const mode = searchParams.get("mode") || "couple"
 
   const [revealed, setRevealed] = useState(0)
   const [safetyAccepted, setSafetyAccepted] = useState(false)
-const storageKey = `harmonize-agreement-${mode}`
+
+  const storageKey = `harmonize-agreement-${mode}`
 
   const allRevealed = revealed >= agreements.length
   const canContinue = allRevealed && safetyAccepted
 
-useEffect(() => {
-  const savedAgreement = window.localStorage.getItem(storageKey)
+  useEffect(() => {
+    const savedAgreement = window.localStorage.getItem(storageKey)
 
-  if (savedAgreement === "accepted") {
-    setRevealed(agreements.length)
-    setSafetyAccepted(true)
-  }
-}, [storageKey])
+    if (savedAgreement === "accepted") {
+      router.replace(`/harmonize/create?mode=${mode}`)
+    }
+  }, [mode, router, storageKey])
 
   function revealNext() {
     if (revealed < agreements.length) {
-      setRevealed(revealed + 1)
+      setRevealed((current) => current + 1)
+    }
+  }
+
+  function acceptAgreement(checked: boolean) {
+    setSafetyAccepted(checked)
+
+    if (checked) {
+      window.localStorage.setItem(storageKey, "accepted")
+    } else {
+      window.localStorage.removeItem(storageKey)
     }
   }
 
@@ -111,36 +122,27 @@ useEffect(() => {
             </h2>
 
             <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#d8d2c6]">
-{`I understand that by continuing I shall be deemed to have read understood acknowledged and accepted these participation principles
+              {`I understand that by continuing I shall be deemed to have read understood acknowledged and accepted these participation principles
 
 My participation in Harmonize shall constitute my agreement to engage responsibly to respect the privacy of other participants and to enter the process voluntarily`}
-</p>
+            </p>
 
-<p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#d8d2c6]">
-{`Harmonize shall not be used as evidence of fault liability wrongdoing or entitlement by any participant
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#d8d2c6]">
+              {`Harmonize shall not be used as evidence of fault liability wrongdoing or entitlement by any participant
 
 Participants remain solely responsible for their own decisions actions communications and legal obligations`}
-</p>
+            </p>
 
             <label className="mt-5 flex gap-3 text-sm leading-6 text-[#f4f1ea]">
               <input
                 type="checkbox"
                 checked={safetyAccepted}
-                onChange={(event) => {
-  const checked = event.target.checked
-  setSafetyAccepted(checked)
-
-  if (checked) {
-    window.localStorage.setItem(storageKey, "accepted")
-  } else {
-    window.localStorage.removeItem(storageKey)
-  }
-}}
+                onChange={(event) => acceptAgreement(event.target.checked)}
                 className="mt-1"
               />
               <span>
-  I acknowledge and accept these participation principles
-</span>
+                I acknowledge and accept these participation principles
+              </span>
             </label>
           </div>
         ) : null}
@@ -154,7 +156,7 @@ Participants remain solely responsible for their own decisions actions communica
               : "cursor-not-allowed bg-white/10 text-[#777]"
           }`}
         >
-          I acknowledge agree and commit
+          Continue to Harmonize
         </Link>
       </section>
     </main>

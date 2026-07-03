@@ -29,6 +29,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Container not found" }, { status: 404 })
     }
 
+const invite = await prisma.harmonize_invites.findFirst({
+  where: {
+    system_id: systemId,
+    status: "pending",
+  },
+  orderBy: {
+    created_at: "desc",
+  },
+})
+
     const existingParticipant = system.participants.find(
       (participant) => participant.profile_id === userId,
     )
@@ -41,19 +51,26 @@ export async function POST(request: Request) {
     }
 
     const participant = await prisma.harmonize_participants.create({
-      data: {
-        system_id: systemId,
-        profile_id: userId,
-        role:
-          system.mode === "team"
-            ? "team_member"
-            : system.mode === "parallel_parenting_adults"
-              ? "parent"
-              : system.mode === "family_adults"
-                ? "adult_family_member"
-                : "partner",
-      },
-    })
+  data: {
+    system_id: systemId,
+    profile_id: userId,
+    role: "other",
+    relationship_context:
+      invite?.relationship_context ?? null,
+  },
+})
+
+if (invite) {
+  await prisma.harmonize_invites.update({
+    where: {
+      id: invite.id,
+    },
+    data: {
+      status: "accepted",
+      accepted_at: new Date(),
+    },
+  })
+}
 
     return NextResponse.json({
       success: true,

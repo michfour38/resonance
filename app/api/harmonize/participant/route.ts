@@ -8,9 +8,8 @@ export const dynamic = "force-dynamic"
 const ADULT_ROLES = [
   "partner",
   "parent",
-  "adult_family_member",
-  "team_member",
-  "team_lead",
+  "sibling",
+  "colleague",
 ] as const
 
 export async function POST(request: Request) {

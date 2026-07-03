@@ -584,6 +584,7 @@ model entry_mirror_outputs {
 }
 
 model harmonize_systems {
+  owner_profile_id String?
   id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   mode             HarmonizeMode
   name             String?
@@ -597,10 +598,30 @@ model harmonize_systems {
   profiles     profiles                 @relation(fields: [created_by], references: [id])
   participants harmonize_participants[]
   cycles       harmonize_cycles[]
+  invites      harmonize_invites[]
 
   @@index([mode])
   @@index([status])
   @@index([created_by])
+}
+
+model harmonize_invites {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  system_id            String  @db.Uuid
+  email                String
+  relationship_context String?
+
+  status String @default("pending")
+
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  accepted_at DateTime? @db.Timestamptz(6)
+
+  systems harmonize_systems @relation(fields: [system_id], references: [id], onDelete: Cascade)
+
+  @@index([system_id])
+  @@index([email])
+  @@index([status])
 }
 
 model harmonize_participants {
@@ -608,8 +629,9 @@ model harmonize_participants {
   system_id  String @db.Uuid
   profile_id String
 
-  role     HarmonizeRole
-  is_minor Boolean       @default(false)
+  role                 HarmonizeRole
+  relationship_context String?
+  is_minor             Boolean       @default(false)
 
   birthdate            DateTime? @db.Date
   minor_access_enabled Boolean   @default(false)
@@ -623,7 +645,8 @@ model harmonize_participants {
   systems  harmonize_systems @relation(fields: [system_id], references: [id], onDelete: Cascade)
   profiles profiles          @relation(fields: [profile_id], references: [id])
 
-  entries harmonize_entries[]
+  entries      harmonize_entries[]
+  cycle_labels harmonize_cycle_labels[]
 
   @@unique([system_id, profile_id])
   @@index([system_id])
@@ -648,13 +671,33 @@ model harmonize_cycles {
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   updated_at  DateTime  @updatedAt @db.Timestamptz(6)
 
-  systems         harmonize_systems           @relation(fields: [system_id], references: [id], onDelete: Cascade)
-  entries         harmonize_entries[]
-  reviews         harmonize_reviews[]
-  witness_anchors harmonize_witness_anchors[]
+  systems            harmonize_systems           @relation(fields: [system_id], references: [id], onDelete: Cascade)
+  entries            harmonize_entries[]
+  reviews            harmonize_reviews[]
+  witness_anchors    harmonize_witness_anchors[]
+  participant_labels harmonize_cycle_labels[]
 
   @@index([system_id])
   @@index([status])
+}
+
+model harmonize_cycle_labels {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  cycle_id       String @db.Uuid
+  participant_id String @db.Uuid
+
+  label String
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  cycles       harmonize_cycles       @relation(fields: [cycle_id], references: [id], onDelete: Cascade)
+  participants harmonize_participants @relation(fields: [participant_id], references: [id], onDelete: Cascade)
+
+  @@unique([cycle_id, participant_id])
+  @@index([cycle_id])
+  @@index([participant_id])
 }
 
 model harmonize_entries {
@@ -892,10 +935,13 @@ enum HarmonizeSystemStatus {
 enum HarmonizeRole {
   partner
   parent
-  adult_family_member
-  team_member
-  team_lead
   child
+  sibling
+  friend
+  colleague
+  client
+  coach
+  other
 }
 
 enum HarmonizeCycleStatus {
