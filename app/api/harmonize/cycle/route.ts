@@ -39,21 +39,52 @@ export async function POST(request: Request) {
       )
     }
 
-    const cycle = await prisma.harmonize_cycles.create({
-  data: {
-    system_id: systemId,
-    status: "active",
-    title: null,
-  },
-})
+    const waitingCycle = await prisma.harmonize_cycles.findFirst({
+      where: {
+        system_id: systemId,
+        status: "active",
+        participant_labels: {
+          none: {
+            participant_id: participant.id,
+          },
+        },
+      },
+      orderBy: {
+        started_at: "asc",
+      },
+    })
 
-await prisma.harmonize_cycle_labels.create({
-  data: {
-    cycle_id: cycle.id,
-    participant_id: participant.id,
-    label: title,
-  },
-})
+    if (waitingCycle) {
+      await prisma.harmonize_cycle_labels.create({
+        data: {
+          cycle_id: waitingCycle.id,
+          participant_id: participant.id,
+          label: title,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        cycle: waitingCycle,
+        resumed: true,
+      })
+    }
+
+    const cycle = await prisma.harmonize_cycles.create({
+      data: {
+        system_id: systemId,
+        status: "active",
+        title: null,
+      },
+    })
+
+    await prisma.harmonize_cycle_labels.create({
+      data: {
+        cycle_id: cycle.id,
+        participant_id: participant.id,
+        label: title,
+      },
+    })
 
     return NextResponse.json({
       success: true,
