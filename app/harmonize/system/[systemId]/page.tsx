@@ -57,6 +57,7 @@ export default function HarmonizeSystemPage({
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState("")
   const [cycleTitle, setCycleTitle] = useState("")
+  const [showInvitePanel, setShowInvitePanel] = useState(false)
 
 const waitingCycles =
   system?.cycles?.filter(
@@ -219,7 +220,7 @@ const canStartAnotherConversation =
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <h2 className="text-lg font-medium text-[#f4f1ea]">
-                      Who is in this container
+                      Participants
                     </h2>
 
                     <p className="mt-3 text-sm leading-6 text-[#bfb8aa]">
@@ -231,12 +232,13 @@ const canStartAnotherConversation =
                     </p>
                   </div>
 
-                  <Link
-                    href={`/harmonize/system/${params.systemId}/invite`}
-                    className="rounded-full border border-[#c6a96b]/40 px-5 py-2 text-sm font-medium text-[#c6a96b]"
-                  >
-                    Invite participants
-                  </Link>
+                  <button
+  type="button"
+  onClick={() => setShowInvitePanel((value) => !value)}
+  className="rounded-full border border-[#c6a96b]/40 px-5 py-2 text-sm font-medium text-[#c6a96b]"
+>
+  Add participant
+</button>
                 </div>
 
                 <div className="mt-5 space-y-3">
@@ -266,6 +268,26 @@ const canStartAnotherConversation =
                   ))}
                 </div>
               </div>
+
+{showInvitePanel ? (
+  <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+    <p className="text-sm font-medium text-[#f4f1ea]">
+      Add participant
+    </p>
+
+    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
+      Invite another participant into this container.
+      Their Private Witness remains private unless they choose to share it.
+    </p>
+
+    <Link
+      href={`/harmonize/system/${params.systemId}/invite`}
+      className="mt-5 inline-flex rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black"
+    >
+      Continue
+    </Link>
+  </div>
+) : null}
 
               <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
                 <h2 className="text-lg font-medium text-[#f4f1ea]">
