@@ -65,8 +65,7 @@ and parallel parenting relationships who want to understand the pattern forming 
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-[#bfb8aa]">
-              Keep separate relationship systems in separate containers while
-              Harmonize continues recognizing the wider pattern across time.
+              Each container is a separate relationship space. Conversations, participants, and patterns remain together inside the container they belong to.
             </p>
 
             {loadingSystems ? (
@@ -93,21 +92,37 @@ and parallel parenting relationships who want to understand the pattern forming 
                       {system.name || modeLabel(system.mode)}
                     </h3>
 
-                    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
-                      {modeLabel(system.mode)}
-                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+  <div>
+    <p className="text-xs uppercase tracking-[0.2em] text-[#8f8778]">
+      Participants
+    </p>
 
-                    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
-                      Participants: {system.participants?.length || 0}
-                    </p>
+    <p className="mt-1 text-2xl font-semibold text-[#f4f1ea]">
+      {system.participants?.length || 0}
+    </p>
+  </div>
 
-                    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
-                      Conversations: {system.cycles?.length || 0}
-                    </p>
+  <div>
+    <p className="text-xs uppercase tracking-[0.2em] text-[#8f8778]">
+      Conversations
+    </p>
 
-                    <p className="mt-4 text-sm text-[#c6a96b]">
-                      Resume container →
-                    </p>
+    <p className="mt-1 text-2xl font-semibold text-[#f4f1ea]">
+      {system.cycles?.length || 0}
+    </p>
+  </div>
+</div>
+
+                    <div className="mt-6 flex items-center justify-between">
+  <span className="text-sm text-[#bfb8aa]">
+    Continue where you left off
+  </span>
+
+  <span className="text-sm font-medium text-[#c6a96b]">
+    Resume →
+  </span>
+</div>
                   </Link>
                 ))}
               </div>
