@@ -1,6 +1,7 @@
 "use client"
 
 import MemberNav from "@/app/(member)/member-nav"
+import ParticipantForm from "@/components/harmonize/ParticipantForm"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -67,33 +68,33 @@ const waitingCycles =
 const canStartAnotherConversation =
   waitingCycles.length === 0
 
-  useEffect(() => {
-    async function loadSystem() {
-      try {
-        const response = await fetch(
-          `/api/harmonize/system/summary?systemId=${params.systemId}`,
-        )
+async function loadSystem() {
+  try {
+    const response = await fetch(
+      `/api/harmonize/system/summary?systemId=${params.systemId}`,
+    )
 
-        const data = await response.json()
+    const data = await response.json()
 
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || "Unable to load system")
-        }
-
-        setSystem(data.system)
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong loading this container.",
-        )
-      } finally {
-        setLoading(false)
-      }
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Unable to load system")
     }
 
-    loadSystem()
-  }, [params.systemId])
+    setSystem(data.system)
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Something went wrong loading this container.",
+    )
+  } finally {
+    setLoading(false)
+  }
+}
+
+useEffect(() => {
+  loadSystem()
+}, [params.systemId])
 
   async function startCycle() {
     if (starting) return
@@ -270,23 +271,13 @@ const canStartAnotherConversation =
               </div>
 
 {showInvitePanel ? (
-  <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
-    <p className="text-sm font-medium text-[#f4f1ea]">
-      Add participant
-    </p>
-
-    <p className="mt-2 text-sm leading-6 text-[#bfb8aa]">
-      Invite another participant into this container.
-      Their Private Witness remains private unless they choose to share it.
-    </p>
-
-    <Link
-      href={`/harmonize/system/${params.systemId}/invite`}
-      className="mt-5 inline-flex rounded-full bg-[#c6a96b] px-5 py-2 text-sm font-medium text-black"
-    >
-      Continue
-    </Link>
-  </div>
+  <ParticipantForm
+  systemId={params.systemId}
+  onSaved={async () => {
+    setShowInvitePanel(false)
+    await loadSystem()
+  }}
+/>
 ) : null}
 
               <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
