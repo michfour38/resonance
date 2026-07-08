@@ -17,26 +17,13 @@ export async function POST(request: Request) {
     const { userId } = auth();
 
     if (!userId) {
-  return NextResponse.json(
-    { error: "Unauthorized" },
-    { status: 401 },
-  );
-}
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
 
-await prisma.profiles.upsert({
-  where: {
-    id: userId,
-  },
-  update: {},
-  create: {
-    id: userId,
-    display_name: "Harmonize participant",
-    pathway: "harmonize",
-    updated_at: new Date(),
-  },
-});
-
-const body = await request.json();
+    const body = await request.json();
 
     if (!ALLOWED_MODES.includes(body.mode)) {
       return NextResponse.json(
@@ -45,24 +32,41 @@ const body = await request.json();
       );
     }
 
+    await prisma.profiles.upsert({
+      where: {
+        id: userId,
+      },
+      update: {},
+      create: {
+        id: userId,
+        display_name: "Harmonize participant",
+        pathway: "harmonize",
+        updated_at: new Date(),
+      },
+    });
+
     const system = await prisma.harmonize_systems.create({
-  data: {
-    mode: body.mode,
-    created_by: userId,
-    owner_profile_id: userId,
-    status: "active",
-    consent_snapshot: body.consentSnapshot || {},
-  },
-});
+      data: {
+        mode: body.mode,
+        name:
+          typeof body.name === "string" && body.name.trim()
+            ? body.name.trim()
+            : null,
+        created_by: userId,
+        owner_profile_id: userId,
+        status: "active",
+        consent_snapshot: body.consentSnapshot || {},
+      },
+    });
 
     await prisma.harmonize_participants.create({
-  data: {
-    system_id: system.id,
-    profile_id: userId,
-    role: "other",
-    relationship_context: null,
-  },
-});
+      data: {
+        system_id: system.id,
+        profile_id: userId,
+        role: "other",
+        relationship_context: null,
+      },
+    });
 
     return NextResponse.json({
       success: true,
