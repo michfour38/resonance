@@ -372,6 +372,14 @@ Creating the Relationship Space is simply an administrative action and gives no 
       </p>
     </div>
   </div>
+
+<Link
+    href={`/harmonize/system/${params.systemId}/memory`}
+    className="mt-6 inline-flex rounded-full border border-[#c6a96b]/40 px-5 py-2 text-sm font-medium text-[#c6a96b]"
+  >
+    Open Relationship Memory
+  </Link>
+
 </div>
 
               <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
