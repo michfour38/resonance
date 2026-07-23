@@ -73,8 +73,8 @@ export default function OremeaEnterPage() {
         email: signedInEmail,
       });
 
-      if (resume.destination === "journey") {
-        window.location.href = "/journey";
+      if (resume.destination === "resonance") {
+        window.location.href = "/resonance";
         return;
       }
 
