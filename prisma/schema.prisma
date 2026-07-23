@@ -194,7 +194,7 @@ model cohorts {
   journey_progress journey_progress[]
 }
 
-model journey_day_continues {
+model resonance_day_continues {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id      String
   week_number  Int
@@ -205,6 +205,7 @@ model journey_day_continues {
   @@unique([user_id, week_number, day_number])
   @@index([user_id])
   @@index([week_number, day_number])
+  @@map("journey_day_continues")
 }
 
 model inquiry_sessions {
@@ -244,30 +245,32 @@ model journal_entries {
   @@index([user_id, entry_phase])
 }
 
-model journey_weeks {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  room_id      String         @unique @db.Uuid
-  week_number  Int            @unique
-  title        String
-  theme        String
-  is_published Boolean        @default(false)
-  created_at   DateTime       @default(now()) @db.Timestamptz(6)
-  journey_days journey_days[]
-  rooms        rooms          @relation(fields: [room_id], references: [id])
+model resonance_weeks {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  room_id        String           @unique @db.Uuid
+  week_number    Int              @unique
+  title          String
+  theme          String
+  is_published   Boolean          @default(false)
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  resonance_days resonance_days[]
+  rooms          rooms            @relation(fields: [room_id], references: [id])
 
   @@index([week_number])
+  @@map("journey_weeks")
 }
 
-model journey_days {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  week_id       String        @db.Uuid
-  day_number    Int
-  created_at    DateTime      @default(now()) @db.Timestamptz(6)
-  day_prompts   day_prompts[]
-  journey_weeks journey_weeks @relation(fields: [week_id], references: [id])
+model resonance_days {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  week_id         String          @db.Uuid
+  day_number      Int
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  day_prompts     day_prompts[]
+  resonance_weeks resonance_weeks @relation(fields: [week_id], references: [id])
 
   @@unique([week_id, day_number])
   @@index([week_id])
+  @@map("journey_days")
 }
 
 model day_prompts {
@@ -279,7 +282,7 @@ model day_prompts {
   content            String
   is_published       Boolean              @default(true)
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
-  journey_days       journey_days         @relation(fields: [day_id], references: [id])
+  resonance_days     resonance_days       @relation(fields: [day_id], references: [id])
   prompt_completions prompt_completions[]
 
   @@index([day_id, prompt_order])
@@ -449,7 +452,7 @@ model rooms {
   circle_prompts      circle_prompts[]
   journal_entries     journal_entries[]
   journey_progress    journey_progress[]
-  journey_weeks       journey_weeks?
+  resonance_weeks     resonance_weeks?
   reflection_sessions reflection_sessions[]
 }
 
