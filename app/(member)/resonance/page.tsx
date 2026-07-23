@@ -5,8 +5,6 @@ import { getCurrentDayContent } from "@/src/lib/resonance/getCurrentDayContent";
 import { getPromptThread, PromptThreadDTO } from "./resonance.service";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
-import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
-import { getWaveNameVoteCounts } from "@/src/lib/wave/wave-name-vote.service";
 import MemberNav from "../member-nav";
 import { getMirrorAccess } from "@/app/(member)/mirror/mirror-access";
 import MirrorOutput from "../mirror/mirror-output";
@@ -67,14 +65,6 @@ function getResonanceBackgrounds(weekNumber?: number) {
     desktop: desktopMap[key] ?? desktopMap[1],
     mobile: mobileMap[key] ?? mobileMap[1],
   };
-}
-
-function getWinningWaveName(
-  waveNameCounts: Map<string, number>,
-  fallbackWaveName: string
-) {
-  const sorted = Array.from(waveNameCounts.entries()).sort((a, b) => b[1] - a[1]);
-  return sorted[0]?.[0] ?? fallbackWaveName;
 }
 
 // 🔒🔒🔒 TESTING DAY LOCK — REMOVE BEFORE PRODUCTION 🔒🔒🔒
@@ -233,72 +223,13 @@ if (!hasJourneyAccess) {
   redirect("/oremea/enter");
 }
 
-  let displayWaveName = "Your Wave";
-  let waveContext: Awaited<ReturnType<typeof getMemberWaveContext>> | null = null;
-
-  try {
-    waveContext = await getMemberWaveContext(userId);
-
-    if (waveContext?.wave?.id) {
-      const waveNameCounts = await getWaveNameVoteCounts(waveContext.wave.id);
-
-      displayWaveName = getWinningWaveName(
-        waveNameCounts,
-        waveContext.wave.name
-      );
-    }
-  } catch (error) {
-    console.error("Wave context failed:", error);
-  }
-
-  if (!waveContext) {
-    return (
-      <main className="relative min-h-screen overflow-x-hidden text-white">
-        <div
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat md:hidden"
-          style={{ backgroundImage: "url(/images/mobile/bg-hearth.webp)" }}
-        />
-
-        <div
-          className="fixed inset-0 z-0 hidden bg-cover bg-center bg-no-repeat md:block"
-          style={{ backgroundImage: "url(/images/desktop/bg-hearth.webp)" }}
-        />
-
-        <div className="fixed inset-0 z-10 bg-black/55" />
-
-        <div className="relative z-20 min-h-screen">
-          <MemberNav />
-
-          <div className="px-6 py-6">
-            <div className="mx-auto max-w-2xl">
-              <header className="space-y-3">
-                <h1 className="text-4xl text-white">Journey Active</h1>
-                <p className="text-zinc-300">Resonance by Oremea - Journey</p>
-                <p className="text-zinc-400">
-                  Journey content could not be loaded yet.
-                </p>
-              </header>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   const testingOverride = getTestingResonanceOverride();
 
   console.log("TEST LOCK ACTIVE", testingOverride);
 
   const selfPacedPosition = await getSelfPacedResonancePosition(userId);
 
-const progression = testingOverride
-  ? {
-      ...waveContext.progression,
-      phase: testingOverride.phase,
-      weekNumber: testingOverride.weekNumber,
-      dayNumber: testingOverride.dayNumber,
-    }
-  : selfPacedPosition;
+const progression = testingOverride ?? selfPacedPosition;
 
   if (progression.phase === "COMPLETED") {
     const backgrounds = getResonanceBackgrounds(10);
@@ -493,7 +424,7 @@ currentMirror =
                         prompt={prompt}
                         index={index}
                         thread={threadMap.get(prompt.id) ?? null}
-                        currentPathway={waveContext?.membership.pathway ?? "discover"}
+                        currentPathway={pathway}
                       />
                     );
                   })}
