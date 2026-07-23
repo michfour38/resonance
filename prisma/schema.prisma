@@ -483,31 +483,6 @@ model mirror_unlocks {
   @@unique([user_id, week_number, day_number, tier])
 }
 
-model wave_name_votes {
-  id         String   @id @default(uuid())
-  user_id    String
-  cohort_id  String
-  wave_name  String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([user_id, cohort_id])
-  @@index([cohort_id])
-}
-
-model prewave_responses {
-  id             String   @id @default(uuid())
-  user_id        String
-  cohort_id      String
-  question_index Int
-  response       String
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
-
-  @@unique([user_id, cohort_id, question_index])
-  @@index([cohort_id])
-}
-
 model entry_leads {
   id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email                   String                  @unique
