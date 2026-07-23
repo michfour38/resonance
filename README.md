@@ -1,6 +1,6 @@
-# Resonance
+# Oremea
 
-A 10-week guided relational development platform.
+A house of structured reflective products for self-recognition, relational clarity, aligned execution, and intentional connection.
 
 ---
 
@@ -89,7 +89,7 @@ Open [http://localhost:3000](http://localhost:3000). You will be redirected to C
 ## Project structure
 
 ```
-resonance/
+oremea/
 ├── app/
 │   ├── (admin)/            Admin panel (is_admin guard)
 │   ├── (app)/              Main app (auth + onboarding guard)
