@@ -18,9 +18,6 @@ import {
   makeAnalysisPrivateAgain,
 } from "./resonance.service";
 
-import { getMemberWaveContext } from "../../../src/lib/wave/wave.service";
-import { markWaveDayComplete } from "../../../src/lib/wave/wave.completion";
-
 import {
   signalReaction,
   signalAnalyze,
@@ -57,24 +54,6 @@ export async function submitPromptAction(formData: FormData) {
     }
   } catch (error) {
     console.error("Pathway update failed:", error);
-  }
-
-  try {
-    const context = await getMemberWaveContext(userId);
-
-    if (
-      context.progression.phase === "CORE" ||
-      context.progression.phase === "INTEGRATION"
-    ) {
-      await markWaveDayComplete({
-        userId,
-        cohortId: context.wave.id,
-        weekNumber: context.progression.weekNumber!,
-        dayNumber: context.progression.dayNumber!,
-      });
-    }
-  } catch (error) {
-    console.error("Wave completion side effects failed:", error);
   }
 
   try {
