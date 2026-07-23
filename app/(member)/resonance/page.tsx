@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
+import { getCurrentDayContent } from "@/src/lib/resonance/getCurrentDayContent";
 import { getPromptThread, PromptThreadDTO } from "./resonance.service";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
@@ -11,7 +11,7 @@ import MemberNav from "../member-nav";
 import { getMirrorAccess } from "@/app/(member)/mirror/mirror-access";
 import MirrorOutput from "../mirror/mirror-output";
 import { getMirrorHistory } from "../mirror/mirror.service";
-import { continueJourneyDayAction } from "./actions";
+import { continueResonanceDayAction } from "./actions";
 import ContinueDayButton from "./continue-day-button";
 import AutoScrollToMirror from "./auto-scroll-to-mirror";
 
@@ -34,7 +34,7 @@ async function getSignedInEmail() {
   return normalizeEmail(primaryEmail);
 }
 
-function getJourneyBackgrounds(weekNumber?: number) {
+function getResonanceBackgrounds(weekNumber?: number) {
   const desktopMap: Record<number, string> = {
     1: "/images/desktop/bg-hearth.webp",
     2: "/images/desktop/bg-mirror.webp",
@@ -94,7 +94,7 @@ function getTestingJourneyOverride() {
   };
 }
 
-async function getSelfPacedJourneyPosition(userId: string) {
+async function getSelfPacedResonancePosition(userId: string) {
   const weeks = await prisma.journey_weeks.findMany({
     where: { is_published: true },
     orderBy: { week_number: "asc" },
@@ -159,7 +159,7 @@ const allDone = allPromptsDone && Boolean(continued);
   };
 }
 
-export default async function JourneyPage({
+export default async function ResonancePage({
   searchParams,
 }: {
   searchParams?: {
@@ -293,7 +293,7 @@ if (!hasJourneyAccess) {
 
   console.log("TEST LOCK ACTIVE", testingOverride);
 
-  const selfPacedPosition = await getSelfPacedJourneyPosition(userId);
+  const selfPacedPosition = await getSelfPacedResonancePosition(userId);
 
 const progression = testingOverride
   ? {
@@ -305,7 +305,7 @@ const progression = testingOverride
   : selfPacedPosition;
 
   if (progression.phase === "COMPLETED") {
-    const backgrounds = getJourneyBackgrounds(10);
+    const backgrounds = getResonanceBackgrounds(10);
 
     return (
       <main className="relative min-h-screen overflow-x-hidden text-white">
@@ -358,7 +358,7 @@ const progression = testingOverride
     console.error("Journey content failed to load:", error);
   }
 
-  const backgrounds = getJourneyBackgrounds(
+  const backgrounds = getResonanceBackgrounds(
     content?.weekNumber ?? progression.weekNumber ?? 1
   );
 
@@ -522,7 +522,7 @@ currentMirror =
 
 {content.prompts.every((prompt) => prompt.isCompleted) &&
 currentMirror ? (
-  <form action={continueJourneyDayAction} className="mt-6 flex justify-end">
+  <form action={continueResonanceDayAction} className="mt-6 flex justify-end">
     <input type="hidden" name="weekNumber" value={content.weekNumber} />
     <input type="hidden" name="dayNumber" value={content.dayNumber} />
 
