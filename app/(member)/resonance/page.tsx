@@ -91,11 +91,11 @@ function getTestingResonanceOverride() {
 }
 
 async function getSelfPacedResonancePosition(userId: string) {
-  const weeks = await prisma.journey_weeks.findMany({
+  const weeks = await prisma.resonance_weeks.findMany({
     where: { is_published: true },
     orderBy: { week_number: "asc" },
     include: {
-      journey_days: {
+      resonance_days: {
         orderBy: { day_number: "asc" },
         include: {
           day_prompts: {
@@ -114,7 +114,7 @@ async function getSelfPacedResonancePosition(userId: string) {
   });
 
   for (const week of weeks) {
-    for (const day of week.journey_days) {
+    for (const day of week.resonance_days) {
       const prompts = day.day_prompts;
 
       if (prompts.length === 0) continue;
@@ -123,7 +123,7 @@ const allPromptsDone = prompts.every(
   (prompt) => prompt.prompt_completions.length > 0
 );
 
-const continued = await prisma.journey_day_continues.findUnique({
+const continued = await prisma.resonance_day_continues.findUnique({
   where: {
     user_id_week_number_day_number: {
       user_id: userId,
