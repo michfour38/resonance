@@ -82,13 +82,13 @@ export async function getCurrentDayContent({
   dayNumber,
   userId,
 }: CurrentDayContentParams): Promise<CurrentDayContentResult> {
-  const week = await prisma.journey_weeks.findFirst({
+  const week = await prisma.resonance_weeks.findFirst({
     where: {
       week_number: weekNumber,
       is_published: true,
     },
     include: {
-      journey_days: {
+      resonance_days: {
         where: {
           day_number: dayNumber,
         },
@@ -125,7 +125,7 @@ export async function getCurrentDayContent({
     },
   });
 
-  if (!week || week.journey_days.length === 0) {
+  if (!week || week.resonance_days.length === 0) {
     return {
       title: "No content available",
       prompt: "This day has not been configured yet.",
@@ -140,7 +140,7 @@ export async function getCurrentDayContent({
     };
   }
 
-  const day = week.journey_days[0];
+  const day = week.resonance_days[0];
 
   const prompts: ResonancePromptDTO[] = (day.day_prompts as DayPromptRow[]).map(
     (prompt) => {
