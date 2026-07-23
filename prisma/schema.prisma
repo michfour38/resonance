@@ -336,7 +336,6 @@ model profiles {
   pathway                                    Pathway
   worldview_tags                             String[]                 @default([])
   value_themes                               String[]                 @default([])
-  journey_status                             JourneyStatus            @default(waiting)
   onboarding_done                            Boolean                  @default(false)
   is_admin                                   Boolean                  @default(false)
   invited_by                                 String?
@@ -464,13 +463,12 @@ model entry_leads {
   last_seen_panel_key     String?
   last_seen_panel_at      DateTime?               @db.Timestamptz(6)
   intro_completed_at      DateTime?               @db.Timestamptz(6)
-  entered_journey_at      DateTime?               @db.Timestamptz(6)
   created_at              DateTime                @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                @updatedAt @db.Timestamptz(6)
   entry_paid_at           DateTime?               @db.Timestamptz(6)
   entry_access_expires_at DateTime?               @db.Timestamptz(6)
-  journey_paid_at         DateTime?               @db.Timestamptz(6)
-  journey_access_granted  Boolean                 @default(false)
+  resonance_paid_at       DateTime?               @map("journey_paid_at") @db.Timestamptz(6)
+  resonance_access_granted Boolean                @default(false) @map("journey_access_granted")
   entry_mirror_sessions   entry_mirror_sessions[]
 
   @@index([email])
@@ -802,13 +800,6 @@ enum InsightStatus {
   locked
   discoverable
   unlocked
-}
-
-enum JourneyStatus {
-  waiting
-  active
-  completed
-  withdrawn
 }
 
 enum MemberStatus {
