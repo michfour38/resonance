@@ -84,8 +84,8 @@ export async function submitPromptAction(formData: FormData) {
     console.error("Signal side effects failed:", error);
   }
 
-  revalidatePath("/journey");
-  redirect("/journey");
+  revalidatePath("/resonance");
+  redirect("/resonance");
 }
 
 export async function toggleWitnessAction(formData: FormData) {
@@ -98,7 +98,7 @@ export async function toggleWitnessAction(formData: FormData) {
   await toggleWitness(completionId, userId);
   signalReaction(userId, completionId, "witness");
 
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function toggleResonatedAction(formData: FormData) {
@@ -111,7 +111,7 @@ export async function toggleResonatedAction(formData: FormData) {
   await toggleResonated(completionId, userId);
   signalReaction(userId, completionId, "resonated");
 
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function submitAnalysisAction(formData: FormData) {
@@ -126,7 +126,7 @@ export async function submitAnalysisAction(formData: FormData) {
   await upsertAnalysis(completionId, userId, content);
   signalAnalyze(userId, completionId);
 
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function requestAnalysisPublicAction(formData: FormData) {
@@ -137,7 +137,7 @@ export async function requestAnalysisPublicAction(formData: FormData) {
   if (!analysisId) return;
 
   await requestAnalysisPublic(analysisId, userId);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function withdrawAnalysisPublicRequestAction(formData: FormData) {
@@ -148,7 +148,7 @@ export async function withdrawAnalysisPublicRequestAction(formData: FormData) {
   if (!analysisId) return;
 
   await withdrawAnalysisPublicRequest(analysisId, userId);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function approveAnalysisPublicAction(formData: FormData) {
@@ -159,7 +159,7 @@ export async function approveAnalysisPublicAction(formData: FormData) {
   if (!analysisId) return;
 
   await approveAnalysisPublic(analysisId, userId);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function declineAnalysisPublicAction(formData: FormData) {
@@ -170,7 +170,7 @@ export async function declineAnalysisPublicAction(formData: FormData) {
   if (!analysisId) return;
 
   await declineAnalysisPublic(analysisId, userId);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function makeAnalysisPrivateAgainAction(formData: FormData) {
@@ -181,7 +181,7 @@ export async function makeAnalysisPrivateAgainAction(formData: FormData) {
   if (!analysisId) return;
 
   await makeAnalysisPrivateAgain(analysisId, userId);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function updatePathwayAction(formData: FormData) {
@@ -197,7 +197,7 @@ export async function updatePathwayAction(formData: FormData) {
     data: { pathway },
   });
 
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }
 
 export async function continueJourneyDayAction(formData: FormData) {
@@ -227,6 +227,6 @@ export async function continueJourneyDayAction(formData: FormData) {
     },
   });
 
-  revalidatePath("/journey");
-  redirect("/journey");
+  revalidatePath("/resonance");
+  redirect("/resonance");
 }
