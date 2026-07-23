@@ -85,10 +85,10 @@
       ]
     },
     {
-      "slug": "compass",
-      "name": "The Compass",
+      "slug": "bearing",
+      "name": "The Bearing",
       "weekNumber": 4,
-      "theme": "Values and direction",
+      "theme": "Values and alignment",
       "isIntegration": false,
       "openingCopy": "Our values are the invisible architecture behind our choices. This week we make them visible — and explore how they shape who we want to be in relationship.",
       "weeklyFocus": "When your values and your behaviour are misaligned, what does that feel like — and what does it cost you?",
