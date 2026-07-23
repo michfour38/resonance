@@ -173,8 +173,8 @@ if (shouldActivateMirror) {
     where: { email: signedInEmail },
     data: {
       pathway: "relate",
-      journey_access_granted: true,
-      journey_paid_at: new Date(),
+      resonance_access_granted: true,
+      resonance_paid_at: new Date(),
     },
   });
 }
@@ -200,26 +200,25 @@ await prisma.profiles.upsert({
     id: userId,
     display_name: signedInEmail.split("@")[0],
     pathway,
-    journey_status: "active",
     updated_at: new Date(),
   },
 });
-  const journeyAccess = await prisma.entry_leads.findUnique({
+  const resonanceAccess = await prisma.entry_leads.findUnique({
   where: { email: signedInEmail },
   select: {
-    journey_access_granted: true,
+    resonance_access_granted: true,
     entry_access_expires_at: true,
   },
 });
 
 const hasEntryAccess =
-  journeyAccess?.entry_access_expires_at &&
-  journeyAccess.entry_access_expires_at.getTime() > Date.now();
+  resonanceAccess?.entry_access_expires_at &&
+  resonanceAccess.entry_access_expires_at.getTime() > Date.now();
 
-const hasJourneyAccess =
-  Boolean(journeyAccess?.journey_access_granted) || Boolean(hasEntryAccess);
+const hasResonanceAccess =
+  Boolean(resonanceAccess?.resonance_access_granted) || Boolean(hasEntryAccess);
 
-if (!hasJourneyAccess) {
+if (!hasResonanceAccess) {
   redirect("/oremea/enter");
 }
 
