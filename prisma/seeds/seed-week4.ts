@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export async function seedWeek4() {
   const room = await prisma.rooms.findUnique({
-    where: { slug: "compass" },
+    where: { slug: "bearing" },
     select: {
       id: true,
       slug: true,
@@ -15,7 +15,7 @@ export async function seedWeek4() {
 
   if (!room) {
     throw new Error(
-      'Room "compass" not found. Run seed-rooms.ts before seed-week4.ts.'
+      'Room "bearing" not found. Run seed-rooms.ts before seed-week4.ts.'
     );
   }
 
@@ -25,15 +25,15 @@ export async function seedWeek4() {
     },
     update: {
       room_id: room.id,
-      title: "The Compass",
-      theme: "Values & direction",
+      title: "The Bearing",
+      theme: "Values & alignment",
       is_published: true,
     },
     create: {
       room_id: room.id,
       week_number: 4,
-      title: "The Compass",
-      theme: "Values & direction",
+      title: "The Bearing",
+      theme: "Values & alignment",
       is_published: true,
     },
   });
@@ -85,7 +85,7 @@ export async function seedWeek4() {
         { prompt_order: 1, type: "thread_prompt", label: "", content: "What helps you recognise when something is deeply right for you, not just exciting or familiar?" },
         { prompt_order: 2, type: "thread_prompt", label: "", content: "How do you tell the difference between a true yes and a hopeful yes?" },
         { prompt_order: 3, type: "thread_prompt", label: "", content: "When have you overridden your own knowing in relationship, and why?" },
-        { prompt_order: 4, type: "thread_prompt", label: "", content: "What would trusting your own inner compass require from you right now?" },
+        { prompt_order: 4, type: "thread_prompt", label: "", content: "What would trusting your own inner bearing require from you right now?" },
         { prompt_order: 5, type: "mirror_exercise", label: "", content: "When something is truly aligned for me, I usually notice…" },
       ],
     },
@@ -106,7 +106,7 @@ export async function seedWeek4() {
         { prompt_order: 2, type: "thread_prompt", label: "", content: "Where do you feel clearer than you did before?" },
         { prompt_order: 3, type: "thread_prompt", label: "", content: "What has become harder to ignore about your direction in relationship?" },
         { prompt_order: 4, type: "thread_prompt", label: "", content: "What would choosing alignment more honestly look like from here?" },
-        { prompt_order: 5, type: "mirror_exercise", label: "", content: "This week, my inner compass showed me…" },
+        { prompt_order: 5, type: "mirror_exercise", label: "", content: "This week, my bearing showed me…" },
       ],
     },
   ] as const;
