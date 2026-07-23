@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   getEntryResumeState,
-  grantJourneyAccess,
+  grantResonanceAccess,
   markIntroCompleted,
 } from "../enter/actions";
 
@@ -103,7 +103,7 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
 
     async function resolveAccess() {
       if (paymentSuccess) {
-        const access = await grantJourneyAccess({
+        const access = await grantResonanceAccess({
           email: signedInEmail,
         });
 
@@ -136,8 +136,8 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
 
       if (cancelled) return;
 
-      if (resume.destination === "journey") {
-        window.location.href = "/journey";
+      if (resume.destination === "resonance") {
+        window.location.href = "/resonance";
         return;
       }
 
@@ -221,7 +221,7 @@ This is the beginning point Resonance will carry forward.`;
     email: signedInEmail,
   });
 
-  window.location.href = "/journey";
+  window.location.href = "/resonance";
 }
 
   const panels = [
@@ -317,7 +317,7 @@ What is actually there.`}
 
         {accessResolved && !hasAccess ? (
           <p className="text-sm leading-7 text-white/60">
-            Your payment has returned, but journey access has not attached yet.
+            Your payment has returned, but Resonance access has not attached yet.
             Stay on this page for now — do not repay.
           </p>
         ) : null}
