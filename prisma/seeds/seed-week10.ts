@@ -20,7 +20,7 @@ export async function seedWeek10() {
     },
   });
 
-  const week = await prisma.journey_weeks.upsert({
+  const week = await prisma.resonance_weeks.upsert({
     where: {
       week_number: 10,
     },
@@ -113,7 +113,7 @@ export async function seedWeek10() {
   ] as const;
 
   for (const day of days) {
-    const createdDay = await prisma.journey_days.upsert({
+    const createdDay = await prisma.resonance_days.upsert({
       where: {
         week_id_day_number: {
           week_id: week.id,
