@@ -96,7 +96,6 @@ model circle_posts {
   id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   circle_id          String           @db.Uuid
   user_id            String
-  room_id            String?          @db.Uuid
   prompt_id          String?          @db.Uuid
   parent_id          String?          @db.Uuid
   content            String
@@ -110,7 +109,6 @@ model circle_posts {
   circle_posts       circle_posts?    @relation("circle_postsTocircle_posts", fields: [parent_id], references: [id])
   other_circle_posts circle_posts[]   @relation("circle_postsTocircle_posts")
   circle_prompts     circle_prompts?  @relation(fields: [prompt_id], references: [id])
-  rooms              rooms?           @relation(fields: [room_id], references: [id])
   profiles           profiles         @relation(fields: [user_id], references: [id])
   post_witnesses     post_witnesses[]
   reports            reports[]
@@ -134,7 +132,6 @@ model post_witnesses {
 model circle_prompts {
   id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   circle_id    String         @db.Uuid
-  room_id      String?        @db.Uuid
   author_id    String
   content      String
   is_intro     Boolean        @default(false)
@@ -143,7 +140,6 @@ model circle_prompts {
   circle_posts circle_posts[]
   profiles     profiles       @relation(fields: [author_id], references: [id])
   circles      circles        @relation(fields: [circle_id], references: [id])
-  rooms        rooms?         @relation(fields: [room_id], references: [id])
 
   @@index([circle_id])
 }
@@ -182,7 +178,6 @@ model cohort_members {
 model cohorts {
   id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name             String
-  pathway          Pathway?
   start_at         DateTime           @db.Timestamptz(6)
   status           CohortStatus       @default(draft)
   max_members      Int?
@@ -426,8 +421,6 @@ model rooms {
   week_number         Int
   theme               String
   is_integration      Boolean               @default(false)
-  circle_posts        circle_posts[]
-  circle_prompts      circle_prompts[]
   journal_entries     journal_entries[]
   resonance_weeks     resonance_weeks?
   reflection_sessions reflection_sessions[]
