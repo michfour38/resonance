@@ -191,7 +191,6 @@ model cohorts {
   timezone         String             @default("Africa/Johannesburg")
   circles          circles[]
   cohort_members   cohort_members[]
-  journey_progress journey_progress[]
 }
 
 model resonance_day_continues {
@@ -306,26 +305,6 @@ model prompt_completions {
   @@index([user_id])
 }
 
-model journey_progress {
-  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String
-  cohort_id           String         @db.Uuid
-  room_id             String         @db.Uuid
-  status              ProgressStatus @default(locked)
-  scheduled_unlock_at DateTime       @db.Timestamptz(6)
-  unlocked_at         DateTime?      @db.Timestamptz(6)
-  completed_at        DateTime?      @db.Timestamptz(6)
-  admin_override      Boolean        @default(false)
-  cohorts             cohorts        @relation(fields: [cohort_id], references: [id])
-  rooms               rooms          @relation(fields: [room_id], references: [id])
-  profiles            profiles       @relation(fields: [user_id], references: [id])
-
-  @@unique([user_id, cohort_id, room_id])
-  @@index([cohort_id])
-  @@index([scheduled_unlock_at])
-  @@index([user_id])
-}
-
 model notifications {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id    String
@@ -375,7 +354,6 @@ model profiles {
   circles                                    circles[]
   cohort_members                             cohort_members[]
   journal_entries                            journal_entries[]
-  journey_progress                           journey_progress[]
   mirror_responses                           mirror_responses[]
   notifications                              notifications[]
   post_witnesses                             post_witnesses[]
@@ -451,7 +429,6 @@ model rooms {
   circle_posts        circle_posts[]
   circle_prompts      circle_prompts[]
   journal_entries     journal_entries[]
-  journey_progress    journey_progress[]
   resonance_weeks     resonance_weeks?
   reflection_sessions reflection_sessions[]
 }
@@ -857,12 +834,6 @@ enum Pathway {
   discover
   relate
   harmonize
-}
-
-enum ProgressStatus {
-  locked
-  active
-  completed
 }
 
 enum PromptType {
