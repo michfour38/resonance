@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
 
 export default async function ResonanceLayout({
   children,
@@ -11,15 +10,6 @@ export default async function ResonanceLayout({
 
   if (!userId) {
     redirect("/sign-in");
-  }
-
-  const profile = await prisma.profiles.findUnique({
-    where: { id: userId },
-    select: { onboarding_done: true },
-  });
-
-  if (!profile || !profile.onboarding_done) {
-    redirect("/onboarding/welcome");
   }
 
   return (
