@@ -2,7 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentDayContent } from "@/src/lib/journey/getCurrentDayContent";
-import { getPromptThread, PromptThreadDTO } from "./journey.service";
+import { getPromptThread, PromptThreadDTO } from "./resonance.service";
 import PromptCard from "./prompt-card";
 import MirrorCard from "./mirror-card";
 import { getMemberWaveContext } from "@/src/lib/wave/wave.service";
