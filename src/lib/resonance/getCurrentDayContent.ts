@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export type PromptType = "thread_prompt" | "mirror_exercise";
 
-export type JourneyPromptDTO = {
+export type ResonancePromptDTO = {
   id: string;
   type: PromptType;
   promptOrder: number;
@@ -28,7 +28,7 @@ export type CurrentDayContentParams = {
 export type CurrentDayContentResult = {
   title: string;
   prompt: string;
-  prompts: JourneyPromptDTO[];
+  prompts: ResonancePromptDTO[];
   weekId: string | null;
   weekNumber: number;
   weekTitle: string;
@@ -62,7 +62,7 @@ function isWithinEditWindow(createdAt: Date | null | undefined): boolean {
   return Date.now() - createdAt.getTime() <= EDIT_WINDOW_MS;
 }
 
-function applyGating(prompts: JourneyPromptDTO[]): JourneyPromptDTO[] {
+function applyGating(prompts: ResonancePromptDTO[]): ResonancePromptDTO[] {
   let lastThreadCompleted = true;
 
   return prompts.map((prompt) => {
@@ -142,7 +142,7 @@ export async function getCurrentDayContent({
 
   const day = week.journey_days[0];
 
-  const prompts: JourneyPromptDTO[] = (day.day_prompts as DayPromptRow[]).map(
+  const prompts: ResonancePromptDTO[] = (day.day_prompts as DayPromptRow[]).map(
     (prompt) => {
       const completion = userId
         ? prompt.prompt_completions?.[0] ?? null

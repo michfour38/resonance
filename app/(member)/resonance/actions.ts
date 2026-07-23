@@ -200,7 +200,7 @@ export async function updatePathwayAction(formData: FormData) {
   revalidatePath("/resonance");
 }
 
-export async function continueJourneyDayAction(formData: FormData) {
+export async function continueResonanceDayAction(formData: FormData) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
