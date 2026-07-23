@@ -77,12 +77,8 @@ function getWinningWaveName(
   return sorted[0]?.[0] ?? fallbackWaveName;
 }
 
-function isJourneyMirrorUpsellEligible(weekNumber: number, dayNumber: number) {
-  return weekNumber > 1 || dayNumber >= 2;
-}
-
 // 🔒🔒🔒 TESTING DAY LOCK — REMOVE BEFORE PRODUCTION 🔒🔒🔒
-function getTestingJourneyOverride() {
+function getTestingResonanceOverride() {
   const enabled = false;
 
   if (!enabled) return null;
@@ -289,7 +285,7 @@ if (!hasJourneyAccess) {
     );
   }
 
-  const testingOverride = getTestingJourneyOverride();
+  const testingOverride = getTestingResonanceOverride();
 
   console.log("TEST LOCK ACTIVE", testingOverride);
 
@@ -343,12 +339,12 @@ const progression = testingOverride
   let content: Awaited<ReturnType<typeof getCurrentDayContent>> | null = null;
   let contentLoadFailed = false;
 
-  const journeyPhase =
+  const resonancePhase =
     progression.phase === "INTEGRATION" ? "INTEGRATION" : "CORE";
 
   try {
     content = await getCurrentDayContent({
-      phase: journeyPhase,
+      phase: resonancePhase,
       weekNumber: progression.weekNumber!,
       dayNumber: progression.dayNumber!,
       userId,
