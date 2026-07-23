@@ -209,7 +209,7 @@ export async function continueResonanceDayAction(formData: FormData) {
 
   if (!weekNumber || !dayNumber) return;
 
-  await prisma.journey_day_continues.upsert({
+  await prisma.resonance_day_continues.upsert({
     where: {
       user_id_week_number_day_number: {
         user_id: userId,
