@@ -18,19 +18,19 @@ export async function GET(request: Request) {
       await prisma.entry_leads.upsert({
   where: { email },
   update: {
-    journey_paid_at: new Date(),
-    journey_access_granted: true,
+    resonance_paid_at: new Date(),
+    resonance_access_granted: true,
     pathway: plan === "mirror" ? "relate" : "discover",
   },
   create: {
     email,
-    journey_paid_at: new Date(),
-    journey_access_granted: true,
+    resonance_paid_at: new Date(),
+    resonance_access_granted: true,
     pathway: plan === "mirror" ? "relate" : "discover",
   },
 });
     } catch (error) {
-      console.error("Journey access grant failed:", error);
+      console.error("Resonance access grant failed:", error);
     }
   }
 

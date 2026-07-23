@@ -47,7 +47,7 @@ export async function upsertEntryLead(input: UpsertEntryLeadInput) {
   });
 }
 
-export async function grantJourneyAccess(input?: { email?: string; plan?: string }) {
+export async function grantResonanceAccess(input?: { email?: string; plan?: string }) {
   const fallbackEmail = normalizeEmail(input?.email);
   const signedInEmail = await getSignedInEmail();
 
@@ -66,14 +66,14 @@ export async function grantJourneyAccess(input?: { email?: string; plan?: string
   await prisma.entry_leads.upsert({
   where: { email },
   update: {
-    journey_access_granted: true,
-    journey_paid_at: new Date(),
+    resonance_access_granted: true,
+    resonance_paid_at: new Date(),
     pathway: input?.plan === "mirror" ? "relate" : "discover",
   },
   create: {
     email,
-    journey_access_granted: true,
-    journey_paid_at: new Date(),
+    resonance_access_granted: true,
+    resonance_paid_at: new Date(),
     pathway: input?.plan === "mirror" ? "relate" : "discover",
   },
 });
@@ -118,7 +118,7 @@ export async function getEntryResumeState({
   }
 
   // ❌ Not paid yet
-  if (!lead.journey_access_granted) {
+  if (!lead.resonance_access_granted) {
     return { destination: "enter" as const };
   }
 
@@ -128,5 +128,5 @@ export async function getEntryResumeState({
   }
 
   // ✅ Paid + completed /begin
-  return { destination: "journey" as const };
+  return { destination: "resonance" as const };
 }
