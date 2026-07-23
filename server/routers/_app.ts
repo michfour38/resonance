@@ -1,14 +1,9 @@
 // server/routers/_app.ts
-// Root tRPC router. Assembles active application routers.
-// Import AppRouter type in the client for end-to-end type safety.
+// Root tRPC router.
+// No active application routers are currently registered.
 
 import { router } from "../trpc";
-import { adminRouter } from "./admin";
-import { profileRouter } from "./profile";
 
-export const appRouter = router({
-  admin: adminRouter,
-  profile: profileRouter,
-});
+export const appRouter = router({});
 
 export type AppRouter = typeof appRouter;
