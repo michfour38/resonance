@@ -55,10 +55,9 @@ export default function MemberNav() {
           </Link>
 
           <div className="hidden items-center gap-5 md:flex">
+            <ProductLink href="/recognition" label="Recognition" pathname={pathname} />
             <ProductLink href="/resonance" label="Resonance" pathname={pathname} />
             <ProductLink href="/compass" label="Compass" pathname={pathname} />
-            <ProductLink href="/harmonize" label="Harmonize" pathname={pathname} />
-            <ProductLink href="/current" label="Current" pathname={pathname} />
           </div>
         </div>
 
@@ -92,13 +91,6 @@ export default function MemberNav() {
                     className="rounded-full border border-[#3A3224] bg-[#17130D] px-4 py-2 text-center text-sm text-[#E7C98B] transition hover:border-[#C8A96A] hover:bg-[#21190F]"
                   >
                     Compass Archive
-                  </Link>
-
-                  <Link
-                    href="/harmonize"
-                    className="rounded-full border border-[#3A3224] bg-[#17130D] px-4 py-2 text-center text-sm text-[#E7C98B] transition hover:border-[#C8A96A] hover:bg-[#21190F]"
-                  >
-                    Harmonize History
                   </Link>
                 </div>
               </div>
