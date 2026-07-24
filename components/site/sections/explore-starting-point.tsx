@@ -21,8 +21,7 @@ export function ExploreStartingPoint() {
             <div className="mt-6 space-y-6 text-base leading-8 text-zinc-300">
               <p>
                 Resonance is strongly recommended as the foundational
-                entry point into Oremea before progressing into
-                Compass, Harmonize, or The Current.
+                entry point into Oremea before progressing into Compass.
               </p>
 
               <p>
