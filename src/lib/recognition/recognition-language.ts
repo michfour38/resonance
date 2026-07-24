@@ -28,26 +28,16 @@ export type RecognitionLanguageNormalization = {
   families: RecognitionLanguageFamily[];
 };
 
-const PROTECTED_VOCABULARY = [
+const FUZZY_PROTECTED_VOCABULARY = [
   "because",
   "whenever",
-  "when",
-  "every",
-  "time",
-  "each",
   "depends",
   "dependent",
   "relies",
   "therefore",
-  "result",
-  "means",
-  "meaning",
   "uncertain",
   "unsure",
-  "maybe",
   "perhaps",
-  "know",
-  "sure",
   "responsibility",
   "responsibilities",
 ];
@@ -73,7 +63,9 @@ const DIRECT_NORMALIZATIONS: Record<string, string> = {
   becasue: "because",
   knwo: "know",
   suer: "sure",
+  mabye: "maybe",
   therfore: "therefore",
+  responsability: "responsibility",
 };
 
 const FAMILY_STOP_WORDS = new Set([
@@ -234,28 +226,25 @@ function normalizeProtectedVocabulary(value: string): {
 }
 
 function findProtectedVocabularyMatch(token: string): string | null {
-  if (token.length < 3) return null;
+  if (token.length < 5) return null;
 
-  let best: { value: string; distance: number } | null = null;
-
-  for (const candidate of PROTECTED_VOCABULARY) {
+  for (const candidate of FUZZY_PROTECTED_VOCABULARY) {
     if (!isPlausibleProtectedMatch(token, candidate)) continue;
 
-    const distance = damerauLevenshtein(token, candidate);
-    const maxDistance = candidate.length >= 9 ? 2 : 1;
-
-    if (distance > maxDistance) continue;
-
-    if (!best || distance < best.distance) {
-      best = { value: candidate, distance };
+    if (
+      token === candidate ||
+      isSingleInsertionDeletion(token, candidate) ||
+      isAdjacentTransposition(token, candidate)
+    ) {
+      return candidate;
     }
   }
 
-  return best?.value ?? null;
+  return null;
 }
 
 function isPlausibleProtectedMatch(token: string, candidate: string): boolean {
-  if (Math.abs(token.length - candidate.length) > 2) return false;
+  if (Math.abs(token.length - candidate.length) > 1) return false;
 
   if (token.length >= 6 && candidate.length >= 6) {
     return token.slice(0, 2) === candidate.slice(0, 2);
@@ -417,43 +406,6 @@ function isAdjacentTransposition(left: string, right: string): boolean {
     left[first] === right[second] &&
     left[second] === right[first]
   );
-}
-
-function damerauLevenshtein(left: string, right: string): number {
-  const rows = left.length + 1;
-  const columns = right.length + 1;
-  const matrix = Array.from({ length: rows }, () =>
-    Array<number>(columns).fill(0),
-  );
-
-  for (let i = 0; i < rows; i += 1) matrix[i][0] = i;
-  for (let j = 0; j < columns; j += 1) matrix[0][j] = j;
-
-  for (let i = 1; i < rows; i += 1) {
-    for (let j = 1; j < columns; j += 1) {
-      const cost = left[i - 1] === right[j - 1] ? 0 : 1;
-
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost,
-      );
-
-      if (
-        i > 1 &&
-        j > 1 &&
-        left[i - 1] === right[j - 2] &&
-        left[i - 2] === right[j - 1]
-      ) {
-        matrix[i][j] = Math.min(
-          matrix[i][j],
-          matrix[i - 2][j - 2] + cost,
-        );
-      }
-    }
-  }
-
-  return matrix[left.length][right.length];
 }
 
 function tokenizeForFamilies(value: string): string[] {
