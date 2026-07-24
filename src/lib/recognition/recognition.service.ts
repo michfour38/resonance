@@ -15,6 +15,10 @@ import {
   buildRecognitionPerception,
   type RecognitionPerceptionSummary,
 } from "@/src/lib/recognition/recognition-perception";
+import {
+  buildRecognitionRelationshipMap,
+  type RecognitionRelationshipMap,
+} from "@/src/lib/recognition/recognition-relationships";
 import { RECOGNITION_QUESTIONS } from "@/src/lib/recognition/recognition.questions";
 
 export type RecognitionType = "female" | "male" | "neutral";
@@ -47,6 +51,7 @@ function buildRecognitionPrompt(params: {
   perception: RecognitionPerceptionSummary;
   clarityMap: RecognitionClarityMap;
   participantSignals: RecognitionParticipantSignalMap;
+  relationshipMap: RecognitionRelationshipMap;
 }) {
   const {
     firstName,
@@ -56,6 +61,7 @@ function buildRecognitionPrompt(params: {
     perception,
     clarityMap,
     participantSignals,
+    relationshipMap,
   } = params;
 
   return `
@@ -93,6 +99,7 @@ Build every recognition from:
 - distinctions they made
 - values, choices, clarity, uncertainty, or movement supported by their answers
 - patterns supported across multiple answers
+- relationships or dependencies the participant explicitly links in their own wording
 
 Keep every observation proportionate to the available evidence.
 Present interpretation as possibility when certainty is limited.
@@ -101,6 +108,7 @@ Preserve the participant's authority over their own meaning, identity, and choic
 A repeated word is a recurrence signal before it is a theme.
 A repeated EL observation category is evidence structure before it is meaning.
 A supported tension is a detectable pull rather than a complete account of everything present.
+A relationship marker identifies a connection the participant wrote; the full sentence determines what kind of connection they are describing.
 Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
 
 CLARITY PRINCIPLES:
@@ -125,6 +133,18 @@ The weight answer is the primary source for what the participant says carries th
 Literal overlap across answers can strengthen convergence. Participant-stated weight remains primary when describing importance.
 A subject may hold attention while another carries the most weight, carry weight with little repetition, and involve the participant while responsibility remains limited to what they themselves name.
 Preserve all of these distinctions when more than one is true at the same time.
+
+RELATIONSHIP AND DEPENDENCY PRINCIPLES:
+
+Relationship signals come from explicit linking language inside the participant's own sentences.
+Treat "when" and "if" as timing or condition unless the participant also supplies explicit causal language.
+Treat "every time", "each time", and "whenever" as repeated conditions described by the participant.
+Treat "because" and "due to" as the participant's stated explanation. Reflect ownership of that explanation rather than presenting it as externally established fact.
+Treat "depends on", "dependent on", and "relies on" as participant-stated dependency.
+Treat "as a result", "therefore", "which means", and "meaning that" as participant-stated consequence or inference.
+A recurring subject linked in relationship statements across separate answers can strengthen recognition of a structure that keeps appearing.
+The connection itself, its meaning, and any causal claim remain distinct. Preserve each at the level the participant's wording supports.
+Several relationships can be active around the same subject at once.
 
 VOICE:
 
@@ -157,6 +177,8 @@ WHAT TO NOTICE:
 - what conditions affect their ability to remain with that clarity
 - what remains explicitly uncertain in their own language
 - what becomes newly visible when their answers are considered together
+- where the participant explicitly links one condition, event, choice, or consequence to another
+- where the same linked subject appears across separate answers
 - where language recurs across separate answers
 - where evidence categories recur across separate answers
 - where a recurring subject carries a coherent thread across several answers
@@ -182,6 +204,8 @@ SECTION RULES:
 - Ground it in specific evidence from their own words.
 - Use proportionate language.
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
+- Let participant-stated relationships reveal structure when the wording clearly links conditions, explanations, dependencies, or consequences.
+- Keep temporal or conditional links distinct from causal claims.
 - A supported tension may be named when the relevant truths are clearly present in the participant's own words.
 - Treat newly visible material as emerging recognition rather than a fixed identity claim.
 - Participation may reveal where the participant repeatedly appears inside the situation while responsibility stays limited to what they actually name.
@@ -202,7 +226,7 @@ SECTION RULES:
 - Keep clarity distinct from instruction.
 
 "What remains available to notice"
-- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
+- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, a participant-stated relationship, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
 - Leave one precise opening for further recognition.
 - Keep the opening voluntary and grounded in what is already present.
 
@@ -214,6 +238,10 @@ Preserve the full set that the participant's answers support rather than reducin
 An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
 Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
 Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+PARTICIPANT-STATED RELATIONSHIP MAP:
+
+${renderRelationshipMap(relationshipMap)}
 
 PARTICIPANT-OWNED SIGNAL MAP:
 
@@ -271,6 +299,43 @@ ${renderObservationsByAnswer(perception)}
 USER RESPONSES:
 
 ${renderResponses(responses)}
+`;
+}
+
+function renderRelationshipMap(map: RecognitionRelationshipMap): string {
+  const signals =
+    map.signals.length > 0
+      ? map.signals
+          .map((signal) => {
+            const evidenceLabel =
+              signal.evidenceTypes.length > 0
+                ? ` [EL: ${signal.evidenceTypes.join(", ")}]`
+                : "";
+
+            return `- [${signal.questionKey}] ${signal.kind} via "${signal.marker}"${evidenceLabel}: ${signal.content}`;
+          })
+          .join("\n")
+      : "- No explicit relationship marker detected in the participant's wording.";
+
+  const linkedSubjects =
+    map.linkedRecurringSubjects.length > 0
+      ? map.linkedRecurringSubjects
+          .map(
+            (item) => `
+Recurring linked subject "${item.term}" across ${item.questionKeys.length} answers:
+- relationship kinds: ${item.relationshipKinds.join(", ")}
+- question keys: ${item.questionKeys.join(", ")}
+${item.contexts.map((context) => `- ${context}`).join("\n")}`,
+          )
+          .join("\n")
+      : "- No recurring subject appears inside relationship statements across multiple answers.";
+
+  return `
+Explicit participant-stated connections:
+${signals}
+
+Recurring subjects inside participant-stated connections:
+${linkedSubjects}
 `;
 }
 
@@ -366,22 +431,18 @@ function renderClarityMap(clarityMap: RecognitionClarityMap) {
     clarityMap.statedClarity,
     "Participant-stated clarity is still forming or was expressed with explicit uncertainty.",
   );
-
   const distinctions = renderClarityContexts(
     clarityMap.distinctions,
     "The participant provided no separate distinction response.",
   );
-
   const clarityConditions = renderClarityContexts(
     clarityMap.clarityConditions,
     "The participant named no separate conditions around holding clarity.",
   );
-
   const newlyVisible = renderClarityContexts(
     clarityMap.newlyVisible,
     "The participant provided no separate newly-visible response.",
   );
-
   const explicitUncertainty =
     clarityMap.explicitUncertainty.length > 0
       ? clarityMap.explicitUncertainty
@@ -391,7 +452,6 @@ function renderClarityMap(clarityMap: RecognitionClarityMap) {
           )
           .join("\n")
       : "- No explicit uncertainty language detected.";
-
   const clarityAlongsideTension =
     clarityMap.clarityAlongsideTension.length > 0
       ? clarityMap.clarityAlongsideTension
@@ -667,6 +727,10 @@ export async function generateRecognition(params: {
     perception.recurringLanguage,
     perception.supportedThemes,
   );
+  const relationshipMap = buildRecognitionRelationshipMap(
+    perception.answers,
+    perception.recurringLanguage,
+  );
 
   const prompt = buildRecognitionPrompt({
     firstName: session.entry_leads.first_name,
@@ -676,6 +740,7 @@ export async function generateRecognition(params: {
     perception,
     clarityMap,
     participantSignals,
+    relationshipMap,
   });
 
   const output = await generateAI({
@@ -709,6 +774,7 @@ export async function generateRecognition(params: {
         supportedTensions: perception.supportedTensions,
         clarityMap,
         participantSignals,
+        relationshipMap,
       },
     },
     select: {
