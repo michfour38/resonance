@@ -27,6 +27,20 @@ export type RecurringObservationSignal = {
   answerCount: number;
 };
 
+export type RecognitionThemeContext = {
+  questionKey: string;
+  content: string;
+  evidenceTypes: EvidenceType[];
+};
+
+export type SupportedThemeSignal = {
+  term: string;
+  questionKeys: string[];
+  answerCount: number;
+  contexts: RecognitionThemeContext[];
+  basis: "literal_recurrence_across_three_or_more_answers";
+};
+
 export type RecognitionTensionEvidence = {
   questionKey: string;
   type: EvidenceType;
@@ -44,6 +58,7 @@ export type RecognitionPerceptionSummary = {
   answers: RecognitionAnswerPerception[];
   recurringLanguage: RecurringLanguageSignal[];
   recurringObservations: RecurringObservationSignal[];
+  supportedThemes: SupportedThemeSignal[];
   supportedTensions: SupportedTensionSignal[];
 };
 
@@ -124,6 +139,7 @@ export function buildRecognitionPerception(
     answers,
     recurringLanguage,
     recurringObservations: findRecurringObservations(answers),
+    supportedThemes: findSupportedThemes(answers, recurringLanguage),
     supportedTensions: findSupportedTensions(answers, recurringLanguage),
   };
 }
@@ -196,6 +212,36 @@ function findRecurringObservations(
       questionKeys: [...questionKeys],
       answerCount: questionKeys.size,
     }));
+}
+
+function findSupportedThemes(
+  answers: RecognitionAnswerPerception[],
+  recurringLanguage: RecurringLanguageSignal[],
+): SupportedThemeSignal[] {
+  return recurringLanguage
+    .filter((item) => item.answerCount >= 3)
+    .map((item) => {
+      const contexts = answers
+        .filter((answer) => item.questionKeys.includes(answer.questionKey))
+        .map((answer) => ({
+          questionKey: answer.questionKey,
+          content: extractTermContext(answer.response, item.term),
+          evidenceTypes: dedupeEvidenceTypes(
+            answer.perception.evidence
+              .filter((evidence) => containsLiteralTerm(evidence.content, item.term))
+              .map((evidence) => evidence.type),
+          ),
+        }));
+
+      return {
+        term: item.term,
+        questionKeys: item.questionKeys,
+        answerCount: item.answerCount,
+        contexts,
+        basis: "literal_recurrence_across_three_or_more_answers" as const,
+      };
+    })
+    .slice(0, 8);
 }
 
 function findSupportedTensions(
@@ -273,6 +319,24 @@ function dedupeTensionEvidence(
     seen.add(key);
     return true;
   });
+}
+
+function dedupeEvidenceTypes(types: EvidenceType[]): EvidenceType[] {
+  return [...new Set(types)];
+}
+
+function extractTermContext(response: string, term: string): string {
+  const sentences = response
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
+  return (
+    sentences.find((sentence) => containsLiteralTerm(sentence, term)) ??
+    response.trim()
+  );
 }
 
 function containsLiteralTerm(content: string, term: string): boolean {
