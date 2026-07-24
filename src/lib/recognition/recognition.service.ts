@@ -105,11 +105,19 @@ Keep every observation proportionate to the available evidence.
 Present interpretation as possibility when certainty is limited.
 Preserve the participant's authority over their own meaning, identity, and choices.
 
-A repeated word is a recurrence signal before it is a theme.
+A repeated or conservatively normalized term is a recurrence signal before it is a theme.
 A repeated EL observation category is evidence structure before it is meaning.
 A supported tension is a detectable pull rather than a complete account of everything present.
 A relationship marker identifies a connection the participant wrote; the full sentence determines what kind of connection they are describing.
 Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
+
+LANGUAGE TOLERANCE PRINCIPLES:
+
+The participant's original wording remains the authoritative language of the reflection.
+Detection may use a conservative normalized copy to connect obvious spelling variants, missing or extra letters, adjacent transpositions, and protected structural vocabulary.
+Normalization supports detection rather than rewriting the participant's prose.
+Use raw participant sentences when describing or quoting what they wrote.
+A normalized recurrence remains a support signal; read the raw contexts before assigning significance or meaning.
 
 CLARITY PRINCIPLES:
 
@@ -130,7 +138,7 @@ The attention answer identifies what has been occupying attention. Importance, a
 The returning answer records what the participant themselves notices recurring across what they wrote.
 The participation answer records where the participant sees themselves repeatedly appearing inside the situation. Treat this descriptively. It may reflect care, labour, protection, contribution, choice, attention, habit, responsibility, or another role supported by their words.
 The weight answer is the primary source for what the participant says carries the most weight. Give this answer priority over mechanical recurrence when describing importance.
-Literal overlap across answers can strengthen convergence. Participant-stated weight remains primary when describing importance.
+Spelling-tolerant recurrence across answers can strengthen convergence. Participant-stated weight remains primary when describing importance.
 A subject may hold attention while another carries the most weight, carry weight with little repetition, and involve the participant while responsibility remains limited to what they themselves name.
 Preserve all of these distinctions when more than one is true at the same time.
 
@@ -179,7 +187,7 @@ WHAT TO NOTICE:
 - what becomes newly visible when their answers are considered together
 - where the participant explicitly links one condition, event, choice, or consequence to another
 - where the same linked subject appears across separate answers
-- where language recurs across separate answers
+- where language recurs across separate answers, including conservatively normalized spelling variants
 - where evidence categories recur across separate answers
 - where a recurring subject carries a coherent thread across several answers
 - where a subject carries agency and friction in different answers
@@ -253,25 +261,25 @@ ${renderClarityMap(clarityMap)}
 
 SUPPORTED THEME CANDIDATES:
 
-These candidates are mechanically grounded in literal language appearing across at least three separate answers.
+These candidates are mechanically grounded in recurring language across at least three separate answers after conservative spelling-tolerant detection.
 The recurrence threshold establishes sustained attention, not meaning by itself.
-A candidate becomes useful as a theme only when its answer contexts carry a coherent thread.
+A candidate becomes useful as a theme only when its raw answer contexts carry a coherent thread.
 Names, ordinary connective language, or repeated circumstance words can remain simple recurrence rather than becoming themes.
 
 ${renderSupportedThemes(perception)}
 
 SUPPORTED CROSS-ANSWER TENSIONS:
 
-These candidates are mechanically grounded where the same literal subject appears inside agency evidence in one answer and objection evidence in another answer.
+These candidates are mechanically grounded where the same recurring subject appears inside agency evidence in one answer and objection evidence in another answer after conservative detection normalization.
 Each candidate establishes one supported pull around that subject.
 The participant's other answers may contain additional truths around the same subject and remain part of the recognition.
 
 ${renderSupportedTensions(perception)}
 
-CROSS-ANSWER LITERAL LANGUAGE:
+CROSS-ANSWER RECURRING LANGUAGE:
 
-These terms appear literally in more than one answer.
-Treat them as recurrence signals and read their full contexts before assigning significance.
+These terms recur across more than one answer after conservative spelling-tolerant detection.
+Treat them as recurrence signals and read their raw contexts before assigning significance.
 
 ${renderRecurringLanguage(perception)}
 
@@ -284,8 +292,8 @@ ${renderRecurringObservations(perception)}
 
 EL EVIDENCE BY ANSWER:
 
-This evidence was extracted mechanically from participant answers.
-Use it as supporting signal while keeping the full answers primary.
+This evidence was extracted mechanically from the detection copy of participant answers.
+Use it as supporting structure. The raw participant answers remain authoritative for wording and meaning.
 
 ${renderEvidenceByAnswer(perception)}
 
@@ -367,16 +375,16 @@ ${renderParticipantSignalContexts(
   "The participant provided no separate weight response.",
 )}
 
-Literal recurrence linked to attention:
+Cross-answer recurrence linked to attention:
 ${renderParticipantSignalLinks(signals.attentionAcrossAnswers)}
 
-Literal recurrence linked to the participant's returning answer:
+Cross-answer recurrence linked to the participant's returning answer:
 ${renderParticipantSignalLinks(signals.returningAcrossAnswers)}
 
-Literal recurrence linked to participation:
+Cross-answer recurrence linked to participation:
 ${renderParticipantSignalLinks(signals.participationAcrossAnswers)}
 
-Literal recurrence linked to participant-stated weight:
+Cross-answer recurrence linked to participant-stated weight:
 ${renderParticipantSignalLinks(signals.weightAcrossAnswers)}
 
 Supported theme candidates that also appear in the weight answer:
@@ -388,7 +396,7 @@ ${
             `- "${theme.term}" appears across ${theme.answerCount} answers: ${theme.questionKeys.join(", ")}`,
         )
         .join("\n")
-    : "- No supported theme candidate has a literal overlap with the weight answer."
+    : "- No supported theme candidate overlaps the weight answer."
 }
 `;
 }
@@ -415,7 +423,7 @@ function renderParticipantSignalLinks(
   links: RecognitionParticipantSignalLink[],
 ): string {
   if (links.length === 0) {
-    return "- No qualifying literal cross-answer recurrence linked to this response.";
+    return "- No qualifying cross-answer recurrence linked to this response.";
   }
 
   return links
@@ -558,7 +566,7 @@ ${item.frictionEvidence
 
 function renderRecurringLanguage(perception: RecognitionPerceptionSummary) {
   if (perception.recurringLanguage.length === 0) {
-    return "- No qualifying literal recurrence detected.";
+    return "- No qualifying cross-answer recurrence detected.";
   }
 
   return perception.recurringLanguage
@@ -716,6 +724,7 @@ export async function generateRecognition(params: {
     perception.answers.map((answer) => ({
       questionKey: answer.questionKey,
       response: answer.response,
+      normalizedResponse: answer.normalizedResponse,
       evidenceTypes: [
         ...new Set(answer.perception.evidence.map((evidence) => evidence.type)),
       ],
@@ -772,6 +781,11 @@ export async function generateRecognition(params: {
         recurringObservations: perception.recurringObservations,
         supportedThemes: perception.supportedThemes,
         supportedTensions: perception.supportedTensions,
+        languageFamilies: perception.languageFamilies,
+        languageCorrections: perception.answers.map((answer) => ({
+          questionKey: answer.questionKey,
+          corrections: answer.languageCorrections,
+        })),
         clarityMap,
         participantSignals,
         relationshipMap,
