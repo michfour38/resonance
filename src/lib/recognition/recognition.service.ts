@@ -1,7 +1,10 @@
 import { generateAI } from "@/src/lib/ai/ai-gateway";
 import { prisma } from "@/lib/prisma";
 import { RECOGNITION_QUESTIONS } from "@/src/lib/recognition/recognition.questions";
-import { runELPerception } from "@/src/lib/el/el-core";
+import {
+  buildRecognitionPerception,
+  type RecognitionPerceptionSummary,
+} from "@/src/lib/recognition/recognition-perception";
 
 export type RecognitionType = "female" | "male" | "neutral";
 
@@ -24,18 +27,19 @@ function buildRecognitionPrompt(params: {
   previousOutput?: string | null;
   regenerate?: boolean;
   responses: {
+    questionKey: string;
     questionText: string;
     response: string;
   }[];
-  perceptions: ReturnType<typeof runELPerception>[];
+  perception: RecognitionPerceptionSummary;
 }) {
   const {
-  firstName,
-  previousOutput,
-  regenerate,
-  responses,
-  perceptions,
-} = params;
+    firstName,
+    previousOutput,
+    regenerate,
+    responses,
+    perception,
+  } = params;
 
   return `
 You are Oremea Recognition.
@@ -47,7 +51,6 @@ First name: ${firstName || "Unknown"}
 ${
   regenerate && previousOutput
     ? `
-
 This is a second Recognition pass.
 
 The user has had a chance to revisit their answers and offer more honest or precise information.
@@ -80,12 +83,17 @@ Build every recognition from:
 - specific language they used
 - distinctions they made
 - values, choices, clarity, uncertainty, or movement supported by their answers
+- patterns that are supported across more than one answer
 
 Keep every observation proportionate to the available evidence.
 
 Treat interpretations as possibilities when certainty is limited.
 
 Preserve the participant's authority over their own meaning, identity, and choices.
+
+A repeated word is not automatically a theme.
+A repeated EL observation type is not automatically a psychological pattern.
+Cross-answer signals may strengthen an observation only when the full answers support the same recognition.
 
 VOICE:
 
@@ -115,6 +123,8 @@ WHAT TO NOTICE:
 - where clarity becomes less stable
 - what matters enough to keep returning
 - what becomes newly visible when their answers are considered together
+- where literal language recurs across separate answers
+- where the same evidence category appears across separate answers
 
 STRUCTURE:
 
@@ -137,6 +147,7 @@ SECTION RULES:
 - Ground it in specific evidence from their own words.
 - Use proportionate language.
 - Reveal rather than interpret beyond the evidence.
+- Cross-answer recurrence can strengthen the recognition when the surrounding answers support the same reading.
 
 "What seems to matter"
 - Notice what receives repeated attention, specificity, energy, choice, or care.
@@ -155,7 +166,40 @@ SECTION RULES:
 - Do not prescribe an action.
 - Do not manufacture a problem that has not appeared.
 
-EL EVIDENCE:
+CROSS-ANSWER LITERAL LANGUAGE:
+
+The following terms appear literally in more than one answer.
+They are mechanical recurrence signals only.
+Use the full answers to decide whether any recurrence carries meaning.
+
+${
+  perception.recurringLanguage.length > 0
+    ? perception.recurringLanguage
+        .map(
+          (item) =>
+            `- "${item.term}" appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
+        )
+        .join("\n")
+    : "- No qualifying literal recurrence detected."
+}
+
+CROSS-ANSWER EL OBSERVATIONS:
+
+The following EL observation categories appear in more than one answer.
+These categories describe evidence structure, not identity, motive, diagnosis, or meaning.
+
+${
+  perception.recurringObservations.length > 0
+    ? perception.recurringObservations
+        .map(
+          (item) =>
+            `- ${item.type} appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
+        )
+        .join("\n")
+    : "- No recurring EL observation categories detected."
+}
+
+EL EVIDENCE BY ANSWER:
 
 The following evidence was extracted mechanically from the participant's answers.
 
@@ -163,38 +207,46 @@ Use it as supporting signal only.
 
 The participant's full answers remain the primary source of truth.
 
-${perceptions
+${perception.answers
   .map(
-    (perception, index) => `
-Answer ${index + 1} evidence:
-${perception.evidence
-  .map(
-    (item) =>
-      `- ${item.type}: ${item.content} (${item.confidence})`
-  )
-  .join("\n")}
-`
+    (answer, index) => `
+Answer ${index + 1} [${answer.questionKey}] evidence:
+${
+  answer.perception.evidence.length > 0
+    ? answer.perception.evidence
+        .map(
+          (item) =>
+            `- ${item.type}: ${item.content} (${item.confidence})`,
+        )
+        .join("\n")
+    : "- No EL evidence extracted."
+}
+`,
   )
   .join("\n")}
 
-EL SUPPORTING OBSERVATIONS:
+EL SUPPORTING OBSERVATIONS BY ANSWER:
 
 These observations are derived from the evidence above.
 
 Use them as supporting structure only.
 Keep the participant's own words authoritative.
 
-${perceptions
+${perception.answers
   .map(
-    (perception, index) => `
-Answer ${index + 1} observations:
-${perception.observations
-  .map(
-    (item) =>
-      `- ${item.type}: ${item.summary} (${item.confidence})`
-  )
-  .join("\n")}
-`
+    (answer, index) => `
+Answer ${index + 1} [${answer.questionKey}] observations:
+${
+  answer.perception.observations.length > 0
+    ? answer.perception.observations
+        .map(
+          (item) =>
+            `- ${item.type}: ${item.summary} (${item.confidence})`,
+        )
+        .join("\n")
+    : "- No EL observations created."
+}
+`,
   )
   .join("\n")}
 
@@ -203,9 +255,9 @@ USER RESPONSES:
 ${responses
   .map(
     (item, index) => `
-Question ${index + 1}: ${item.questionText}
+Question ${index + 1} [${item.questionKey}]: ${item.questionText}
 Answer ${index + 1}: ${item.response}
-`
+`,
   )
   .join("\n")}
 `;
@@ -238,11 +290,12 @@ export async function generateRecognition(params: {
       entry_mirror_responses: {
         orderBy: { response_order: "asc" },
         select: {
+          question_key: true,
           question_text: true,
           response: true,
         },
       },
-            entry_mirror_outputs: {
+      entry_mirror_outputs: {
         orderBy: { created_at: "asc" },
         take: 2,
         select: {
@@ -260,7 +313,7 @@ export async function generateRecognition(params: {
 
   if (!session) return null;
 
-    const outputs = session.entry_mirror_outputs;
+  const outputs = session.entry_mirror_outputs;
   const latest = outputs[outputs.length - 1] ?? null;
   const firstOutput = outputs[0] ?? null;
 
@@ -292,10 +345,16 @@ export async function generateRecognition(params: {
 
   const cleanResponses = session.entry_mirror_responses
     .map((item) => ({
+      questionKey: item.question_key.trim(),
       questionText: item.question_text.trim(),
       response: item.response.trim(),
     }))
-    .filter((item) => item.questionText.length > 0 && item.response.length > 0);
+    .filter(
+      (item) =>
+        item.questionKey.length > 0 &&
+        item.questionText.length > 0 &&
+        item.response.length > 0,
+    );
 
   if (cleanResponses.length < 8) {
     console.error("Recognition requires at least 8 completed responses.");
@@ -306,25 +365,21 @@ export async function generateRecognition(params: {
     ? (session.entry_type as RecognitionType)
     : "neutral";
 
-const perceptions = cleanResponses.map((item) =>
-  runELPerception({
-    participantResponse: item.response,
-  })
-);
+  const perception = buildRecognitionPerception(cleanResponses);
 
-    const prompt = buildRecognitionPrompt({
-  firstName: session.entry_leads.first_name,
-  previousOutput: firstOutput?.output ?? null,
-  regenerate: Boolean(params.regenerate),
-  responses: cleanResponses,
-  perceptions,
-});
+  const prompt = buildRecognitionPrompt({
+    firstName: session.entry_leads.first_name,
+    previousOutput: firstOutput?.output ?? null,
+    regenerate: Boolean(params.regenerate),
+    responses: cleanResponses,
+    perception,
+  });
 
   const output = await generateAI({
-  task: "recognition_synthesis",
-  prompt,
-  maxTokens: 1400,
-});
+    task: "recognition_synthesis",
+    prompt,
+    maxTokens: 1400,
+  });
 
   if (!output) return null;
 
@@ -341,7 +396,10 @@ const perceptions = cleanResponses.map((item) =>
         entryType,
         leadId: session.lead_id,
         responseCount: cleanResponses.length,
+        questionKeys: cleanResponses.map((item) => item.questionKey),
         questionTexts: cleanResponses.map((item) => item.questionText),
+        recurringLanguage: perception.recurringLanguage,
+        recurringObservations: perception.recurringObservations,
       },
     },
     select: {
