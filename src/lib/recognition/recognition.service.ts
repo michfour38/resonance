@@ -109,7 +109,7 @@ The Recognition sequence itself provides participant-owned clarity data.
 The answer to "What do you already know clearly now?" is the primary source for stated clarity.
 The answer to "Where does that clarity become harder to hold?" describes conditions around holding clarity.
 Those conditions can affect steadiness, expression, embodiment, or participation while the underlying clarity remains present.
-Do not convert stated clarity into confusion simply because consequences, expectations, emotions, responsibilities, or other people also appear.
+Preserve stated clarity when consequences, expectations, emotions, responsibilities, or other people also appear.
 The answer to the distinction question shows what the participant can already separate into clearer parts.
 The final recognition answer shows what became newly visible through the reflection.
 Explicit uncertainty is present only where the participant's own language states uncertainty.
@@ -118,12 +118,12 @@ Clarity and uncertainty can both be present in different parts of the same reali
 PARTICIPANT SIGNAL PRINCIPLES:
 
 The Recognition sequence also provides participant-owned signals for attention, recurrence, participation, and weight.
-The attention answer identifies what has been occupying attention. Attention does not automatically establish importance, agreement, responsibility, or value.
+The attention answer identifies what has been occupying attention. Importance, agreement, responsibility, and value remain separate signals unless the participant links them.
 The returning answer records what the participant themselves notices recurring across what they wrote.
 The participation answer records where the participant sees themselves repeatedly appearing inside the situation. Treat this descriptively. It may reflect care, labour, protection, contribution, choice, attention, habit, responsibility, or another role supported by their words.
 The weight answer is the primary source for what the participant says carries the most weight. Give this answer priority over mechanical recurrence when describing importance.
-Literal overlap across answers can strengthen convergence, but frequency does not outrank participant-stated weight.
-A subject may hold attention without carrying the most weight, carry weight without being the most repeated, and involve the participant without making them responsible for everything around it.
+Literal overlap across answers can strengthen convergence. Participant-stated weight remains primary when describing importance.
+A subject may hold attention while another carries the most weight, carry weight with little repetition, and involve the participant while responsibility remains limited to what they themselves name.
 Preserve all of these distinctions when more than one is true at the same time.
 
 VOICE:
@@ -184,7 +184,7 @@ SECTION RULES:
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
 - A supported tension may be named when the relevant truths are clearly present in the participant's own words.
 - Treat newly visible material as emerging recognition rather than a fixed identity claim.
-- Participation may reveal where the participant repeatedly appears inside the situation without assigning responsibility beyond what they actually named.
+- Participation may reveal where the participant repeatedly appears inside the situation while responsibility stays limited to what they actually name.
 
 "What seems to matter"
 - Begin with what the participant explicitly says carries the most weight when that answer is available.
@@ -281,25 +281,25 @@ function renderParticipantSignalMap(
 Initial attention:
 ${renderParticipantSignalContexts(
   signals.attention,
-  "The participant did not provide a separate attention response.",
+  "The participant provided no separate attention response.",
 )}
 
 What the participant identifies as returning:
 ${renderParticipantSignalContexts(
   signals.returning,
-  "The participant did not provide a separate returning response.",
+  "The participant provided no separate returning response.",
 )}
 
 Where the participant sees their own participation:
 ${renderParticipantSignalContexts(
   signals.participation,
-  "The participant did not provide a separate participation response.",
+  "The participant provided no separate participation response.",
 )}
 
 What the participant says carries the most weight:
 ${renderParticipantSignalContexts(
   signals.weight,
-  "The participant did not provide a separate weight response.",
+  "The participant provided no separate weight response.",
 )}
 
 Literal recurrence linked to attention:
@@ -369,17 +369,17 @@ function renderClarityMap(clarityMap: RecognitionClarityMap) {
 
   const distinctions = renderClarityContexts(
     clarityMap.distinctions,
-    "The participant did not provide a separate distinction response.",
+    "The participant provided no separate distinction response.",
   );
 
   const clarityConditions = renderClarityContexts(
     clarityMap.clarityConditions,
-    "The participant did not name separate conditions around holding clarity.",
+    "The participant named no separate conditions around holding clarity.",
   );
 
   const newlyVisible = renderClarityContexts(
     clarityMap.newlyVisible,
-    "The participant did not provide a separate newly-visible response.",
+    "The participant provided no separate newly-visible response.",
   );
 
   const explicitUncertainty =
