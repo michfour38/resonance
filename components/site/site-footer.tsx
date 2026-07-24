@@ -31,12 +31,12 @@ export function SiteFooter() {
                 Explore
               </Link>
 
-<Link
-  href="/about/oremea"
-  className="transition hover:text-amber-100"
->
-  About Oremea
-</Link>
+              <Link
+                href="/about/oremea"
+                className="transition hover:text-amber-100"
+              >
+                About Oremea
+              </Link>
 
               <Link href="/reviews" className="transition hover:text-amber-100">
                 Reviews
@@ -54,19 +54,13 @@ export function SiteFooter() {
             </p>
 
             <div className="flex flex-col gap-3 text-zinc-300">
-              <Link href="/oremea" className="transition hover:text-amber-100">
+              <Link href="/resonance" className="transition hover:text-amber-100">
                 Resonance
-              </Link>
-
-              <Link href="/harmonize" className="transition hover:text-amber-100">
-                Harmonize
               </Link>
 
               <Link href="/compass" className="transition hover:text-amber-100">
                 Compass
               </Link>
-
-              <p className="text-zinc-500">The Current</p>
             </div>
           </div>
 
