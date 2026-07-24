@@ -93,13 +93,6 @@ export default function MemberNav() {
                   >
                     Compass Archive
                   </Link>
-
-                  <Link
-                    href="/harmonize"
-                    className="rounded-full border border-[#3A3224] bg-[#17130D] px-4 py-2 text-center text-sm text-[#E7C98B] transition hover:border-[#C8A96A] hover:bg-[#21190F]"
-                  >
-                    Harmonize History
-                  </Link>
                 </div>
               </div>
             ) : null}
