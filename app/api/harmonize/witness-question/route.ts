@@ -1,17 +1,17 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
+import { prisma } from "@/lib/prisma"
 import { runELConversation } from "@/src/lib/el"
 import { privateWitnessEngine } from "@/src/lib/harmonize/private-witness-engine"
 import {
   buildWitnessContextBlocks,
   buildWitnessConversation,
 } from "@/src/lib/harmonize/witness-context-builder"
-import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-function buildWitnessFailureQuestion(latestAnswer: string) {
+function buildWitnessFailureQuestion(latestAnswer: string): string {
   const answer = latestAnswer.trim()
 
   if (!answer) {
@@ -24,11 +24,15 @@ function buildWitnessFailureQuestion(latestAnswer: string) {
     return "You named a cost that sounds like identity, not inconvenience. What part of becoming who you are feels most expensive?"
   }
 
-  if (/children|kids|team|provide|house|clothing|responsibility/i.test(answer)) {
-    return "You are describing responsibility becoming visible. What would you have to carry alone if he was fully out of the picture?"
+  if (
+    /children|kids|team|provide|house|clothing|responsibility/i.test(answer)
+  ) {
+    return "You are describing responsibility becoming visible. What would you have to carry alone if the other person were fully out of the picture?"
   }
 
-  if (/consent|saying no|take what he wants|coerced|forces/i.test(answer)) {
+  if (
+    /consent|saying no|take what he wants|coerced|forces/i.test(answer)
+  ) {
     return "You are describing consent being overridden. What changes when your no is treated as something to overcome?"
   }
 
@@ -45,36 +49,43 @@ export async function POST(request: Request) {
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
+        {
+          success: false,
+          error: "Unauthorized",
+        },
+        {
+          status: 401,
+        },
       )
     }
 
     const body = await request.json()
+
     const cycleId =
-      typeof body.cycleId === "string" ? body.cycleId.trim() : ""
+      typeof body.cycleId === "string"
+        ? body.cycleId.trim()
+        : ""
 
     if (!cycleId) {
       return NextResponse.json(
-        { success: false, error: "Missing cycleId" },
-        { status: 400 },
+        {
+          success: false,
+          error: "Missing cycleId",
+        },
+        {
+          status: 400,
+        },
       )
     }
 
     const cycle = await prisma.harmonize_cycles.findUnique({
-      where: { id: cycleId },
+      where: {
+        id: cycleId,
+      },
       include: {
         systems: {
           include: {
             participants: true,
-          },
-        },
-        entries: {
-          where: {
-            scope: "private",
-          },
-          orderBy: {
-            created_at: "asc",
           },
         },
       },
@@ -82,13 +93,20 @@ export async function POST(request: Request) {
 
     if (!cycle) {
       return NextResponse.json(
-        { success: false, error: "Cycle not found" },
-        { status: 404 },
+        {
+          success: false,
+          error: "Cycle not found",
+        },
+        {
+          status: 404,
+        },
       )
     }
 
     const participant = cycle.systems.participants.find(
-      (p) => p.profile_id === userId && p.active,
+      (candidate) =>
+        candidate.profile_id === userId &&
+        candidate.active,
     )
 
     if (!participant) {
@@ -97,17 +115,44 @@ export async function POST(request: Request) {
           success: false,
           error: "You are not a participant in this cycle",
         },
-        { status: 403 },
+        {
+          status: 403,
+        },
       )
     }
 
-    const entries = cycle.entries.map((entry) => ({
+    /*
+     * Private witness entries must be loaded only after the
+     * authenticated participant has been identified.
+     *
+     * One participant's private witness material must never
+     * enter another participant's EL conversation or context.
+     */
+    const privateEntries =
+      await prisma.harmonize_entries.findMany({
+        where: {
+          cycle_id: cycleId,
+          participant_id: participant.id,
+          scope: "private",
+        },
+        orderBy: {
+          created_at: "asc",
+        },
+        select: {
+          content: true,
+          prompt_text: true,
+        },
+      })
+
+    const entries = privateEntries.map((entry) => ({
       content: entry.content,
       prompt_text: entry.prompt_text,
     }))
 
     const witness = privateWitnessEngine(entries)
-    const latestAnswer = entries[entries.length - 1]?.content ?? ""
+
+    const latestAnswer =
+      entries[entries.length - 1]?.content ?? ""
 
     const result = await runELConversation({
       product: "harmonize",
@@ -121,28 +166,31 @@ export async function POST(request: Request) {
       }),
     })
 
-if (!result?.reply) {
-  console.warn("WITNESS FALLBACK USED", {
-    cycleId,
-    latestAnswer,
-    anchor: witness.anchorDefinition?.anchor ?? null,
-    signalSource: witness.strongestSignal?.source ?? null,
-  })
-}
-
-console.log("EL RESULT", result)
-console.log("EL REPLY", result?.reply)
-console.log("EL RESULT", result)
+    if (!result?.reply) {
+      console.warn("WITNESS FALLBACK USED", {
+        cycleId,
+        participantId: participant.id,
+        latestAnswer,
+        anchor:
+          witness.anchorDefinition?.anchor ?? null,
+        signalSource:
+          witness.strongestSignal?.source ?? null,
+      })
+    }
 
     return NextResponse.json({
       success: true,
       nextQuestion:
-  result?.reply ||
-  buildWitnessFailureQuestion(latestAnswer),
-      readyForSharedSpace: witness.readyForSharedSpace,
+        result?.reply ||
+        buildWitnessFailureQuestion(latestAnswer),
+      readyForSharedSpace:
+        witness.readyForSharedSpace,
     })
   } catch (error) {
-    console.error("POST /api/harmonize/witness-question failed:", error)
+    console.error(
+      "POST /api/harmonize/witness-question failed:",
+      error,
+    )
 
     return NextResponse.json(
       {
@@ -152,7 +200,9 @@ console.log("EL RESULT", result)
             ? error.message
             : "Failed to generate witness question",
       },
-      { status: 500 },
+      {
+        status: 500,
+      },
     )
   }
 }

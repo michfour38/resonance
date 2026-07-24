@@ -26,14 +26,17 @@ import {
 import type {
   ELInput,
   ELOutput,
+  ELPerceptionOutput,
   EngineTick,
 } from "./el-types"
 
-export function runELTick({
+export function runELPerception({
   participantResponse,
   previousTicks = [],
-  memory = null,
-}: ELInput): ELOutput {
+}: Pick<
+  ELInput,
+  "participantResponse" | "previousTicks"
+>): ELPerceptionOutput {
   const evidence = extractEvidence(participantResponse)
 
   const observations = createObservations(evidence)
@@ -47,6 +50,27 @@ export function runELTick({
     observations,
     previousScores,
   })
+
+  return {
+    evidence,
+    observations,
+    scores,
+  }
+}
+
+export function runELTick({
+  participantResponse,
+  previousTicks = [],
+  memory = null,
+}: ELInput): ELOutput {
+  const {
+  evidence,
+  observations,
+  scores,
+} = runELPerception({
+  participantResponse,
+  previousTicks,
+})
 
   const primaryState = determineState({
     evidence,

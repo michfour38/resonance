@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type EntryType = "female" | "male" | "neutral";
+import {
+  RECOGNITION_QUESTIONS,
+  type RecognitionQuestion,
+} from "@/src/lib/recognition/recognition.questions";
 
-type Question = {
-  key: string;
-  text: string;
-};
+type Question = RecognitionQuestion;
 
 const LOADING_LINES = [
   "Reading what you wrote...",
@@ -15,7 +15,7 @@ const LOADING_LINES = [
   "Preparing your reflection...",
 ];
 
-const DRAFT_KEY = "oremea-entry-mirror-draft";
+const DRAFT_KEY = "oremea-recognition-draft";
 
 type Panel =
   | {
@@ -34,71 +34,16 @@ type Panel =
       type: "generate";
     };
 
-const QUESTIONS: Record<EntryType, Question[]> = {
-  female: [
-    { key: "past_connections_common", text: "What do your connections tend to have in common — before things go wrong?" },
-    { key: "early_ignored_signal", text: "What did you notice early that you talked yourself out of trusting?" },
-    { key: "fastest_pull", text: "What kind of energy pulls you in fastest?" },
-    { key: "adjusting_point", text: "At what point do you start adjusting to keep the connection?" },
-    { key: "slightly_off_response", text: "What do you do when something feels slightly off?" },
-    { key: "speak_or_wait", text: "Do you speak early… or wait and hope it resolves?" },
-    { key: "maintaining", text: "What are you trying to maintain — connection, potential, or peace?" },
-    { key: "avoid_saying", text: "What do you avoid saying when something matters?" },
-    { key: "quiet_or_clear", text: "What feels easier — staying quiet or being clear?" },
-    { key: "protecting_from_feeling", text: "What are you trying not to feel?" },
-    { key: "acted_earlier", text: "What would change if you acted earlier?" },
-    { key: "notice_sooner", text: "What would you need to notice sooner?" },
-    { key: "no_longer_explain", text: "What would you no longer explain away?" },
-    { key: "first_clarity", text: "What would you choose if you trusted your first clarity?" },
-  ],
-  male: [
-    { key: "initial_attraction", text: "What initially attracts you — looks, energy, attention, ease?" },
-    { key: "know_interested", text: "When do you know you’re interested?" },
-    { key: "interest_shift", text: "When do you start losing interest?" },
-    { key: "what_changes", text: "What changes — in them, or in you?" },
-    { key: "needing_space", text: "At what point do you start needing space?" },
-    { key: "pressure_point", text: "What makes you feel pressured, even if nothing is said?" },
-    { key: "when_real", text: "When things get more real, what happens inside you?" },
-    { key: "consistent_or_pull_back", text: "Do you stay consistent… or do you start pulling back?" },
-    { key: "harder_than_should", text: "What feels harder than it should — consistency, emotional openness, responsibility, or clarity?" },
-    { key: "avoided_conversation", text: "What conversations do you delay or avoid?" },
-    { key: "should_say", text: "What do you know you should say… but don’t?" },
-    { key: "vague_or_direct", text: "What feels easier — staying vague, or being direct?" },
-    { key: "consistent_after_attraction", text: "What would it look like to stay consistent after attraction?" },
-    { key: "clear_early", text: "What would it take to be clear early instead of vague later?" },
-    { key: "responsibility_point", text: "Where do you need to take responsibility instead of stepping back?" },
-    { key: "pulling_back", text: "What are you actually avoiding by not showing up fully?" },
-  ],
-  neutral: [
-    { key: "beneath_surface", text: "What do your past connections have in common — beneath the surface?" },
-    { key: "right_early", text: "What tends to feel right early on?" },
-    { key: "early_notice", text: "What do you notice… but don’t act on?" },
-    { key: "realise_off", text: "When do you realise something is off?" },
-    { key: "override", text: "What do you tend to override early?" },
-    { key: "explain_away", text: "What do you explain away?" },
-    { key: "tell_yourself_to_stay", text: "What do you tell yourself to stay?" },
-    { key: "role_in_connection", text: "What role do you tend to take in connection?" },
-    { key: "move_style", text: "Do you move toward, adapt, observe, lead, stabilise, or withdraw?" },
-    { key: "unclear_response", text: "When things become unclear, what do you do?" },
-    { key: "consistency_over_time", text: "How consistent is your behaviour over time?" },
-    { key: "allow_continue", text: "What do you allow to continue longer than you should?" },
-    { key: "manage_or_address", text: "What feels easier to manage than to address?" },
-    { key: "clarity_vs_connection", text: "Where do you prioritise connection over clarity?" },
-    { key: "act_earlier", text: "What would it look like to act earlier?" },
-    { key: "trusted_first_clarity", text: "What would change if you trusted your first clarity?" },
-    { key: "stop_negotiating", text: "What would you stop negotiating?" },
-  ],
-};
+const QUESTIONS: Question[] = RECOGNITION_QUESTIONS;
 
-export default function EntryMirrorPage() {
-  const [entryType, setEntryType] = useState<EntryType>("neutral");
-const [creatorRef, setCreatorRef] = useState("");
+export default function RecognitionPage() {
+  const [creatorRef, setCreatorRef] = useState("");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [panelIndex, setPanelIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [mirrorOutput, setMirrorOutput] = useState("");
+  const [recognitionOutput, setRecognitionOutput] = useState("");
 const [hasUsedRefineOnce, setHasUsedRefineOnce] = useState(false);
 const [lastSessionId, setLastSessionId] = useState("");
   const [error, setError] = useState("");
@@ -124,7 +69,6 @@ if (ref) setCreatorRef(ref);
   try {
     const draft = JSON.parse(saved);
 
-    if (draft.entryType) setEntryType(draft.entryType);
     if (draft.firstName) setFirstName(draft.firstName);
     if (draft.email) setEmail(draft.email);
     if (draft.answers) setAnswers(draft.answers);
@@ -145,15 +89,14 @@ useEffect(() => {
   window.localStorage.setItem(
     DRAFT_KEY,
     JSON.stringify({
-  entryType,
-  firstName,
-  email,
-  creatorRef,
-  panelIndex,
-  answers,
-})
+      firstName,
+      email,
+      creatorRef,
+      panelIndex,
+      answers,
+    })
   );
-}, [entryType, firstName, email, creatorRef, panelIndex, answers]);
+}, [firstName, email, creatorRef, panelIndex, answers]);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -166,49 +109,63 @@ useEffect(() => {
   }, [isGenerating]);
 
   const panels = useMemo<Panel[]>(() => {
-    const questions = QUESTIONS[entryType];
+    const questions = QUESTIONS;
 
     return [
       {
-        type: "statement",
-        title:
-          entryType === "male"
-            ? "You’re not unlucky in relationships.\nYou’re repeating a pattern."
-            : entryType === "female"
-              ? "You don’t have a type.\nYou have a pattern."
-              : "You don’t repeat people.\nYou repeat dynamics.",
-        body:
-          entryType === "neutral"
-            ? "The faces change.\nThe circumstances change.\nBut the underlying experience becomes familiar."
-            : "You meet different people.\nBut the dynamic feels familiar.\nAttraction happens fast.\nClarity comes later.",
-      },
+  type: "statement",
+  title: "Begin with what is here.",
+  body:
+    "Recognition listens for what is already present in your own words.\nBring whatever has your attention.",
+},
       { type: "capture" },
       ...questions.slice(0, 4).map((question) => ({ type: "question" as const, question })),
       {
-        type: "statement",
-        title: "Patterns don’t start at the end.",
-        body: "They start in the early signal.\nThe quiet hesitation.\nThe moment you notice… and continue anyway.",
-      },
+  type: "statement",
+  title: "Keep following what becomes clearer.",
+  body:
+    "Your own words are beginning to create the picture.\nStay with what has your attention.",
+},
       ...questions.slice(4, 10).map((question) => ({ type: "question" as const, question })),
       {
-        type: "statement",
-        title: "This is how the pattern usually unfolds:",
-        body: "Something feels right.\nConnection builds.\nSomething shifts.\nYou notice.\nYou stay.\nIt repeats.",
-      },
+  type: "statement",
+  title: "Notice what is becoming more distinct.",
+  body:
+    "Some parts may feel clearer now.\nLet the next answers sharpen what is already visible.",
+},
       ...questions.slice(10).map((question) => ({ type: "question" as const, question })),
       {
-        type: "statement",
-        title: "The moment you notice it, is the moment the pattern can change.",
-      },
+  type: "statement",
+  title: "Recognition begins where something becomes visible.",
+},
       {
-        type: "statement",
-        title: "You don’t miss the signs.\nYou override them.",
-      },
+  type: "statement",
+  title: "What you can see now gives Recognition something real to work with.",
+},
       { type: "generate" },
     ];
-  }, [entryType]);
+  }, []);
 
   const currentPanel = panels[panelIndex];
+
+const currentQuestionIndex =
+  currentPanel.type === "question"
+    ? QUESTIONS.findIndex(
+        (question) =>
+          question.key === currentPanel.question.key
+      )
+    : -1;
+
+const previousAnswers =
+  currentQuestionIndex > 0
+    ? QUESTIONS.slice(0, currentQuestionIndex)
+        .map((question) => ({
+          question,
+          answer: answers[question.key]?.trim() ?? "",
+        }))
+        .filter((item) => item.answer.length > 0)
+    : [];
+
   const progress = Math.round(((panelIndex + 1) / panels.length) * 100);
 
   const canContinue =
@@ -216,21 +173,21 @@ useEffect(() => {
     currentPanel.type === "generate" ||
     (currentPanel.type === "capture"
       ? firstName.trim().length > 0 && email.trim().includes("@")
-      : answers[currentPanel.question.key]?.trim().length >= 8);
+      : answers[currentPanel.question.key]?.trim().length >= 20);
 
   async function nextPanel() {
   if (!canContinue) {
     setError(
       currentPanel.type === "capture"
         ? "Enter your first name and email to continue."
-        : "Write a little more before continuing."
+        : "Give this a little more shape before continuing."
     );
     return;
   }
 
   if (currentPanel.type === "capture") {
     try {
-      const res = await fetch("/api/entry-mirror/check", {
+      const res = await fetch("/api/recognition/check", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -281,7 +238,7 @@ function refineOnce() {
   if (hasUsedRefineOnce) return;
 
   setHasUsedRefineOnce(true);
-  setMirrorOutput("");
+  setRecognitionOutput("");
   setPanelIndex(2);
   setError("");
 }
@@ -292,19 +249,18 @@ function refineOnce() {
       setError("");
       setLoadingIndex(0);
 
-      const formattedAnswers = QUESTIONS[entryType].map((question) => ({
+      const formattedAnswers = QUESTIONS.map((question) => ({
         questionKey: question.key,
         response: answers[question.key] ?? "",
       }));
 
-      const sessionRes = await fetch("/api/entry-mirror/session", {
+      const sessionRes = await fetch("/api/recognition/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName,
           email,
-          entryType,
-          source: creatorRef ? `creator:${creatorRef}` : "entry-mirror-page",
+          source: creatorRef ? `creator:${creatorRef}` : "recognition-page",
           answers: formattedAnswers,
         }),
       });
@@ -315,7 +271,7 @@ function refineOnce() {
         throw new Error(sessionData?.error || "Could not save reflection.");
       }
 
-      const generateRes = await fetch("/api/entry-mirror/generate", {
+      const generateRes = await fetch("/api/recognition/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -327,11 +283,11 @@ function refineOnce() {
       const generateData = await generateRes.json();
 
       if (!generateRes.ok || !generateData?.output?.output) {
-        throw new Error("Your reflection was saved, but the Mirror could not be generated.");
+        throw new Error("Your reflection was saved, but your Recognition could not be generated.");
       }
 
 setLastSessionId(sessionData.session.id);
-      setMirrorOutput(generateData.output.output);
+      setRecognitionOutput(generateData.output.output);
 window.localStorage.removeItem(DRAFT_KEY);
     } catch (err) {
       console.error(err);
@@ -341,7 +297,7 @@ window.localStorage.removeItem(DRAFT_KEY);
     }
   }
 
-  if (mirrorOutput) {
+  if (recognitionOutput) {
     return (
       <main className="min-h-screen bg-[#0A0A0A] px-6 py-10 text-[#EAEAEA]">
         <section className="mx-auto max-w-3xl">
@@ -350,22 +306,22 @@ window.localStorage.removeItem(DRAFT_KEY);
           </p>
 
           <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
-            Your Entry Mirror
+            Your Recognition
           </h1>
 
           <div className="whitespace-pre-wrap rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 font-serif text-xl leading-relaxed text-[#D8D0C0] md:p-10 md:text-2xl">
-  {mirrorOutput}
+  {recognitionOutput}
 </div>
 
 {!hasUsedRefineOnce ? (
   <div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
     <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
-      You’ve now seen your Mirror reflection.
-    </p>
+  You’ve now seen your Recognition.
+</p>
 
-    <p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
-      Would you like to answer again with more depth, and see how much more precise the Mirror becomes?
-    </p>
+<p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
+  Would you like to answer again with more depth and see what becomes clearer?
+</p>
 
     <button
       type="button"
@@ -379,18 +335,16 @@ window.localStorage.removeItem(DRAFT_KEY);
 
 <div className="mt-10 rounded-3xl border border-[#3A2F1C] bg-[#14110B] p-6 md:p-8">
             <p className="font-serif text-2xl text-[#EAEAEA] md:text-3xl">
-              You already recognise the pattern.
-            </p>
-            <p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
-              What you haven’t done yet… is stay with it long enough to change it.
-            </p>
+  Something has become more visible.
+</p>
 
-            <div className="mt-8 space-y-4 font-serif">
-  <p className="text-2xl text-[#EAEAEA] md:text-3xl">
-    Resonance
-  </p>
+<p className="mt-5 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
+  Resonance gives you somewhere to stay with what Recognition revealed.
+</p>
+
+            <div className="mt-8 font-serif">
   <p className="text-2xl text-[#C6A96B] md:text-3xl">
-    Resonance + Mirror
+    Resonance
   </p>
 </div>
 
@@ -420,28 +374,8 @@ window.localStorage.removeItem(DRAFT_KEY);
         {currentPanel.type === "capture" ? (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
             <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
-              Begin privately.
+              Begin privately
             </h1>
-
-            <div className="mb-8 grid gap-3 md:grid-cols-3">
-              {(["female", "male", "neutral"] as EntryType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => {
-  setEntryType(type);
-  setError("");
-}}
-                  className={`rounded-2xl border px-5 py-4 text-left font-serif text-lg capitalize transition md:text-xl ${
-                    entryType === type
-                      ? "border-[#C6A96B] bg-[#171208] text-[#EAEAEA]"
-                      : "border-[#2A2418] bg-[#0A0A0A] text-[#BFBFBF] hover:border-[#A88A4A]"
-                  }`}
-                >
-                  {type === "female" ? "Women" : type === "male" ? "Men" : "Neutral"}
-                </button>
-              ))}
-            </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <input
@@ -474,13 +408,43 @@ window.localStorage.removeItem(DRAFT_KEY);
           </div>
         ) : currentPanel.type === "question" ? (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
-            <p className="mb-8 text-xs tracking-[0.25em] text-[#C6A96B]">
-              REFLECTION
+  {previousAnswers.length > 0 ? (
+    <div className="mb-10 border-b border-[#2A2418] pb-10">
+      <p className="mb-6 text-xs tracking-[0.25em] text-[#8F815E]">
+        WHAT YOU’VE SAID SO FAR
+      </p>
+
+      <div className="space-y-6">
+        {previousAnswers.map(({ question, answer }) => (
+          <div key={question.key}>
+            <p className="font-serif text-base leading-relaxed text-[#8F815E] md:text-lg">
+              {question.text}
             </p>
 
-            <h1 className="mb-8 font-serif text-3xl leading-tight md:text-5xl">
-              {currentPanel.question.text}
-            </h1>
+            <p className="mt-2 whitespace-pre-wrap font-serif text-lg leading-relaxed text-[#D8D0C0] md:text-xl">
+              {answer}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : null}
+
+  <p className="mb-8 text-xs tracking-[0.25em] text-[#C6A96B]">
+    REFLECTION
+  </p>
+
+            <h1 className="font-serif text-3xl leading-tight md:text-5xl">
+  {currentPanel.question.text}
+</h1>
+
+{currentPanel.question.support ? (
+  <p className="mt-5 mb-8 font-serif text-lg leading-relaxed text-[#8F815E] md:text-xl">
+    {currentPanel.question.support}
+  </p>
+) : (
+  <div className="mb-8" />
+)}
 
             <textarea
               value={answers[currentPanel.question.key] ?? ""}
@@ -495,7 +459,7 @@ window.localStorage.removeItem(DRAFT_KEY);
         ) : (
           <div className="rounded-3xl border border-[#2A2418] bg-[#11100D] p-6 md:p-10">
             <h1 className="font-serif text-4xl leading-tight md:text-6xl">
-              Generate your Entry Mirror.
+              Generate Your Recognition.
             </h1>
 
             <p className="mt-8 font-serif text-xl leading-relaxed text-[#BFBFBF] md:text-2xl">
@@ -517,7 +481,7 @@ window.localStorage.removeItem(DRAFT_KEY);
                 onClick={submitAndGenerate}
                 className="mt-10 rounded-full border border-[#D6B97A] bg-[#C6A96B] px-8 py-4 font-serif text-lg tracking-[0.06em] text-[#0A0A0A] shadow-[0_0_28px_rgba(198,169,107,0.18)] transition hover:bg-[#D6B97A]"
               >
-                Generate my Entry Mirror
+                Generate my Recognition
               </button>
             )}
           </div>

@@ -110,3 +110,9 @@ export type ELOutput = {
   reply: string
   shouldContinue: boolean
 }
+
+export type ELPerceptionOutput = {
+  evidence: Evidence[]
+  observations: Observation[]
+  scores: EngineScores
+}

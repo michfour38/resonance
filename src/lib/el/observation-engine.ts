@@ -25,6 +25,14 @@ export function createObservations(
     ),
   )
 
+observations.push(
+  ...createGroupedObservation(
+    evidence,
+    "strength",
+    "Strength signals detected.",
+  ),
+)
+
   observations.push(
     ...createGroupedObservation(
       evidence,
@@ -90,61 +98,41 @@ function createGroupedObservation(
   }
 
   return [
-    {
-      id: crypto.randomUUID(),
-      type,
-      confidence:
-        matching.reduce(
-          (sum, item) => sum + item.confidence,
-          0,
-        ) / matching.length,
-      evidenceIds: matching.map(
-        (item) => item.id,
-      ),
-      summary,
-    },
-  ]
+  {
+    id: crypto.randomUUID(),
+    type,
+    confidence:
+      matching.reduce(
+        (sum, item) => sum + item.confidence,
+        0,
+      ) / matching.length,
+    evidenceIds: matching.map(
+      (item) => item.id,
+    ),
+    summary: `${summary} ${matching
+      .map((item) => item.content)
+      .join(" | ")}`,
+  },
+]
 }
 
 function detectContradiction(
-  evidence: Evidence[],
+  _evidence: Evidence[],
 ): Observation | null {
-  const hasPossibility = evidence.some(
-    (e) => e.type === "possibility",
-  )
-
-  const hasObjection = evidence.some(
-    (e) => e.type === "objection",
-  )
-
-  if (!hasPossibility || !hasObjection) {
-    return null
-  }
-
-  return {
-    id: crypto.randomUUID(),
-    type: "contradiction",
-    confidence: 0.75,
-    evidenceIds: evidence.map(
-      (item) => item.id,
-    ),
-    summary:
-      "Possibility and objection are present simultaneously.",
-  }
+  return null
 }
 
 function detectActivation(
   evidence: Evidence[],
 ): Observation | null {
-  const score =
-    evidence.filter(
-      (e) =>
-        e.type === "possibility" ||
-        e.type === "choice" ||
-        e.type === "movement",
-    ).length
+  const activationEvidence = evidence.filter(
+    (item) =>
+      item.type === "possibility" ||
+      item.type === "choice" ||
+      item.type === "movement",
+  )
 
-  if (score === 0) {
+  if (activationEvidence.length === 0) {
     return null
   }
 
@@ -153,12 +141,11 @@ function detectActivation(
     type: "activation",
     confidence: Math.min(
       1,
-      score / 5,
+      activationEvidence.length / 5,
     ),
-    evidenceIds: evidence.map(
+    evidenceIds: activationEvidence.map(
       (item) => item.id,
     ),
-    summary:
-      "Activation signals detected.",
+    summary: "Activation signals detected.",
   }
 }

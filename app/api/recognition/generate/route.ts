@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateEntryMirror } from "../../../../src/lib/mirror/entry-mirror.service";
+import { generateRecognition } from "../../../../src/lib/recognition/recognition.service";
 import { sendRecognitionEmail } from "../../../../src/lib/email/send-recognition-email";
 
 export async function POST(req: NextRequest) {
@@ -16,14 +16,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const output = await generateEntryMirror({
+    const output = await generateRecognition({
       sessionId,
       regenerate,
     });
 
     if (!output) {
       return NextResponse.json(
-        { error: "Entry Mirror could not be generated" },
+        { error: "Recognition could not be generated" },
         { status: 500 }
       );
     }
@@ -54,10 +54,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ output });
   } catch (error) {
-    console.error("Entry Mirror generate route failed:", error);
+    console.error("Recognition generate route failed:", error);
 
     return NextResponse.json(
-      { error: "Entry Mirror generate route failed" },
+      { error: "Recognition generate route failed" },
       { status: 500 }
     );
   }

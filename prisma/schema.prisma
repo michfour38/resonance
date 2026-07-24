@@ -554,18 +554,23 @@ model harmonize_systems {
 model harmonize_invites {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
-  system_id            String  @db.Uuid
+  system_id            String @db.Uuid
   email                String
   relationship_context String?
 
   status String @default("pending")
 
-  created_at  DateTime  @default(now()) @db.Timestamptz(6)
-  accepted_at DateTime? @db.Timestamptz(6)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  accepted_at             DateTime? @db.Timestamptz(6)
+  accepted_by_profile_id  String?
+  consent_acknowledged_at DateTime? @db.Timestamptz(6)
+  expires_at              DateTime? @db.Timestamptz(6)
+  revoked_at              DateTime? @db.Timestamptz(6)
 
   systems harmonize_systems @relation(fields: [system_id], references: [id], onDelete: Cascade)
 
   @@index([system_id])
+  @@index([system_id, status])
   @@index([email])
   @@index([status])
 }
@@ -577,7 +582,11 @@ model harmonize_participants {
 
   role                 HarmonizeRole
   relationship_context String?
-  is_minor             Boolean       @default(false)
+
+  consent_snapshot        Json      @default("{}")
+  consent_acknowledged_at DateTime? @db.Timestamptz(6)
+
+  is_minor             Boolean @default(false)
 
   birthdate            DateTime? @db.Date
   minor_access_enabled Boolean   @default(false)
@@ -882,7 +891,7 @@ enum HarmonizeCycleStatus {
   paused
   review_due
   reviewed
-  incomplete
+  archived
 }
 
 enum HarmonizeScope {

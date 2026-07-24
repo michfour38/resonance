@@ -75,7 +75,7 @@ different_in_system:
     await prisma.harmonize_cycles.update({
   where: { id: cycleId },
   data: {
-    status: "reviewed",
+    status: "archived",
     reviewed_at: new Date(),
     system_snapshot: {
       cycleSummary,

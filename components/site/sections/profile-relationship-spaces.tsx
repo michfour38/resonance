@@ -159,25 +159,32 @@ async function saveName(systemId: string) {
     </>
   ) : (
     <>
-      <button
-        type="button"
-        onClick={() => {
-          setEditingId(system.id)
-          setEditedName(system.name || "")
-          setError("")
-        }}
-        className="text-sm text-[#c6a96b]"
-      >
-        Edit
-      </button>
+  <button
+    type="button"
+    onClick={() => {
+      setEditingId(system.id)
+      setEditedName(system.name || "")
+      setError("")
+    }}
+    className="text-sm text-[#c6a96b]"
+  >
+    Edit
+  </button>
 
-      <Link
-        href={`/harmonize/system/${system.id}`}
-        className="text-sm text-[#c6a96b]"
-      >
-        Open →
-      </Link>
-    </>
+  <Link
+    href={`/harmonize/system/${system.id}`}
+    className="text-sm text-[#c6a96b]"
+  >
+    Open →
+  </Link>
+
+  <Link
+    href={`/harmonize/archive/${system.id}`}
+    className="text-sm text-[#c6a96b]"
+  >
+    Archive →
+  </Link>
+</>
   )}
 </div>
               </div>

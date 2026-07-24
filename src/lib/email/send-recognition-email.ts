@@ -37,7 +37,7 @@ export async function sendRecognitionEmail({
       ? `Hi ${escapeHtml(firstName.trim())},`
       : "Hi,";
 
-    const continueLink = `https://www.oremea.com/entry-mirror?session=${sessionId}`;
+    const continueLink = `https://www.oremea.com/recognition?session=${sessionId}`;
 
     await resend.emails.send({
       from: "Oremea <support@oremea.com>",

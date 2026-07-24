@@ -48,7 +48,7 @@ Route (app)                              Size     First Load JS
 ├ ƒ /api/mirror/unlock                   0 B                0 B
 ├ ƒ /api/onboarding                      0 B                0 B
 ├ ƒ /api/paystack/journey-success        0 B                0 B
-├ ƒ /api/paystack/mirror-success         0 B                0 B
+├ ƒ /api/paystack/-success         0 B                0 B
 ├ ƒ /api/prewave-response                0 B                0 B
 ├ ƒ /api/trpc/[trpc]                     0 B                0 B
 ├ ƒ /api/wave-name-vote                  0 B                0 B

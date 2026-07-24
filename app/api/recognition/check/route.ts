@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       alreadyCompleted: outputCount >= 1,
     });
   } catch (error) {
-    console.error("Entry Mirror check failed:", error);
+    console.error("Recognition check failed:", error);
 
     return NextResponse.json(
       { error: "Could not check Recognition status." },

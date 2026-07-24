@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  EntryMirrorType,
-  getEntryMirrorQuestions,
-} from "../../../../src/lib/mirror/entry-mirror.service";
-
-function isValidEntryType(value: unknown): value is EntryMirrorType {
-  return value === "female" || value === "male" || value === "neutral";
-}
+  RecognitionType,
+  getRecognitionQuestions,
+} from "../../../../src/lib/recognition/recognition.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +15,7 @@ export async function POST(req: NextRequest) {
     const email =
       typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
 
-    const entryType = body?.entryType;
+    const entryType: RecognitionType = "neutral";
     const source =
       typeof body?.source === "string" ? body.source.trim() : "direct";
 
@@ -29,11 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
-    if (!isValidEntryType(entryType)) {
-      return NextResponse.json({ error: "Valid entryType is required" }, { status: 400 });
-    }
-
-    const questions = getEntryMirrorQuestions(entryType);
+    const questions = getRecognitionQuestions(entryType);
 
     const cleanedAnswers = answers
       .map((item: unknown) => {
@@ -123,7 +115,7 @@ const lead = await prisma.entry_leads.upsert({
         first_name: firstName || undefined,
         source,
         intro_started_at: new Date(),
-        last_seen_panel_key: `entry-mirror-${entryType}`,
+        last_seen_panel_key: "recognition",
         last_seen_panel_at: new Date(),
       },
       create: {
@@ -131,7 +123,7 @@ const lead = await prisma.entry_leads.upsert({
         first_name: firstName || null,
         source,
         intro_started_at: new Date(),
-        last_seen_panel_key: `entry-mirror-${entryType}`,
+        last_seen_panel_key: "recognition",
         last_seen_panel_at: new Date(),
       },
       select: {
@@ -180,10 +172,10 @@ const lead = await prisma.entry_leads.upsert({
       },
     });
   } catch (error) {
-    console.error("Entry Mirror session route failed:", error);
+    console.error("Recognition session route failed:", error);
 
     return NextResponse.json(
-      { error: "Entry Mirror session route failed" },
+      { error: "Recognition session route failed" },
       { status: 500 }
     );
   }

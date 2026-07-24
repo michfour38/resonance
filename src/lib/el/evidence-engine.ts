@@ -32,6 +32,23 @@ const RESOURCE_WORDS = [
   "skills",
 ]
 
+const STRENGTH_WORDS = [
+  "i know",
+  "i learned",
+  "i learnt",
+  "i understand",
+  "i noticed",
+  "i recognise",
+  "i recognize",
+  "i figured out",
+  "i worked out",
+  "i managed",
+  "i built",
+  "i created",
+  "i handled",
+  "i already",
+]
+
 const POSSIBILITY_WORDS = [
   "could",
   "might",
@@ -108,56 +125,59 @@ export function extractEvidence(
     }
   }
 
-  addWordEvidence({
-    evidence,
-    normalized,
-    words: RESOURCE_WORDS,
-    type: "resource",
-    timestamp,
-  })
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: RESOURCE_WORDS,
+  type: "resource",
+  timestamp,
+})
 
-  addWordEvidence({
-    evidence,
-    normalized,
-    words: POSSIBILITY_WORDS,
-    type: "possibility",
-    timestamp,
-  })
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: STRENGTH_WORDS,
+  type: "strength",
+  timestamp,
+})
 
-  addWordEvidence({
-    evidence,
-    normalized,
-    words: CHOICE_WORDS,
-    type: "choice",
-    timestamp,
-  })
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: POSSIBILITY_WORDS,
+  type: "possibility",
+  timestamp,
+})
 
-  addWordEvidence({
-    evidence,
-    normalized,
-    words: OBJECTION_WORDS,
-    type: "objection",
-    timestamp,
-  })
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: CHOICE_WORDS,
+  type: "choice",
+  timestamp,
+})
 
-  addWordEvidence({
-    evidence,
-    normalized,
-    words: MOVEMENT_WORDS,
-    type: "movement",
-    timestamp,
-  })
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: OBJECTION_WORDS,
+  type: "objection",
+  timestamp,
+})
 
-  if (response.trim().length > 40) {
-    evidence.push(
-      createEvidence({
-        type: "reality",
-        content: cleanReference(response),
-        confidence: 0.55,
-        timestamp,
-      }),
-    )
-  }
+addWordEvidence({
+  evidence,
+  normalized,
+  response,
+  words: MOVEMENT_WORDS,
+  type: "movement",
+  timestamp,
+})
 
   return dedupeEvidence(evidence)
 }
@@ -165,22 +185,27 @@ export function extractEvidence(
 function addWordEvidence({
   evidence,
   normalized,
+  response,
   words,
   type,
   timestamp,
 }: {
   evidence: Evidence[]
   normalized: string
+  response: string
   words: string[]
   type: EvidenceType
   timestamp: string
 }) {
   for (const word of words) {
-    if (normalized.includes(word)) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+const pattern = new RegExp(`\\b${escaped}\\b`, "i")
+
+if (pattern.test(normalized)) {
       evidence.push(
         createEvidence({
           type,
-          content: word,
+          content: extractContextPhrase(response, word),
           confidence: 0.65,
           timestamp,
         }),
@@ -225,10 +250,22 @@ function dedupeEvidence(
   })
 }
 
-function cleanReference(input: string): string {
-  const trimmed = input.trim().replace(/\s+/g, " ")
+function extractContextPhrase(
+  response: string,
+  word: string,
+): string {
+  const sentences = response
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
 
-  if (trimmed.length <= 180) return trimmed
+  const normalizedWord = word.toLowerCase()
 
-  return `${trimmed.slice(0, 180)}...`
+  const sentence = sentences.find((item) =>
+    item.toLowerCase().includes(normalizedWord),
+  )
+
+  return sentence ?? word
 }

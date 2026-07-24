@@ -158,11 +158,16 @@ function scoreAgency(
     (item) => item.type === "possibility",
   ).length
 
+const strengthCount = evidence.filter(
+  (item) => item.type === "strength",
+).length
+
   return clampScore(
-    choiceCount * 20 +
-      movementCount * 28 +
-      possibilityCount * 10,
-  )
+  choiceCount * 20 +
+    movementCount * 28 +
+    possibilityCount * 10 +
+    strengthCount * 16,
+)
 }
 
 function scoreLeverage(
