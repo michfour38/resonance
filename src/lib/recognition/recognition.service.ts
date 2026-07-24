@@ -6,6 +6,11 @@ import {
   type RecognitionClarityMap,
 } from "@/src/lib/recognition/recognition-clarity";
 import {
+  buildRecognitionMovementMap,
+  type RecognitionMovementContext,
+  type RecognitionMovementMap,
+} from "@/src/lib/recognition/recognition-movement";
+import {
   buildRecognitionParticipantSignalMap,
   type RecognitionParticipantSignalContext,
   type RecognitionParticipantSignalLink,
@@ -52,6 +57,7 @@ function buildRecognitionPrompt(params: {
   clarityMap: RecognitionClarityMap;
   participantSignals: RecognitionParticipantSignalMap;
   relationshipMap: RecognitionRelationshipMap;
+  movementMap: RecognitionMovementMap;
 }) {
   const {
     firstName,
@@ -62,6 +68,7 @@ function buildRecognitionPrompt(params: {
     clarityMap,
     participantSignals,
     relationshipMap,
+    movementMap,
   } = params;
 
   return `
@@ -100,6 +107,7 @@ Build every recognition from:
 - values, choices, clarity, uncertainty, or movement supported by their answers
 - patterns supported across multiple answers
 - relationships or dependencies the participant explicitly links in their own wording
+- changes in articulation, distinction, specificity, or visibility that appear across the reflection sequence
 
 Keep every observation proportionate to the available evidence.
 Present interpretation as possibility when certainty is limited.
@@ -109,13 +117,14 @@ A repeated or conservatively normalized term is a recurrence signal before it is
 A repeated EL observation category is evidence structure before it is meaning.
 A supported tension is a detectable pull rather than a complete account of everything present.
 A relationship marker identifies a connection the participant wrote; the full sentence determines what kind of connection they are describing.
+A continuing reflection thread identifies a subject that remains present from earlier to later stages; its significance comes from the participant's full contexts.
 Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
 
 LANGUAGE TOLERANCE PRINCIPLES:
 
 The participant's original wording remains the authoritative language of the reflection.
 Detection may use a conservative normalized copy to connect obvious spelling variants, missing or extra letters, adjacent transpositions, and protected structural vocabulary.
-Normalization supports detection rather than rewriting the participant's prose.
+Normalization supports detection while preserving the participant's prose.
 Use raw participant sentences when describing or quoting what they wrote.
 A normalized recurrence remains a support signal; read the raw contexts before assigning significance or meaning.
 
@@ -154,6 +163,24 @@ A recurring subject linked in relationship statements across separate answers ca
 The connection itself, its meaning, and any causal claim remain distinct. Preserve each at the level the participant's wording supports.
 Several relationships can be active around the same subject at once.
 
+REFLECTION MOVEMENT PRINCIPLES:
+
+Movement here describes how the participant's seeing changes while they write.
+Treat the question order as a reflection sequence rather than a developmental ranking.
+Initial attention shows what entered the reflection first.
+Reality and people answers add observable context around what was initially named.
+The returning answer shows recurrence the participant themselves has noticed.
+The participation answer shows where they locate themselves inside what they described.
+The weight answer shows what they say matters most at that point in the reflection.
+The distinction answer is the participant's own statement about what has separated into clearer parts.
+The clarity answer is the participant's own statement about what they know clearly now.
+The clarity-holding answer shows conditions surrounding that clarity.
+The final recognition answer is the strongest direct source for what became more visible through the sequence.
+A continuing thread means the same conservatively detected subject appears in both early and later stages. Continuity alone establishes presence across the reflection; the raw contexts show whether its meaning, specificity, or relationship changed.
+Movement can include greater specificity, a newly available distinction, an explicit clarification, a changed relationship to the same subject, or recognition of something that was previously less visible.
+Several subjects can move differently within the same reflection.
+Describe only movement supported by the participant's words. Keep readiness, healing, progress, and future action as separate questions unless the participant explicitly names them.
+
 VOICE:
 
 - grounded
@@ -190,6 +217,8 @@ WHAT TO NOTICE:
 - where language recurs across separate answers, including conservatively normalized spelling variants
 - where evidence categories recur across separate answers
 - where a recurring subject carries a coherent thread across several answers
+- where a subject remains present from early attention or reality into later distinction, clarity, or recognition
+- where the participant's description of the same subject becomes more specific or differently framed across the sequence
 - where a subject carries agency and friction in different answers
 - where several truths, values, needs, choices, consequences, or constraints are present at the same time
 
@@ -214,6 +243,8 @@ SECTION RULES:
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
 - Let participant-stated relationships reveal structure when the wording clearly links conditions, explanations, dependencies, or consequences.
 - Keep temporal or conditional links distinct from causal claims.
+- Use the reflection movement map when it shows how an early subject becomes more specific, separated, clarified, or newly visible later in the sequence.
+- A continuing thread establishes continuity across stages; describe a change in that thread only when the raw contexts support the change.
 - A supported tension may be named when the relevant truths are clearly present in the participant's own words.
 - Treat newly visible material as emerging recognition rather than a fixed identity claim.
 - Participation may reveal where the participant repeatedly appears inside the situation while responsibility stays limited to what they actually name.
@@ -230,11 +261,12 @@ SECTION RULES:
 - Begin with participant-stated clarity and distinctions when they are available.
 - Treat existing clarity as capacity.
 - Preserve clarity even when the clarity-holding answer names difficult conditions around it.
+- Use final recognition as additional evidence of what the participant can now see when it aligns with their stated clarity.
 - More than one truth can sit beside the clarity without cancelling it.
 - Keep clarity distinct from instruction.
 
 "What remains available to notice"
-- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, a participant-stated relationship, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
+- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, a participant-stated relationship, a continuing reflection thread, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
 - Leave one precise opening for further recognition.
 - Keep the opening voluntary and grounded in what is already present.
 
@@ -246,6 +278,10 @@ Preserve the full set that the participant's answers support rather than reducin
 An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
 Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
 Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+REFLECTION MOVEMENT MAP:
+
+${renderMovementMap(movementMap)}
 
 PARTICIPANT-STATED RELATIONSHIP MAP:
 
@@ -308,6 +344,68 @@ USER RESPONSES:
 
 ${renderResponses(responses)}
 `;
+}
+
+function renderMovementMap(map: RecognitionMovementMap): string {
+  const continuingThreads =
+    map.continuingThreads.length > 0
+      ? map.continuingThreads
+          .map(
+            (thread) => `
+Continuing subject "${thread.term}" from ${thread.firstQuestionKey} to ${thread.lastQuestionKey}:
+${thread.contexts
+  .map((context) => `- [${context.questionKey}] ${context.content}`)
+  .join("\n")}`,
+          )
+          .join("\n")
+      : "- No qualifying subject spans both early and later reflection stages.";
+
+  return `
+Initial attention:
+${renderMovementContexts(map.initialAttention)}
+
+Grounded reality and people:
+${renderMovementContexts(map.groundedReality)}
+
+Participant-noticed recurrence:
+${renderMovementContexts(map.participantNoticedRecurrence)}
+
+Self-observed participation:
+${renderMovementContexts(map.selfParticipation)}
+
+Participant-stated weight:
+${renderMovementContexts(map.statedWeight)}
+
+Distinctions that became available:
+${renderMovementContexts(map.distinctions)}
+
+Participant-stated clarity:
+${renderMovementContexts(map.statedClarity)}
+
+Conditions around holding clarity:
+${renderMovementContexts(map.clarityConditions)}
+
+Final recognition — what became more visible:
+${renderMovementContexts(map.finalRecognition)}
+
+Continuing subjects across the reflection:
+${continuingThreads}
+`;
+}
+
+function renderMovementContexts(contexts: RecognitionMovementContext[]): string {
+  if (contexts.length === 0) return "- No response available for this stage.";
+
+  return contexts
+    .map((context) => {
+      const evidenceLabel =
+        context.evidenceTypes.length > 0
+          ? ` [EL: ${context.evidenceTypes.join(", ")}]`
+          : "";
+
+      return `- [${context.questionKey}]${evidenceLabel} ${context.content}`;
+    })
+    .join("\n");
 }
 
 function renderRelationshipMap(map: RecognitionRelationshipMap): string {
@@ -740,6 +838,10 @@ export async function generateRecognition(params: {
     perception.answers,
     perception.recurringLanguage,
   );
+  const movementMap = buildRecognitionMovementMap(
+    perception.answers,
+    perception.recurringLanguage,
+  );
 
   const prompt = buildRecognitionPrompt({
     firstName: session.entry_leads.first_name,
@@ -750,6 +852,7 @@ export async function generateRecognition(params: {
     clarityMap,
     participantSignals,
     relationshipMap,
+    movementMap,
   });
 
   const output = await generateAI({
@@ -789,6 +892,7 @@ export async function generateRecognition(params: {
         clarityMap,
         participantSignals,
         relationshipMap,
+        movementMap,
       },
     },
     select: {
