@@ -1,6 +1,7 @@
 import { runELPerception } from "@/src/lib/el/el-core";
 import type {
   ELPerceptionOutput,
+  EvidenceType,
   ObservationType,
 } from "@/src/lib/el/el-types";
 
@@ -26,11 +27,34 @@ export type RecurringObservationSignal = {
   answerCount: number;
 };
 
+export type RecognitionTensionEvidence = {
+  questionKey: string;
+  type: EvidenceType;
+  content: string;
+};
+
+export type SupportedTensionSignal = {
+  term: string;
+  agencyEvidence: RecognitionTensionEvidence[];
+  frictionEvidence: RecognitionTensionEvidence[];
+  basis: "shared_term_across_agency_and_friction_evidence";
+};
+
 export type RecognitionPerceptionSummary = {
   answers: RecognitionAnswerPerception[];
   recurringLanguage: RecurringLanguageSignal[];
   recurringObservations: RecurringObservationSignal[];
+  supportedTensions: SupportedTensionSignal[];
 };
+
+const AGENCY_EVIDENCE_TYPES = new Set<EvidenceType>([
+  "strength",
+  "possibility",
+  "choice",
+  "movement",
+]);
+
+const FRICTION_EVIDENCE_TYPES = new Set<EvidenceType>(["objection"]);
 
 const STOP_WORDS = new Set([
   "about",
@@ -94,10 +118,13 @@ export function buildRecognitionPerception(
     }),
   }));
 
+  const recurringLanguage = findRecurringLanguage(responses);
+
   return {
     answers,
-    recurringLanguage: findRecurringLanguage(responses),
+    recurringLanguage,
     recurringObservations: findRecurringObservations(answers),
+    supportedTensions: findSupportedTensions(answers, recurringLanguage),
   };
 }
 
@@ -169,6 +196,92 @@ function findRecurringObservations(
       questionKeys: [...questionKeys],
       answerCount: questionKeys.size,
     }));
+}
+
+function findSupportedTensions(
+  answers: RecognitionAnswerPerception[],
+  recurringLanguage: RecurringLanguageSignal[],
+): SupportedTensionSignal[] {
+  const tensions: SupportedTensionSignal[] = [];
+
+  for (const recurring of recurringLanguage) {
+    const agencyEvidence: RecognitionTensionEvidence[] = [];
+    const frictionEvidence: RecognitionTensionEvidence[] = [];
+
+    for (const answer of answers) {
+      if (!recurring.questionKeys.includes(answer.questionKey)) continue;
+
+      for (const evidence of answer.perception.evidence) {
+        if (!containsLiteralTerm(evidence.content, recurring.term)) continue;
+
+        const item: RecognitionTensionEvidence = {
+          questionKey: answer.questionKey,
+          type: evidence.type,
+          content: evidence.content,
+        };
+
+        if (AGENCY_EVIDENCE_TYPES.has(evidence.type)) {
+          agencyEvidence.push(item);
+        }
+
+        if (FRICTION_EVIDENCE_TYPES.has(evidence.type)) {
+          frictionEvidence.push(item);
+        }
+      }
+    }
+
+    const agencyQuestionKeys = new Set(
+      agencyEvidence.map((item) => item.questionKey),
+    );
+    const frictionQuestionKeys = new Set(
+      frictionEvidence.map((item) => item.questionKey),
+    );
+
+    const spansDifferentAnswers = [...agencyQuestionKeys].some(
+      (questionKey) => !frictionQuestionKeys.has(questionKey),
+    ) || [...frictionQuestionKeys].some(
+      (questionKey) => !agencyQuestionKeys.has(questionKey),
+    );
+
+    if (
+      agencyEvidence.length === 0 ||
+      frictionEvidence.length === 0 ||
+      !spansDifferentAnswers
+    ) {
+      continue;
+    }
+
+    tensions.push({
+      term: recurring.term,
+      agencyEvidence: dedupeTensionEvidence(agencyEvidence),
+      frictionEvidence: dedupeTensionEvidence(frictionEvidence),
+      basis: "shared_term_across_agency_and_friction_evidence",
+    });
+  }
+
+  return tensions.slice(0, 6);
+}
+
+function dedupeTensionEvidence(
+  evidence: RecognitionTensionEvidence[],
+): RecognitionTensionEvidence[] {
+  const seen = new Set<string>();
+
+  return evidence.filter((item) => {
+    const key = `${item.questionKey}:${item.type}:${item.content.toLowerCase()}`;
+
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function containsLiteralTerm(content: string, term: string): boolean {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`\\b${escaped}\\b`, "i");
+
+  return pattern.test(content);
 }
 
 function tokenize(value: string): string[] {
