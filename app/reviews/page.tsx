@@ -82,7 +82,7 @@ const reviews: Review[] = [
     role: "Partner",
     month: "June 2026",
     tags: ["Relational insight", "Boundaries", "Perspective"],
-    isVisibleOnMainReviews: true,
+    isVisibleOnMainReviews: false,
     status: "approved",
     productTier: "core",
     productFamily: "harmonize",
@@ -99,7 +99,7 @@ const reviews: Review[] = [
     displayName: "Anonymous",
     month: "June 2026",
     tags: ["Readiness", "Connection", "Stillness"],
-    isVisibleOnMainReviews: true,
+    isVisibleOnMainReviews: false,
     status: "approved",
     productTier: "core",
     productFamily: "current",
@@ -152,8 +152,6 @@ const productFilters: { key: Product; label: string }[] = [
   { key: "all", label: "All" },
   { key: "resonance", label: "Resonance" },
   { key: "compass", label: "Compass" },
-  { key: "harmonize", label: "Harmonize" },
-  { key: "current", label: "The Current" },
 ];
 
 const experienceFilters = [
