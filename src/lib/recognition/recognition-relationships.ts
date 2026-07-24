@@ -16,6 +16,7 @@ export type RecognitionRelationshipSignal = {
   kind: RecognitionRelationshipKind;
   marker: string;
   content: string;
+  normalizedContent: string;
   evidenceTypes: EvidenceType[];
 };
 
@@ -35,6 +36,10 @@ type RelationshipPattern = {
   kind: RecognitionRelationshipKind;
   marker: string;
   pattern: RegExp;
+};
+
+type SpellingTolerantAnswer = RecognitionAnswerPerception & {
+  normalizedResponse?: string;
 };
 
 const RELATIONSHIP_PATTERNS: RelationshipPattern[] = [
@@ -111,7 +116,7 @@ const RELATIONSHIP_PATTERNS: RelationshipPattern[] = [
 ];
 
 export function buildRecognitionRelationshipMap(
-  answers: RecognitionAnswerPerception[],
+  answers: SpellingTolerantAnswer[],
   recurringLanguage: RecurringLanguageSignal[],
 ): RecognitionRelationshipMap {
   const signals = findRelationshipSignals(answers);
@@ -126,17 +131,25 @@ export function buildRecognitionRelationshipMap(
 }
 
 function findRelationshipSignals(
-  answers: RecognitionAnswerPerception[],
+  answers: SpellingTolerantAnswer[],
 ): RecognitionRelationshipSignal[] {
   const signals: RecognitionRelationshipSignal[] = [];
   const seen = new Set<string>();
 
   for (const answer of answers) {
-    for (const sentence of splitSentences(answer.response)) {
-      for (const relationship of RELATIONSHIP_PATTERNS) {
-        if (!relationship.pattern.test(sentence)) continue;
+    const rawSentences = splitSentences(answer.response);
+    const normalizedSentences = splitSentences(
+      answer.normalizedResponse ?? answer.response,
+    );
 
-        const key = `${answer.questionKey}:${relationship.kind}:${relationship.marker}:${sentence.toLowerCase()}`;
+    for (let index = 0; index < normalizedSentences.length; index += 1) {
+      const normalizedSentence = normalizedSentences[index];
+      const rawSentence = rawSentences[index] ?? normalizedSentence;
+
+      for (const relationship of RELATIONSHIP_PATTERNS) {
+        if (!relationship.pattern.test(normalizedSentence)) continue;
+
+        const key = `${answer.questionKey}:${relationship.kind}:${relationship.marker}:${normalizedSentence.toLowerCase()}`;
         if (seen.has(key)) continue;
         seen.add(key);
 
@@ -144,12 +157,15 @@ function findRelationshipSignals(
           questionKey: answer.questionKey,
           kind: relationship.kind,
           marker: relationship.marker,
-          content: sentence,
+          content: rawSentence,
+          normalizedContent: normalizedSentence,
           evidenceTypes: [
             ...new Set(
               answer.perception.evidence
                 .filter((evidence) =>
-                  sentence.toLowerCase().includes(evidence.content.toLowerCase()),
+                  normalizedSentence
+                    .toLowerCase()
+                    .includes(evidence.content.toLowerCase()),
                 )
                 .map((evidence) => evidence.type),
             ),
@@ -169,7 +185,7 @@ function findLinkedRecurringSubjects(
   return recurringLanguage
     .map((recurring) => {
       const matchingSignals = signals.filter((signal) =>
-        containsLiteralTerm(signal.content, recurring.term),
+        containsLiteralTerm(signal.normalizedContent, recurring.term),
       );
       const questionKeys = [
         ...new Set(matchingSignals.map((signal) => signal.questionKey)),
