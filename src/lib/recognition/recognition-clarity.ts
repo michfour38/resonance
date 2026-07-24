@@ -166,7 +166,7 @@ function findClarityAlongsideTension({
     .map((term) => ({
       term,
       contexts: clarityContexts.filter((context) =>
-        containsLiteralTerm(
+        containsTolerantTerm(
           context.normalizedContent ??
             normalizeRecognitionDetectionText(context.content),
           term,
@@ -216,9 +216,66 @@ function splitSentences(value: string): string[] {
     .filter(Boolean);
 }
 
-function containsLiteralTerm(content: string, term: string): boolean {
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`\\b${escaped}\\b`, "i");
+function containsTolerantTerm(content: string, term: string): boolean {
+  const normalizedTerm = term.toLowerCase();
+  const tokens = content.toLowerCase().match(/[a-z0-9][a-z0-9'-]*/g) ?? [];
 
-  return pattern.test(content);
+  return tokens.some((token) => {
+    if (token === normalizedTerm) return true;
+    if (token.length < 5 || normalizedTerm.length < 5) return false;
+    if (Math.abs(token.length - normalizedTerm.length) > 1) return false;
+
+    if (isAdjacentTransposition(token, normalizedTerm)) return true;
+
+    if (
+      Math.max(token.length, normalizedTerm.length) >= 7 &&
+      token.slice(0, 2) !== normalizedTerm.slice(0, 2)
+    ) {
+      return false;
+    }
+
+    return isSingleInsertionDeletion(token, normalizedTerm);
+  });
+}
+
+function isSingleInsertionDeletion(left: string, right: string): boolean {
+  if (Math.abs(left.length - right.length) !== 1) return false;
+
+  const shorter = left.length < right.length ? left : right;
+  const longer = left.length < right.length ? right : left;
+  let shortIndex = 0;
+  let longIndex = 0;
+  let skipped = false;
+
+  while (shortIndex < shorter.length && longIndex < longer.length) {
+    if (shorter[shortIndex] === longer[longIndex]) {
+      shortIndex += 1;
+      longIndex += 1;
+      continue;
+    }
+
+    if (skipped) return false;
+    skipped = true;
+    longIndex += 1;
+  }
+
+  return true;
+}
+
+function isAdjacentTransposition(left: string, right: string): boolean {
+  if (left.length !== right.length) return false;
+
+  const differences: number[] = [];
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) differences.push(index);
+  }
+
+  if (differences.length !== 2) return false;
+
+  const [first, second] = differences;
+  return (
+    second === first + 1 &&
+    left[first] === right[second] &&
+    left[second] === right[first]
+  );
 }
