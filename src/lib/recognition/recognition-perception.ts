@@ -4,6 +4,11 @@ import type {
   EvidenceType,
   ObservationType,
 } from "@/src/lib/el/el-types";
+import {
+  buildRecognitionLanguageNormalization,
+  type RecognitionLanguageCorrection,
+  type RecognitionLanguageFamily,
+} from "@/src/lib/recognition/recognition-language";
 
 export type RecognitionPerceptionInput = {
   questionKey: string;
@@ -12,6 +17,8 @@ export type RecognitionPerceptionInput = {
 };
 
 export type RecognitionAnswerPerception = RecognitionPerceptionInput & {
+  normalizedResponse: string;
+  languageCorrections: RecognitionLanguageCorrection[];
   perception: ELPerceptionOutput;
 };
 
@@ -60,6 +67,7 @@ export type RecognitionPerceptionSummary = {
   recurringObservations: RecurringObservationSignal[];
   supportedThemes: SupportedThemeSignal[];
   supportedTensions: SupportedTensionSignal[];
+  languageFamilies: RecognitionLanguageFamily[];
 };
 
 const AGENCY_EVIDENCE_TYPES = new Set<EvidenceType>([
@@ -126,14 +134,36 @@ const STOP_WORDS = new Set([
 export function buildRecognitionPerception(
   responses: RecognitionPerceptionInput[],
 ): RecognitionPerceptionSummary {
-  const answers = responses.map((item) => ({
-    ...item,
-    perception: runELPerception({
-      participantResponse: item.response,
-    }),
-  }));
+  const language = buildRecognitionLanguageNormalization(
+    responses.map((item) => ({
+      questionKey: item.questionKey,
+      response: item.response,
+    })),
+  );
 
-  const recurringLanguage = findRecurringLanguage(responses);
+  const answers: RecognitionAnswerPerception[] = responses.map((item) => {
+    const normalized = language.answers.find(
+      (answer) => answer.questionKey === item.questionKey,
+    );
+    const normalizedResponse = normalized?.normalizedResponse ?? item.response;
+
+    return {
+      ...item,
+      normalizedResponse,
+      languageCorrections: normalized?.corrections ?? [],
+      perception: runELPerception({
+        participantResponse: normalizedResponse,
+      }),
+    };
+  });
+
+  const recurringLanguage = findRecurringLanguage(
+    answers.map((answer) => ({
+      questionKey: answer.questionKey,
+      questionText: answer.questionText,
+      response: answer.normalizedResponse,
+    })),
+  );
 
   return {
     answers,
@@ -141,6 +171,7 @@ export function buildRecognitionPerception(
     recurringObservations: findRecurringObservations(answers),
     supportedThemes: findSupportedThemes(answers, recurringLanguage),
     supportedTensions: findSupportedTensions(answers, recurringLanguage),
+    languageFamilies: language.families,
   };
 }
 
@@ -225,7 +256,11 @@ function findSupportedThemes(
         .filter((answer) => item.questionKeys.includes(answer.questionKey))
         .map((answer) => ({
           questionKey: answer.questionKey,
-          content: extractTermContext(answer.response, item.term),
+          content: extractTermContext(
+            answer.response,
+            answer.normalizedResponse,
+            item.term,
+          ),
           evidenceTypes: dedupeEvidenceTypes(
             answer.perception.evidence
               .filter((evidence) => containsLiteralTerm(evidence.content, item.term))
@@ -263,7 +298,11 @@ function findSupportedTensions(
         const item: RecognitionTensionEvidence = {
           questionKey: answer.questionKey,
           type: evidence.type,
-          content: evidence.content,
+          content: extractTermContext(
+            answer.response,
+            answer.normalizedResponse,
+            recurring.term,
+          ),
         };
 
         if (AGENCY_EVIDENCE_TYPES.has(evidence.type)) {
@@ -325,18 +364,31 @@ function dedupeEvidenceTypes(types: EvidenceType[]): EvidenceType[] {
   return [...new Set(types)];
 }
 
-function extractTermContext(response: string, term: string): string {
-  const sentences = response
+function extractTermContext(
+  rawResponse: string,
+  normalizedResponse: string,
+  term: string,
+): string {
+  const rawSentences = splitSentences(rawResponse);
+  const normalizedSentences = splitSentences(normalizedResponse);
+  const matchingIndex = normalizedSentences.findIndex((sentence) =>
+    containsLiteralTerm(sentence, term),
+  );
+
+  if (matchingIndex >= 0) {
+    return rawSentences[matchingIndex] ?? normalizedSentences[matchingIndex];
+  }
+
+  return rawResponse.trim();
+}
+
+function splitSentences(value: string): string[] {
+  return value
     .trim()
     .replace(/\s+/g, " ")
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
-
-  return (
-    sentences.find((sentence) => containsLiteralTerm(sentence, term)) ??
-    response.trim()
-  );
 }
 
 function containsLiteralTerm(content: string, term: string): boolean {
