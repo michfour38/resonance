@@ -146,14 +146,15 @@ export function buildRecognitionPerception(
       (answer) => answer.questionKey === item.questionKey,
     );
     const normalizedResponse = normalized?.normalizedResponse ?? item.response;
+    const sharedPerception = runELPerception({
+      participantResponse: normalizedResponse,
+    });
 
     return {
       ...item,
       normalizedResponse,
       languageCorrections: normalized?.corrections ?? [],
-      perception: runELPerception({
-        participantResponse: normalizedResponse,
-      }),
+      perception: sanitizeSharedELPerceptionForRecognition(sharedPerception),
     };
   });
 
@@ -172,6 +173,23 @@ export function buildRecognitionPerception(
     supportedThemes: findSupportedThemes(answers, recurringLanguage),
     supportedTensions: findSupportedTensions(answers, recurringLanguage),
     languageFamilies: language.families,
+  };
+}
+
+function sanitizeSharedELPerceptionForRecognition(
+  perception: ELPerceptionOutput,
+): ELPerceptionOutput {
+  return {
+    ...perception,
+    observations: perception.observations.filter(
+      (observation) => observation.type !== "activation",
+    ),
+    scores: {
+      ...perception.scores,
+      activation: 0,
+      drift: 0,
+      momentum: 0,
+    },
   };
 }
 
