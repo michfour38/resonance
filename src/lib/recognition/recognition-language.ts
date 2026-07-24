@@ -31,14 +31,23 @@ export type RecognitionLanguageNormalization = {
 const PROTECTED_VOCABULARY = [
   "because",
   "whenever",
+  "when",
+  "every",
+  "time",
+  "each",
   "depends",
   "dependent",
   "relies",
   "therefore",
+  "result",
+  "means",
+  "meaning",
   "uncertain",
   "unsure",
   "maybe",
   "perhaps",
+  "know",
+  "sure",
   "responsibility",
   "responsibilities",
 ];
@@ -58,6 +67,13 @@ const DIRECT_NORMALIZATIONS: Record<string, string> = {
   "can't": "cant",
   wont: "wont",
   "won't": "wont",
+  wen: "when",
+  becuse: "because",
+  becuase: "because",
+  becasue: "because",
+  knwo: "know",
+  suer: "sure",
+  therfore: "therefore",
 };
 
 const FAMILY_STOP_WORDS = new Set([
@@ -186,7 +202,15 @@ function normalizeProtectedVocabulary(value: string): {
     const direct = DIRECT_NORMALIZATIONS[lower];
 
     if (direct) {
-      return direct;
+      if (direct !== lower) {
+        corrections.push({
+          original: token,
+          normalized: direct,
+          basis: "protected_vocabulary",
+        });
+      }
+
+      return preserveSimpleCase(token, direct);
     }
 
     const protectedMatch = findProtectedVocabularyMatch(lower);
@@ -210,7 +234,7 @@ function normalizeProtectedVocabulary(value: string): {
 }
 
 function findProtectedVocabularyMatch(token: string): string | null {
-  if (token.length < 4) return null;
+  if (token.length < 3) return null;
 
   let best: { value: string; distance: number } | null = null;
 
@@ -323,6 +347,9 @@ function chooseCanonicalVariant(
   tokenMap: Map<string, { questionKeys: Set<string>; count: number }>,
 ): string {
   return [...variants].sort((left, right) => {
+    const lengthDifference = right.length - left.length;
+    if (lengthDifference !== 0) return lengthDifference;
+
     const leftStats = tokenMap.get(left);
     const rightStats = tokenMap.get(right);
     const questionDifference =
@@ -330,11 +357,7 @@ function chooseCanonicalVariant(
 
     if (questionDifference !== 0) return questionDifference;
 
-    const countDifference =
-      (rightStats?.count ?? 0) - (leftStats?.count ?? 0);
-    if (countDifference !== 0) return countDifference;
-
-    return right.length - left.length;
+    return (rightStats?.count ?? 0) - (leftStats?.count ?? 0);
   })[0];
 }
 
@@ -344,20 +367,10 @@ function areConservativeVariants(left: string, right: string): boolean {
   const maxLength = Math.max(left.length, right.length);
   const minLength = Math.min(left.length, right.length);
 
-  if (minLength < 5 || Math.abs(left.length - right.length) > 2) return false;
+  if (minLength < 5 || Math.abs(left.length - right.length) > 1) return false;
 
   if (maxLength >= 7 && left.slice(0, 2) !== right.slice(0, 2)) {
     return false;
-  }
-
-  const distance = damerauLevenshtein(left, right);
-
-  if (maxLength >= 9) {
-    return distance <= 2 && similarity(left, right) >= 0.82;
-  }
-
-  if (maxLength >= 7) {
-    return distance <= 1;
   }
 
   return isSingleInsertionDeletion(left, right) || isAdjacentTransposition(left, right);
@@ -404,13 +417,6 @@ function isAdjacentTransposition(left: string, right: string): boolean {
     left[first] === right[second] &&
     left[second] === right[first]
   );
-}
-
-function similarity(left: string, right: string): number {
-  const maxLength = Math.max(left.length, right.length);
-  if (maxLength === 0) return 1;
-
-  return 1 - damerauLevenshtein(left, right) / maxLength;
 }
 
 function damerauLevenshtein(left: string, right: string): number {
