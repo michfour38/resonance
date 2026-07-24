@@ -50,11 +50,18 @@ export type RecognitionSupportForm =
   | "participant_relationship"
   | "continuing_reflection_thread";
 
+type RecognitionSupportFamily =
+  | "recurrence"
+  | "participant_owned"
+  | "relationship"
+  | "tension";
+
 export type RecognitionSubjectCalibration = {
   term: string;
   questionKeys: string[];
   answerCount: number;
   supportForms: RecognitionSupportForm[];
+  supportFamilies: RecognitionSupportFamily[];
   rawContexts: Array<{
     questionKey: string;
     content: string;
@@ -63,7 +70,7 @@ export type RecognitionSubjectCalibration = {
   reflectionDepth: "connected_reflection" | "central_reflection_candidate";
   basis:
     | "repeated_subject_across_answers"
-    | "multiple_independent_support_forms";
+    | "multiple_independent_support_families";
 };
 
 export type RecognitionEvidenceCalibrationMap = {
@@ -220,26 +227,27 @@ function buildSubjectCalibrations(params: {
       }
 
       const forms = [...supportForms];
-      const hasParticipantOwnedForm = forms.some((form) =>
-        form.startsWith("participant_"),
+      const families = [...new Set(forms.map(toSupportFamily))];
+      const participantOwnedForms = forms.filter(
+        (form) => toSupportFamily(form) === "participant_owned",
       );
-      const hasStructuralForm = forms.some((form) =>
-        [
-          "supported_theme",
-          "supported_tension",
-          "participant_relationship",
-          "continuing_reflection_thread",
-        ].includes(form),
+      const hasParticipantOwnedFamily = families.includes("participant_owned");
+      const hasIndependentCompanion = families.some(
+        (family) => family !== "participant_owned" && family !== "recurrence",
       );
+      const hasSeveralParticipantOwnedDomains = participantOwnedForms.length >= 2;
       const converges =
-        forms.length >= 4 ||
-        (forms.length >= 3 && hasParticipantOwnedForm && hasStructuralForm);
+        (hasParticipantOwnedFamily &&
+          (hasIndependentCompanion || hasSeveralParticipantOwnedDomains) &&
+          families.length >= 2) ||
+        families.length >= 3;
 
       return {
         term: recurring.term,
         questionKeys: recurring.questionKeys,
         answerCount: recurring.answerCount,
         supportForms: forms,
+        supportFamilies: families,
         rawContexts: rawContextsForTerm(
           perception,
           recurring.term,
@@ -250,13 +258,17 @@ function buildSubjectCalibrations(params: {
           ? "central_reflection_candidate"
           : "connected_reflection",
         basis: converges
-          ? "multiple_independent_support_forms"
+          ? "multiple_independent_support_families"
           : "repeated_subject_across_answers",
       } satisfies RecognitionSubjectCalibration;
     })
     .sort((left, right) => {
       if (left.level !== right.level) {
         return left.level === "converging_structure" ? -1 : 1;
+      }
+
+      if (right.supportFamilies.length !== left.supportFamilies.length) {
+        return right.supportFamilies.length - left.supportFamilies.length;
       }
 
       if (right.supportForms.length !== left.supportForms.length) {
@@ -266,6 +278,20 @@ function buildSubjectCalibrations(params: {
       return right.answerCount - left.answerCount;
     })
     .slice(0, 12);
+}
+
+function toSupportFamily(form: RecognitionSupportForm): RecognitionSupportFamily {
+  if (
+    form === "cross_answer_recurrence" ||
+    form === "supported_theme" ||
+    form === "continuing_reflection_thread"
+  ) {
+    return "recurrence";
+  }
+
+  if (form === "supported_tension") return "tension";
+  if (form === "participant_relationship") return "relationship";
+  return "participant_owned";
 }
 
 function hasSignalLink(
