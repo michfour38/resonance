@@ -1,14 +1,17 @@
 import type { EvidenceType } from "@/src/lib/el/el-types";
+import { normalizeRecognitionDetectionText } from "@/src/lib/recognition/recognition-language";
 
 export type RecognitionClarityInput = {
   questionKey: string;
   response: string;
+  normalizedResponse?: string;
   evidenceTypes: EvidenceType[];
 };
 
 export type RecognitionClarityContext = {
   questionKey: string;
   content: string;
+  normalizedContent?: string;
   evidenceTypes: EvidenceType[];
 };
 
@@ -31,7 +34,6 @@ export type RecognitionClarityMap = {
 };
 
 const UNCERTAINTY_MARKERS = [
-  "i don't know",
   "i dont know",
   "i do not know",
   "not sure",
@@ -39,7 +41,7 @@ const UNCERTAINTY_MARKERS = [
   "maybe",
   "perhaps",
   "i guess",
-  "i'm uncertain",
+  "im uncertain",
   "i am uncertain",
 ];
 
@@ -76,9 +78,12 @@ export function buildRecognitionClarityMap(
 function buildStatedClarity(
   input: RecognitionClarityInput,
 ): RecognitionClarityContext[] {
-  const sentences = splitSentences(input.response);
-  const clearSentences = sentences.filter(
-    (sentence) => findUncertaintyMarkers(sentence).length === 0,
+  const sentencePairs = pairSentences(
+    input.response,
+    input.normalizedResponse ?? normalizeRecognitionDetectionText(input.response),
+  );
+  const clearSentences = sentencePairs.filter(
+    (pair) => findUncertaintyMarkers(pair.normalized).length === 0,
   );
 
   if (clearSentences.length === 0) {
@@ -88,7 +93,10 @@ function buildStatedClarity(
   return [
     {
       questionKey: input.questionKey,
-      content: clearSentences.join(" "),
+      content: clearSentences.map((pair) => pair.raw).join(" "),
+      normalizedContent: clearSentences
+        .map((pair) => pair.normalized)
+        .join(" "),
       evidenceTypes: input.evidenceTypes,
     },
   ];
@@ -103,6 +111,9 @@ function buildQuestionContexts(
     .map((item) => ({
       questionKey: item.questionKey,
       content: item.response.trim(),
+      normalizedContent:
+        item.normalizedResponse?.trim() ??
+        normalizeRecognitionDetectionText(item.response).trim(),
       evidenceTypes: item.evidenceTypes,
     }));
 }
@@ -113,14 +124,18 @@ function findExplicitUncertainty(
   const contexts: RecognitionUncertaintyContext[] = [];
 
   for (const input of inputs) {
-    for (const sentence of splitSentences(input.response)) {
-      const markers = findUncertaintyMarkers(sentence);
+    const normalizedResponse =
+      input.normalizedResponse ?? normalizeRecognitionDetectionText(input.response);
+
+    for (const pair of pairSentences(input.response, normalizedResponse)) {
+      const markers = findUncertaintyMarkers(pair.normalized);
 
       if (markers.length === 0) continue;
 
       contexts.push({
         questionKey: input.questionKey,
-        content: sentence,
+        content: pair.raw,
+        normalizedContent: pair.normalized,
         evidenceTypes: input.evidenceTypes,
         markers,
       });
@@ -151,7 +166,11 @@ function findClarityAlongsideTension({
     .map((term) => ({
       term,
       contexts: clarityContexts.filter((context) =>
-        containsLiteralTerm(context.content, term),
+        containsLiteralTerm(
+          context.normalizedContent ??
+            normalizeRecognitionDetectionText(context.content),
+          term,
+        ),
       ),
     }))
     .filter((item) => item.contexts.length > 0)
@@ -159,9 +178,31 @@ function findClarityAlongsideTension({
 }
 
 function findUncertaintyMarkers(value: string): string[] {
-  const normalized = value.toLowerCase();
+  const normalized = normalizeUncertaintyText(value);
 
   return UNCERTAINTY_MARKERS.filter((marker) => normalized.includes(marker));
+}
+
+function normalizeUncertaintyText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[’']/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function pairSentences(
+  rawValue: string,
+  normalizedValue: string,
+): Array<{ raw: string; normalized: string }> {
+  const rawSentences = splitSentences(rawValue);
+  const normalizedSentences = splitSentences(normalizedValue);
+  const length = Math.max(rawSentences.length, normalizedSentences.length);
+
+  return Array.from({ length }, (_, index) => ({
+    raw: rawSentences[index] ?? normalizedSentences[index] ?? "",
+    normalized: normalizedSentences[index] ?? rawSentences[index] ?? "",
+  })).filter((pair) => pair.raw || pair.normalized);
 }
 
 function splitSentences(value: string): string[] {
