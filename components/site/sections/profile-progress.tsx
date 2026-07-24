@@ -2,20 +2,16 @@ import Link from "next/link";
 
 const items = [
   {
+    title: "Recognition",
+    href: "/recognition",
+  },
+  {
     title: "Resonance",
     href: "/resonance",
   },
   {
     title: "Compass",
     href: "/compass",
-  },
-  {
-    title: "Harmonize",
-    href: "/harmonize",
-  },
-  {
-    title: "The Current",
-    href: "/current",
   },
 ];
 
