@@ -1,4 +1,9 @@
 import type { EvidenceType } from "@/src/lib/el/el-types";
+import {
+  buildRecognitionActivationDriftMap,
+  type RecognitionActivationDriftMap,
+  type RecognitionDriftKind,
+} from "@/src/lib/recognition/recognition-activation-drift";
 import type { RecognitionClarityMap } from "@/src/lib/recognition/recognition-clarity";
 import type { RecognitionMovementMap } from "@/src/lib/recognition/recognition-movement";
 import type { RecognitionParticipantSignalMap } from "@/src/lib/recognition/recognition-participant-signals";
@@ -25,7 +30,12 @@ export type RecognitionAuthorityDomain =
   | "distinction"
   | "clarity"
   | "clarity_conditions"
-  | "newly_visible";
+  | "newly_visible"
+  | "explicit_losing_sight"
+  | "explicit_second_guessing"
+  | "explicit_circularity"
+  | "explicit_pulled_away"
+  | "explicit_difficulty_staying_with_clarity";
 
 export type RecognitionDirectAuthority = {
   domain: RecognitionAuthorityDomain;
@@ -48,7 +58,8 @@ export type RecognitionSupportForm =
   | "participant_clarity"
   | "participant_final_recognition"
   | "participant_relationship"
-  | "continuing_reflection_thread";
+  | "continuing_reflection_thread"
+  | "reflective_prominence";
 
 type RecognitionSupportFamily =
   | "recurrence"
@@ -80,6 +91,7 @@ export type RecognitionEvidenceCalibrationMap = {
   };
   directAuthorities: RecognitionDirectAuthority[];
   subjectCalibrations: RecognitionSubjectCalibration[];
+  activationDrift: RecognitionActivationDriftMap;
 };
 
 export function buildRecognitionEvidenceCalibrationMap(params: {
@@ -97,6 +109,12 @@ export function buildRecognitionEvidenceCalibrationMap(params: {
     movementMap,
   } = params;
 
+  const activationDrift = buildRecognitionActivationDriftMap({
+    answers: perception.answers,
+    recurringLanguage: perception.recurringLanguage,
+    clarityMap,
+  });
+
   return {
     singleSignalPolicy: {
       level: "single_signal",
@@ -105,6 +123,7 @@ export function buildRecognitionEvidenceCalibrationMap(params: {
     directAuthorities: buildDirectAuthorities({
       participantSignals,
       clarityMap,
+      activationDrift,
     }),
     subjectCalibrations: buildSubjectCalibrations({
       perception,
@@ -112,15 +131,18 @@ export function buildRecognitionEvidenceCalibrationMap(params: {
       participantSignals,
       relationshipMap,
       movementMap,
+      activationDrift,
     }),
+    activationDrift,
   };
 }
 
 function buildDirectAuthorities(params: {
   participantSignals: RecognitionParticipantSignalMap;
   clarityMap: RecognitionClarityMap;
+  activationDrift: RecognitionActivationDriftMap;
 }): RecognitionDirectAuthority[] {
-  const { participantSignals, clarityMap } = params;
+  const { participantSignals, clarityMap, activationDrift } = params;
 
   return [
     ...toDirectAuthorities(participantSignals.attention, "attention"),
@@ -134,7 +156,32 @@ function buildDirectAuthorities(params: {
     ...toDirectAuthorities(clarityMap.statedClarity, "clarity"),
     ...toDirectAuthorities(clarityMap.clarityConditions, "clarity_conditions"),
     ...toDirectAuthorities(clarityMap.newlyVisible, "newly_visible"),
+    ...activationDrift.explicitDriftSignals.map((signal) => ({
+      domain: driftAuthorityDomain(signal.kind),
+      questionKey: signal.questionKey,
+      content: signal.content,
+      evidenceTypes: signal.evidenceTypes,
+      level: "direct_statement" as const,
+      reflectionDepth: "plain_reflection" as const,
+    })),
   ];
+}
+
+function driftAuthorityDomain(
+  kind: RecognitionDriftKind,
+): RecognitionAuthorityDomain {
+  switch (kind) {
+    case "losing_sight":
+      return "explicit_losing_sight";
+    case "second_guessing":
+      return "explicit_second_guessing";
+    case "circularity":
+      return "explicit_circularity";
+    case "pulled_away":
+      return "explicit_pulled_away";
+    case "difficulty_staying_with_clarity":
+      return "explicit_difficulty_staying_with_clarity";
+  }
 }
 
 function toDirectAuthorities(
@@ -163,6 +210,7 @@ function buildSubjectCalibrations(params: {
   participantSignals: RecognitionParticipantSignalMap;
   relationshipMap: RecognitionRelationshipMap;
   movementMap: RecognitionMovementMap;
+  activationDrift: RecognitionActivationDriftMap;
 }): RecognitionSubjectCalibration[] {
   const {
     perception,
@@ -170,6 +218,7 @@ function buildSubjectCalibrations(params: {
     participantSignals,
     relationshipMap,
     movementMap,
+    activationDrift,
   } = params;
 
   return perception.recurringLanguage
@@ -224,6 +273,14 @@ function buildSubjectCalibrations(params: {
 
       if (movementMap.continuingThreads.some((item) => item.term === recurring.term)) {
         supportForms.add("continuing_reflection_thread");
+      }
+
+      if (
+        activationDrift.activatedSubjects.some(
+          (item) => item.term === recurring.term,
+        )
+      ) {
+        supportForms.add("reflective_prominence");
       }
 
       const forms = [...supportForms];
@@ -284,7 +341,8 @@ function toSupportFamily(form: RecognitionSupportForm): RecognitionSupportFamily
   if (
     form === "cross_answer_recurrence" ||
     form === "supported_theme" ||
-    form === "continuing_reflection_thread"
+    form === "continuing_reflection_thread" ||
+    form === "reflective_prominence"
   ) {
     return "recurrence";
   }
