@@ -246,6 +246,8 @@ function findProtectedVocabularyMatch(token: string): string | null {
 function isPlausibleProtectedMatch(token: string, candidate: string): boolean {
   if (Math.abs(token.length - candidate.length) > 1) return false;
 
+  if (isAdjacentTransposition(token, candidate)) return true;
+
   if (token.length >= 6 && candidate.length >= 6) {
     return token.slice(0, 2) === candidate.slice(0, 2);
   }
@@ -336,9 +338,6 @@ function chooseCanonicalVariant(
   tokenMap: Map<string, { questionKeys: Set<string>; count: number }>,
 ): string {
   return [...variants].sort((left, right) => {
-    const lengthDifference = right.length - left.length;
-    if (lengthDifference !== 0) return lengthDifference;
-
     const leftStats = tokenMap.get(left);
     const rightStats = tokenMap.get(right);
     const questionDifference =
@@ -346,7 +345,11 @@ function chooseCanonicalVariant(
 
     if (questionDifference !== 0) return questionDifference;
 
-    return (rightStats?.count ?? 0) - (leftStats?.count ?? 0);
+    const countDifference =
+      (rightStats?.count ?? 0) - (leftStats?.count ?? 0);
+    if (countDifference !== 0) return countDifference;
+
+    return right.length - left.length;
   })[0];
 }
 
@@ -358,11 +361,13 @@ function areConservativeVariants(left: string, right: string): boolean {
 
   if (minLength < 5 || Math.abs(left.length - right.length) > 1) return false;
 
+  if (isAdjacentTransposition(left, right)) return true;
+
   if (maxLength >= 7 && left.slice(0, 2) !== right.slice(0, 2)) {
     return false;
   }
 
-  return isSingleInsertionDeletion(left, right) || isAdjacentTransposition(left, right);
+  return isSingleInsertionDeletion(left, right);
 }
 
 function isSingleInsertionDeletion(left: string, right: string): boolean {
