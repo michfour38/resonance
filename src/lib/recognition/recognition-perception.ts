@@ -237,10 +237,8 @@ function findSupportedTensions(
       frictionEvidence.map((item) => item.questionKey),
     );
 
-    const spansDifferentAnswers = [...agencyQuestionKeys].some(
-      (questionKey) => !frictionQuestionKeys.has(questionKey),
-    ) || [...frictionQuestionKeys].some(
-      (questionKey) => !agencyQuestionKeys.has(questionKey),
+    const spansDifferentAnswers = [...agencyQuestionKeys].some((agencyKey) =>
+      [...frictionQuestionKeys].some((frictionKey) => frictionKey !== agencyKey),
     );
 
     if (
