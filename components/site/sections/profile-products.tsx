@@ -27,8 +27,7 @@ export function ProfileProducts() {
   const hasProducts =
     products?.recognition ||
     products?.resonance ||
-    products?.compass ||
-    products?.harmonize
+    products?.compass
 
   return (
     <section className="border-b border-white/5 bg-zinc-950/60">
@@ -48,7 +47,7 @@ export function ProfileProducts() {
             </p>
 
             <p className="mt-4 max-w-2xl text-base leading-8 text-zinc-400">
-              When you begin Recognition, Resonance, Compass, or Harmonize, your
+              When you begin Recognition, Resonance, or Compass, your
               active spaces will appear here.
             </p>
 
@@ -90,18 +89,6 @@ export function ProfileProducts() {
                 description="Your Compass session is saved and can be continued or reviewed."
                 href="/compass"
                 action="Continue Compass"
-              />
-            ) : null}
-
-            {products?.harmonize ? (
-              <ProductCard
-                title="Harmonize"
-                status="active container"
-                description={`Mode: ${products.harmonize.system.mode?.replaceAll("_", " ")} · Participants: ${
-                  products.harmonize.system.participants?.length || 0
-                }`}
-                href={`/harmonize/system/${products.harmonize.system.id}`}
-                action="Resume Container"
               />
             ) : null}
           </div>

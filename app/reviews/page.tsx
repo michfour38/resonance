@@ -22,18 +22,7 @@ type Review = {
   tags: string[];
   isVisibleOnMainReviews: boolean;
   hasObscuredWords?: boolean;
-
-  // Built now, wired later
-  isEntryProduct?: boolean;
-  productTier?: "entry" | "core" | "upsell";
-  productFamily?: string;
   status?: "pending" | "approved" | "hidden" | "blurred";
-  featuredForHomepage?: boolean;
-  experiencePersistence?: "yes" | "partly" | "no" | "too_early";
-  reviewSource?: "organic" | "homepage" | "post_completion" | "email" | "creator" | "admin_request";
-  completionState?: "completed" | "partial" | "abandoned";
-  productVersion?: string;
-  contactIfFeatured?: boolean;
 };
 
 const reviews: Review[] = [
@@ -48,13 +37,6 @@ const reviews: Review[] = [
     tags: ["Pattern awareness", "Recognition", "Ownership"],
     isVisibleOnMainReviews: true,
     status: "approved",
-    featuredForHomepage: true,
-    productTier: "core",
-    productFamily: "resonance",
-    experiencePersistence: "yes",
-    reviewSource: "post_completion",
-    completionState: "completed",
-    productVersion: "resonance_v1",
   },
   {
     id: "r2",
@@ -66,12 +48,6 @@ const reviews: Review[] = [
     tags: ["Clarity", "Direction", "Movement"],
     isVisibleOnMainReviews: true,
     status: "approved",
-    productTier: "core",
-    productFamily: "compass",
-    experiencePersistence: "partly",
-    reviewSource: "post_completion",
-    completionState: "completed",
-    productVersion: "compass_v1",
   },
   {
     id: "r3",
@@ -82,14 +58,8 @@ const reviews: Review[] = [
     role: "Partner",
     month: "June 2026",
     tags: ["Relational insight", "Boundaries", "Perspective"],
-    isVisibleOnMainReviews: true,
-    status: "approved",
-    productTier: "core",
-    productFamily: "harmonize",
-    experiencePersistence: "too_early",
-    reviewSource: "organic",
-    completionState: "partial",
-    productVersion: "harmonize_v1",
+    isVisibleOnMainReviews: false,
+    status: "hidden",
   },
   {
     id: "r4",
@@ -99,14 +69,8 @@ const reviews: Review[] = [
     displayName: "Anonymous",
     month: "June 2026",
     tags: ["Readiness", "Connection", "Stillness"],
-    isVisibleOnMainReviews: true,
-    status: "approved",
-    productTier: "core",
-    productFamily: "current",
-    experiencePersistence: "partly",
-    reviewSource: "organic",
-    completionState: "partial",
-    productVersion: "current_v1",
+    isVisibleOnMainReviews: false,
+    status: "hidden",
   },
   {
     id: "r5",
@@ -119,15 +83,7 @@ const reviews: Review[] = [
     isVisibleOnMainReviews: true,
     hasObscuredWords: true,
     status: "blurred",
-    productTier: "core",
-    productFamily: "resonance",
-    experiencePersistence: "yes",
-    reviewSource: "post_completion",
-    completionState: "completed",
-    productVersion: "resonance_v1",
   },
-
-  // Hidden for now — ready for later $3 entry products
   {
     id: "hidden-recognition-1",
     product: "recognition",
@@ -137,14 +93,7 @@ const reviews: Review[] = [
     month: "June 2026",
     tags: ["Recognition", "Clarity"],
     isVisibleOnMainReviews: false,
-    isEntryProduct: true,
-    productTier: "entry",
-    productFamily: "resonance",
     status: "approved",
-    experiencePersistence: "yes",
-    reviewSource: "creator",
-    completionState: "completed",
-    productVersion: "recognition_v1",
   },
 ];
 
@@ -152,8 +101,6 @@ const productFilters: { key: Product; label: string }[] = [
   { key: "all", label: "All" },
   { key: "resonance", label: "Resonance" },
   { key: "compass", label: "Compass" },
-  { key: "harmonize", label: "Harmonize" },
-  { key: "current", label: "The Current" },
 ];
 
 const experienceFilters = [
@@ -185,7 +132,7 @@ export default function ReviewsPage() {
     <main className="min-h-screen bg-[#0f0f0d] text-[#eaeaea]">
       <section className="mx-auto flex w-full max-w-6xl flex-col px-6 py-16 md:px-10 md:py-24">
         <Link
-          href="/oremea"
+          href="/"
           className="mb-12 w-fit text-sm uppercase tracking-[0.28em] text-[#c6a96b]/80 hover:text-[#c6a96b]"
         >
           Oremea
@@ -202,18 +149,17 @@ export default function ReviewsPage() {
 
           <p className="mt-6 text-lg leading-8 text-[#bfbfbf]">
             Private reflections from people who have used Oremea to see
-            themselves, their patterns, their relationships, or their next step
-            more clearly.
+            themselves, their patterns, or their next step more clearly.
           </p>
         </div>
 
         <div className="mt-12 rounded-3xl border border-[#c6a96b]/20 bg-[#181713] p-6 md:p-8">
           <p className="text-xl text-[#eaeaea]">
-            Oremea does not collect perfect stories. It protects real ones.
+            Oremea protects real reflections.
           </p>
 
           <p className="mt-4 max-w-4xl leading-7 text-[#bfbfbf]">
-            Every reflection shared here comes from a real Oremea experience.
+            Every reflection shared here comes from an Oremea experience.
             Some words may be obscured to protect community standards. Reviews
             are otherwise displayed as submitted.
           </p>
@@ -292,11 +238,11 @@ export default function ReviewsPage() {
                 “{review.quote}”
               </blockquote>
 
-              {review.hasObscuredWords && (
+              {review.hasObscuredWords ? (
                 <p className="mt-5 text-sm text-[#bfbfbf]">
                   Some words obscured.
                 </p>
-              )}
+              ) : null}
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-[#c6a96b]/25 bg-[#c6a96b]/10 px-4 py-2 text-sm text-[#c6a96b]">
@@ -320,11 +266,11 @@ export default function ReviewsPage() {
             </article>
           ))}
 
-          {visibleReviews.length === 0 && (
+          {visibleReviews.length === 0 ? (
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-[#bfbfbf]">
               No reflections found for this filter.
             </div>
-          )}
+          ) : null}
         </section>
 
         <section className="mt-16 rounded-3xl border border-[#c6a96b]/20 bg-[#181713] p-8 md:p-10">
@@ -337,13 +283,13 @@ export default function ReviewsPage() {
           </h2>
 
           <p className="mt-4 max-w-2xl leading-7 text-[#bfbfbf]">
-            Oremea begins quietly. Start with the front page and choose the path
-            that fits what you are ready to see.
+            Recognition, Resonance, and Compass each create a different doorway
+            into clearer participation.
           </p>
 
           <Link
-            href="/oremea"
-            className="mt-8 inline-flex rounded-full bg-[#c6a96b] px-6 py-3 text-sm font-medium text-[#0f0f0d] transition hover:opacity-90"
+            href="/explore"
+            className="mt-7 inline-flex rounded-full border border-[#c6a96b]/30 px-5 py-3 text-sm text-[#c6a96b] transition hover:border-[#c6a96b]/60"
           >
             Explore Oremea
           </Link>

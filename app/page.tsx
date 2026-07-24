@@ -7,6 +7,20 @@ import { SiteShell } from "@/components/site/site-shell";
 
 const products = [
   {
+    name: "Recognition",
+    href: "/recognition",
+    active: true,
+    short:
+      "A private reflective entry point that helps you see what is already present in your own words.",
+    action: "Enter Recognition",
+    full: [
+      "Recognition begins with what already has your attention.",
+      "You respond to a carefully sequenced set of prompts in your own words, creating enough material for the system to reflect the pattern taking shape.",
+      "The result gives you a clearer view of what is present now: the thread, tension, desire, contradiction, or movement asking to be seen.",
+      "Recognition is designed as a focused entry point. It gives awareness somewhere concrete to begin.",
+    ],
+  },
+  {
     name: "Resonance",
     href: "/resonance",
     active: true,
@@ -19,23 +33,7 @@ const products = [
       "Each reflection asks you to respond honestly to carefully sequenced prompts. Not to perform growth. Not to sound wise. Just to name what is actually there.",
       "Over time, your reflections begin to show a shape. Repeated fears. Repeated longings. Repeated contradictions. Subtle shifts that are hard to see from inside one moment.",
       "If you choose Mirror, the system reflects across your responses and helps reveal the deeper thread forming over time.",
-      "Resonance is strongly recommended as the foundational entry point into Oremea before Compass, Harmonize, or The Current.",
-    ],
-  },
-  {
-    name: "Harmonize",
-    href: "/harmonize",
-    active: true,
-    short:
-      "A structured relational reflection space that helps people understand the pattern forming between them.",
-    action: "Enter Harmonize",
-    full: [
-      "Most relational conflict repeats because people can feel the tension but cannot see the pattern creating it.",
-      "Harmonize is a structured relational reflection space for couples, families, friendships, business partnerships, and poly dynamics who want to understand what is happening between them.",
-      "It does not decide who is right. It does not assign blame. It slows the interaction down enough for each person to see what they are protecting, what they are needing, and how their responses shape the shared space.",
-      "Private reflection remains private. Shared repair is chosen, not extracted. Each participant decides what they bring forward into the relationship.",
-      "As cycles unfold, Harmonize helps reveal recurring movements: pursuit and withdrawal, explanation and defensiveness, closeness and pressure, rupture and repair.",
-      "The goal is not perfect agreement. The goal is greater visibility, greater ownership, and a more conscious relationship with the pattern forming between people.",
+      "Resonance creates the reflective foundation from which Compass can help turn awareness into movement.",
     ],
   },
   {
@@ -51,21 +49,6 @@ const products = [
       "Compass does not rush you into fantasy intensity. It helps you find embodied momentum: the smallest honest next step you can actually take.",
       "Through layered reflection and discussion, Compass helps reveal what interrupts movement, where resistance lives, and what kind of action your nervous system can realistically hold.",
       "Confidence in the self to follow through is built through kept agreements. Compass helps you begin there.",
-    ],
-  },
-  {
-    name: "The Current",
-    active: false,
-    short:
-      "COMING SOON... An intentional dating platform for self-aware individuals who want to meet differently.",
-    action: "Coming soon",
-    full: [
-      "The Current is the future dating space within Oremea.",
-      "It is not being designed as a typical dating pool built on swiping, performance, or surface attraction alone.",
-      "The intention is different: a dating platform for self-aware individuals who have spent time seeing their own patterns before trying to meet someone else.",
-      "That matters, because the quality of connection changes when people arrive with more honesty, steadiness, and self-recognition.",
-      "The Current is not about rushing toward a match. It is about creating a more conscious meeting field.",
-      "It is for people who want connection to begin from depth, not from projection.",
     ],
   },
 ];
@@ -86,15 +69,6 @@ function ProductName({ name }: { name: string }) {
         <span className="text-[0.82em] tracking-[0.00em] leading-none">HE</span>
         <span className="ml-[0.18em] text-[1.08em] leading-none">C</span>
         <span className="text-[0.82em] tracking-[0.00em] leading-none">OMPASS</span>
-      </span>
-    );
-  }
-
-  if (name === "Harmonize") {
-    return (
-      <span className="font-serif text-[#c8a96a] tracking-[0.01em]">
-        <span className="text-[1.18em] leading-none">H</span>
-        ARMONIZE
       </span>
     );
   }
