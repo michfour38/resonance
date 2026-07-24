@@ -15,25 +15,16 @@ export function CompareFinalGuidance() {
           Oremea products are designed to work together through
           structured progression rather than isolated experiences.
           Resonance is strongly recommended as the foundational
-          starting point before progressing into Compass,
-          Harmonize, or The Current.
+          starting point before progressing into Compass.
         </p>
 
         <div className="mt-16 flex flex-col items-center justify-center gap-6 md:flex-row">
           <div className="rounded-3xl border border-amber-200/10 bg-amber-100/[0.03] px-8 py-5 text-sm tracking-[0.18em] text-[#EAEAEA]">
-  Resonance
-</div>
+            Resonance
+          </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-[#EAEAEA]">
             Compass
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-[#EAEAEA]">
-            Harmonize
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/[0.02] px-8 py-5 text-sm tracking-[0.18em] text-[#EAEAEA]">
-            The Current
           </div>
         </div>
       </div>
