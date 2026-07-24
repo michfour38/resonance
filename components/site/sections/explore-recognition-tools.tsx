@@ -61,7 +61,7 @@ export function ExploreRecognitionTools() {
             <div className="mt-6 space-y-5 text-base leading-8 text-zinc-400">
               <p>
                 Etheric Loop is designed to support deeper synthesis
-                within Harmonize and future Oremea systems.
+                within future Oremea systems.
               </p>
 
               <p>
