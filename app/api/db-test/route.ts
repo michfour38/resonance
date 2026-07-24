@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const weeks = await prisma.journey_weeks.count();
-    const days = await prisma.journey_days.count();
-    const prompts = await prisma.day_prompts.count();
+    const weeks = await prisma.resonance_weeks.count();
+const days = await prisma.resonance_days.count();
+const prompts = await prisma.day_prompts.count();
 
     return NextResponse.json({
       ok: true,

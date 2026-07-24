@@ -798,16 +798,16 @@ export async function getReflectionArchive(userId: string) {
       day_prompts: {
         select: {
           content: true,
-          journey_days: {
-            select: {
-              day_number: true,
-              journey_weeks: {
-                select: {
-                  week_number: true,
-                },
-              },
-            },
-          },
+          resonance_days: {
+  select: {
+    day_number: true,
+    resonance_weeks: {
+      select: {
+        week_number: true,
+      },
+    },
+  },
+},
         },
       },
     },
@@ -830,8 +830,8 @@ export async function getReflectionArchive(userId: string) {
 
   return reflections.map((r) => {
     const weekNumber =
-      r.day_prompts?.journey_days?.journey_weeks?.week_number ?? null;
-    const dayNumber = r.day_prompts?.journey_days?.day_number ?? null;
+      r.day_prompts?.resonance_days?.resonance_weeks?.week_number ?? null;
+    const dayNumber = r.day_prompts?.resonance_days?.day_number ?? null;
 
     return {
       id: r.id,

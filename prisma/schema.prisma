@@ -202,6 +202,45 @@ model resonance_day_continues {
   @@map("journey_day_continues")
 }
 
+model oremea_entitlements {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String
+  product_key      String
+  status           String    @default("active")
+  source           String?
+  source_reference String?
+  granted_at       DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at       DateTime? @db.Timestamptz(6)
+  revoked_at       DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@unique([user_id, product_key])
+  @@index([user_id])
+  @@index([product_key])
+  @@index([status])
+}
+
+model resonance_day_guidance {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String
+  week_number    Int
+  day_number     Int
+  question_one   String
+  question_two   String
+  answer_one     String?
+  answer_two     String?
+  input_snapshot Json      @default("{}")
+  generated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  answered_at    DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@unique([user_id, week_number, day_number])
+  @@index([user_id])
+  @@index([week_number, day_number])
+}
+
 model inquiry_sessions {
   id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   reflection_session_id String              @unique @db.Uuid

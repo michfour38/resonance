@@ -140,9 +140,9 @@ export async function POST(request: Request) {
     where: {
       user_id: userId,
       day_prompts: {
-        journey_days: {
+        resonance_days: {
           day_number: dayNumber,
-          journey_weeks: {
+          resonance_weeks: {
             week_number: weekNumber,
           },
         },

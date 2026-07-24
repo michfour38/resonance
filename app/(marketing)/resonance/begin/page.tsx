@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { unlockMirrorTier } from "@/app/(member)/mirror/mirror-unlock.service";
 import { Playfair_Display } from "next/font/google";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -91,7 +90,7 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
     if (!isLoaded) return;
 
     if (!user || !signedInEmail) {
-      window.location.href = "/oremea/enter";
+      window.location.href = "/resonance/enter";
       return;
     }
 
@@ -110,16 +109,7 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
         if (cancelled) return;
 
         if (access.hasAccess) {
-  if (params.get("plan") === "mirror" && user?.id) {
-    await unlockMirrorTier({
-      userId: user.id,
-      weekNumber: 1,
-      dayNumber: 1,
-      tier: "full",
-      isPaid: true,
-    });
-  }
-
+  
   setHasAccess(true);
   setAccessResolved(true);
   return;
@@ -147,7 +137,7 @@ const [isCompletingIntro, setIsCompletingIntro] = useState(false);
         return;
       }
 
-      window.location.href = "/oremea/enter";
+      window.location.href = "/resonance/enter";
     }
 
     resolveAccess();

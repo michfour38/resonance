@@ -16,27 +16,39 @@ export async function GET() {
 
     const email = user?.primaryEmailAddress?.emailAddress || ""
 
-    const [profile, recognitionLead, compassSession, harmonizeSystems] =
+    const [resonanceEntitlement, recognitionLead, compassSession, harmonizeSystems] =
       await Promise.all([
-        prisma.profiles.findUnique({
-          where: { id: userId },
-          select: {
-            journey_status: true,
-            journey_progress: {
-              orderBy: { scheduled_unlock_at: "desc" },
-              take: 1,
-            },
-          },
-        }),
+        prisma.oremea_entitlements.findFirst({
+  where: {
+    user_id: userId,
+    product_key: {
+      startsWith: "resonance",
+    },
+    status: "active",
+    revoked_at: null,
+    OR: [
+      { expires_at: null },
+      { expires_at: { gt: new Date() } },
+    ],
+  },
+  orderBy: {
+    granted_at: "desc",
+  },
+  select: {
+    product_key: true,
+    status: true,
+    granted_at: true,
+    expires_at: true,
+  },
+}),
 
         email
           ? prisma.entry_leads.findUnique({
               where: { email },
               select: {
-                entry_paid_at: true,
-                entered_journey_at: true,
-                intro_completed_at: true,
-              },
+  entry_paid_at: true,
+  intro_completed_at: true,
+},
             })
           : null,
 
@@ -77,13 +89,13 @@ export async function GET() {
             }
           : null,
 
-        resonance: profile?.journey_status
-          ? {
-              active: profile.journey_status === "active",
-              status: profile.journey_status,
-              latestProgress: profile.journey_progress?.[0] || null,
-            }
-          : null,
+        resonance: resonanceEntitlement
+  ? {
+      active: true,
+      status: resonanceEntitlement.status,
+      entitlement: resonanceEntitlement,
+    }
+  : null,
 
         compass: compassSession
           ? {

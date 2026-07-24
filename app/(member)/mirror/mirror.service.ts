@@ -196,50 +196,36 @@ export async function runMirrorSynthesis(
 
   const mode: "lite" | "full" = tier;
 
-  const [prewaveResponses, allJourneyCompletions] = await Promise.all([
-    prisma.prewave_responses.findMany({
-      where: { user_id: userId },
-      orderBy: { question_index: "asc" },
+  const allJourneyCompletions = await prisma.prompt_completions.findMany({
+  where: {
+    user_id: userId,
+  },
+  orderBy: { created_at: "asc" },
+  select: {
+    response: true,
+    created_at: true,
+    day_prompts: {
       select: {
-        response: true,
-      },
-    }),
-    prisma.prompt_completions.findMany({
-      where: {
-        user_id: userId,
-      },
-      orderBy: { created_at: "asc" },
-      select: {
-        response: true,
-        created_at: true,
-        day_prompts: {
+        resonance_days: {
           select: {
-            journey_days: {
+            day_number: true,
+            resonance_weeks: {
               select: {
-                day_number: true,
-                journey_weeks: {
-                  select: {
-                    week_number: true,
-                  },
-                },
+                week_number: true,
               },
             },
           },
         },
       },
-    }),
-  ]);
+    },
+  },
+});
 
-  const prewaveTexts = prewaveResponses
-    .map((r) => r.response?.trim())
-    .filter((value): value is string => Boolean(value))
-    .slice(0, 6);
-
-  const priorJourneyResponses = allJourneyCompletions
+const priorJourneyResponses = allJourneyCompletions
     .filter((c) => {
       const completionWeek =
-        c.day_prompts?.journey_days?.journey_weeks?.week_number ?? null;
-      const completionDay = c.day_prompts?.journey_days?.day_number ?? null;
+        c.day_prompts?.resonance_days?.resonance_weeks?.week_number ?? null;
+      const completionDay = c.day_prompts?.resonance_days?.day_number ?? null;
 
       if (completionWeek === null || completionDay === null) return false;
 
@@ -255,8 +241,8 @@ export async function runMirrorSynthesis(
   const currentDayResponses = allJourneyCompletions
     .filter((c) => {
       const completionWeek =
-        c.day_prompts?.journey_days?.journey_weeks?.week_number ?? null;
-      const completionDay = c.day_prompts?.journey_days?.day_number ?? null;
+        c.day_prompts?.resonance_days?.resonance_weeks?.week_number ?? null;
+      const completionDay = c.day_prompts?.resonance_days?.day_number ?? null;
 
       return completionWeek === weekNumber && completionDay === dayNumber;
     })
@@ -265,15 +251,14 @@ export async function runMirrorSynthesis(
     .slice(-8);
 
   if (
-    prewaveTexts.length === 0 &&
-    priorJourneyResponses.length === 0 &&
-    currentDayResponses.length === 0
-  ) {
+  priorJourneyResponses.length === 0 &&
+  currentDayResponses.length === 0
+) {
     return null;
   }
 
   const prompt = buildPrompt({
-    prewaveResponses: prewaveTexts,
+    prewaveResponses: [],
     priorJourneyResponses,
     currentDayResponses,
     weekNumber,
@@ -301,7 +286,7 @@ export async function runMirrorSynthesis(
     patterns_detected: [],
     contradictions: [],
     input_snapshot: {
-      prewaveCount: prewaveTexts.length,
+      prewaveCount: 0,
       priorJourneyCount: priorJourneyResponses.length,
       currentDayCount: currentDayResponses.length,
     },
@@ -314,7 +299,7 @@ export async function runMirrorSynthesis(
     patterns_detected: [],
     contradictions: [],
     input_snapshot: {
-      prewaveCount: prewaveTexts.length,
+      prewaveCount: 0,
       priorJourneyCount: priorJourneyResponses.length,
       currentDayCount: currentDayResponses.length,
     },

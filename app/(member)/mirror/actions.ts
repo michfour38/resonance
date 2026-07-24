@@ -15,5 +15,5 @@ export async function generateMirrorAction(formData: FormData) {
   if (!weekNumber || !dayNumber) return;
 
   await runMirrorSynthesis(userId, weekNumber, dayNumber);
-  revalidatePath("/journey");
+  revalidatePath("/resonance");
 }

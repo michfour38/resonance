@@ -3,7 +3,7 @@ import Link from "next/link";
 const items = [
   {
     title: "Resonance",
-    href: "/journey",
+    href: "/resonance",
   },
   {
     title: "Compass",

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 import { getMirrorAccess } from "@/app/(member)/mirror/mirror-access";
-import { getReflectionArchive } from "../journey.service";
+import { getReflectionArchive } from "../resonance.service";
 import MemberNav from "../../member-nav";
 
 type Props = {

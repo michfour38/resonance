@@ -78,7 +78,7 @@ export function ProfileProducts() {
                 title="Resonance"
                 status={products.resonance.status}
                 description="Your Resonance journey is active or recorded on this account."
-                href="/journey"
+                href="/resonance"
                 action="Resume Journey"
               />
             ) : null}

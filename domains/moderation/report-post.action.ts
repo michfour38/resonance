@@ -29,7 +29,6 @@ create: {
   id: userId,
   display_name: "New User",
   pathway: "discover",
-  journey_status: "active",
   onboarding_done: true,
   updated_at: new Date(),
 },

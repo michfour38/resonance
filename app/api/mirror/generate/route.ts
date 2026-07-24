@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const tier = url.searchParams.get("tier") === "full" ? "full" : "lite";
 
   if (!weekNumber || !dayNumber) {
-    return NextResponse.redirect(`${APP_URL}/journey?mirror=invalid#mirror`);
+    return NextResponse.redirect(`${APP_URL}/resonance?mirror=invalid#mirror`);
   }
 
   const existing = await prisma.mirror_responses.findFirst({
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   });
 
   if (existing) {
-    return NextResponse.redirect(`${APP_URL}/journey?mirror=success#mirror`);
+    return NextResponse.redirect(`${APP_URL}/resonance?mirror=success#mirror`);
   }
 
   const result = await runMirrorSynthesis(
@@ -43,8 +43,8 @@ export async function GET(request: Request) {
 );
 
   if (!result) {
-    return NextResponse.redirect(`${APP_URL}/journey?mirror=error#mirror`);
+    return NextResponse.redirect(`${APP_URL}/resonance?mirror=error#mirror`);
   }
 
-  return NextResponse.redirect(`${APP_URL}/journey?mirror=success#mirror`);
+  return NextResponse.redirect(`${APP_URL}/resonance?mirror=success#mirror`);
 }

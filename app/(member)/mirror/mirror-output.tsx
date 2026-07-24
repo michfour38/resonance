@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { MirrorResponseDTO } from "./mirror.service";
-import { continueJourneyDayAction } from "../journey/actions";
-import ContinueDayButton from "../journey/continue-day-button";
+import { continueResonanceDayAction } from "../resonance/actions";
+import ContinueDayButton from "../resonance/continue-day-button";
 
 interface MirrorOutputProps {
   weekNumber: number;
@@ -258,7 +258,7 @@ useEffect(() => {
             </div>
 
             <form
-              action={continueJourneyDayAction}
+              action={continueResonanceDayAction}
               className="mt-5 flex justify-end"
             >
               <input type="hidden" name="weekNumber" value={weekNumber} />

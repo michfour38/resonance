@@ -20,9 +20,9 @@ export default async function ResumePage() {
 
   const resume = await getEntryResumeState({ email });
 
-  if (resume.destination === "journey") {
-    redirect("/journey");
-  }
+  if (resume.destination === "resonance") {
+  redirect("/resonance");
+}
 
   if (resume.destination === "begin") {
     redirect("/oremea/begin");
