@@ -1,10 +1,15 @@
-import { generateAI } from "@/src/lib/ai/ai-gateway";
 import { prisma } from "@/lib/prisma";
-import { RECOGNITION_QUESTIONS } from "@/src/lib/recognition/recognition.questions";
+import { generateAI } from "@/src/lib/ai/ai-gateway";
+import {
+  buildRecognitionClarityMap,
+  type RecognitionClarityContext,
+  type RecognitionClarityMap,
+} from "@/src/lib/recognition/recognition-clarity";
 import {
   buildRecognitionPerception,
   type RecognitionPerceptionSummary,
 } from "@/src/lib/recognition/recognition-perception";
+import { RECOGNITION_QUESTIONS } from "@/src/lib/recognition/recognition.questions";
 
 export type RecognitionType = "female" | "male" | "neutral";
 
@@ -34,6 +39,7 @@ function buildRecognitionPrompt(params: {
   regenerate?: boolean;
   responses: RecognitionPromptResponse[];
   perception: RecognitionPerceptionSummary;
+  clarityMap: RecognitionClarityMap;
 }) {
   const {
     firstName,
@@ -41,6 +47,7 @@ function buildRecognitionPrompt(params: {
     regenerate,
     responses,
     perception,
+    clarityMap,
   } = params;
 
   return `
@@ -88,6 +95,18 @@ A repeated EL observation category is evidence structure before it is meaning.
 A supported tension is a detectable pull rather than a complete account of everything present.
 Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
 
+CLARITY PRINCIPLES:
+
+The Recognition sequence itself provides participant-owned clarity data.
+The answer to "What do you already know clearly now?" is the primary source for stated clarity.
+The answer to "Where does that clarity become harder to hold?" describes conditions around holding clarity.
+Those conditions can affect steadiness, expression, embodiment, or participation while the underlying clarity remains present.
+Do not convert stated clarity into confusion simply because consequences, expectations, emotions, responsibilities, or other people also appear.
+The answer to the distinction question shows what the participant can already separate into clearer parts.
+The final recognition answer shows what became newly visible through the reflection.
+Explicit uncertainty is present only where the participant's own language states uncertainty.
+Clarity and uncertainty can both be present in different parts of the same reality.
+
 VOICE:
 
 - grounded
@@ -110,11 +129,12 @@ WHAT TO NOTICE:
 - what the participant names directly
 - what becomes more specific across their answers
 - where their own words carry particular weight
-- what they already appear to know
-- where clarity is present
-- where clarity becomes less stable
-- what matters enough to keep returning
+- what they explicitly state as clear
+- what they distinguish into clearer parts
+- what conditions affect their ability to remain with that clarity
+- what remains explicitly uncertain in their own language
 - what becomes newly visible when their answers are considered together
+- what matters enough to keep returning
 - where language recurs across separate answers
 - where evidence categories recur across separate answers
 - where a recurring subject carries a coherent thread across several answers
@@ -141,6 +161,7 @@ SECTION RULES:
 - Use proportionate language.
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
 - A supported tension may be named when the relevant truths are clearly present in the participant's own words.
+- Treat newly visible material as emerging recognition rather than a fixed identity claim.
 
 "What seems to matter"
 - Notice what receives repeated attention, specificity, energy, choice, or care.
@@ -149,13 +170,15 @@ SECTION RULES:
 - Keep ownership with the participant.
 
 "Where clarity already exists"
-- Surface what the participant already appears to know, recognise, prefer, or distinguish.
+- Begin with participant-stated clarity and distinctions when they are available.
 - Treat existing clarity as capacity.
+- Preserve clarity even when the clarity-holding answer names difficult conditions around it.
+- More than one truth can sit beside the clarity without cancelling it.
 - Keep clarity distinct from instruction.
 
 "What remains available to notice"
+- Use explicit uncertainty, newly visible material, unresolved complexity, or a supported tension as an opening when the evidence supports it.
 - Leave one precise opening for further recognition.
-- Point toward something their existing answers make available to examine.
 - Keep the opening voluntary and grounded in what is already present.
 
 MULTIPLE-TRUTH, TENSION, AND CONTRADICTION RULES:
@@ -166,6 +189,10 @@ Preserve the full set that the participant's answers support rather than reducin
 An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
 Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
 Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+PARTICIPANT-OWNED CLARITY MAP:
+
+${renderClarityMap(clarityMap)}
 
 SUPPORTED THEME CANDIDATES:
 
@@ -216,6 +243,89 @@ USER RESPONSES:
 
 ${renderResponses(responses)}
 `;
+}
+
+function renderClarityMap(clarityMap: RecognitionClarityMap) {
+  const statedClarity = renderClarityContexts(
+    clarityMap.statedClarity,
+    "Participant-stated clarity is still forming or was expressed with explicit uncertainty.",
+  );
+
+  const distinctions = renderClarityContexts(
+    clarityMap.distinctions,
+    "The participant did not provide a separate distinction response.",
+  );
+
+  const clarityConditions = renderClarityContexts(
+    clarityMap.clarityConditions,
+    "The participant did not name separate conditions around holding clarity.",
+  );
+
+  const newlyVisible = renderClarityContexts(
+    clarityMap.newlyVisible,
+    "The participant did not provide a separate newly-visible response.",
+  );
+
+  const explicitUncertainty =
+    clarityMap.explicitUncertainty.length > 0
+      ? clarityMap.explicitUncertainty
+          .map(
+            (item) =>
+              `- [${item.questionKey}] ${item.content} [markers: ${item.markers.join(", ")}]`,
+          )
+          .join("\n")
+      : "- No explicit uncertainty language detected.";
+
+  const clarityAlongsideTension =
+    clarityMap.clarityAlongsideTension.length > 0
+      ? clarityMap.clarityAlongsideTension
+          .map(
+            (item) => `
+- Supported pull around "${item.term}" also appears inside clarity-related material:
+${item.contexts
+  .map((context) => `  - [${context.questionKey}] ${context.content}`)
+  .join("\n")}`,
+          )
+          .join("\n")
+      : "- No supported tension term overlaps the clarity-related answers.";
+
+  return `
+Stated clarity:
+${statedClarity}
+
+Distinctions already available:
+${distinctions}
+
+Conditions around holding clarity:
+${clarityConditions}
+
+Newly visible through the reflection:
+${newlyVisible}
+
+Explicit uncertainty:
+${explicitUncertainty}
+
+Clarity alongside supported complexity:
+${clarityAlongsideTension}
+`;
+}
+
+function renderClarityContexts(
+  contexts: RecognitionClarityContext[],
+  emptyMessage: string,
+) {
+  if (contexts.length === 0) return `- ${emptyMessage}`;
+
+  return contexts
+    .map((context) => {
+      const evidenceLabel =
+        context.evidenceTypes.length > 0
+          ? ` [EL: ${context.evidenceTypes.join(", ")}]`
+          : "";
+
+      return `- [${context.questionKey}]${evidenceLabel} ${context.content}`;
+    })
+    .join("\n");
 }
 
 function renderSupportedThemes(perception: RecognitionPerceptionSummary) {
@@ -426,6 +536,16 @@ export async function generateRecognition(params: {
     : "neutral";
 
   const perception = buildRecognitionPerception(cleanResponses);
+  const clarityMap = buildRecognitionClarityMap(
+    perception.answers.map((answer) => ({
+      questionKey: answer.questionKey,
+      response: answer.response,
+      evidenceTypes: [
+        ...new Set(answer.perception.evidence.map((evidence) => evidence.type)),
+      ],
+    })),
+    perception.supportedTensions.map((item) => item.term),
+  );
 
   const prompt = buildRecognitionPrompt({
     firstName: session.entry_leads.first_name,
@@ -433,6 +553,7 @@ export async function generateRecognition(params: {
     regenerate: Boolean(params.regenerate),
     responses: cleanResponses,
     perception,
+    clarityMap,
   });
 
   const output = await generateAI({
@@ -464,6 +585,7 @@ export async function generateRecognition(params: {
         recurringObservations: perception.recurringObservations,
         supportedThemes: perception.supportedThemes,
         supportedTensions: perception.supportedTensions,
+        clarityMap,
       },
     },
     select: {
