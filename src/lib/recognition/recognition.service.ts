@@ -93,6 +93,7 @@ Preserve the participant's authority over their own meaning, identity, and choic
 
 A repeated word is not automatically a theme.
 A repeated EL observation type is not automatically a psychological pattern.
+A supported tension is not automatically a contradiction.
 Cross-answer signals may strengthen an observation only when the full answers support the same recognition.
 
 VOICE:
@@ -125,6 +126,7 @@ WHAT TO NOTICE:
 - what becomes newly visible when their answers are considered together
 - where literal language recurs across separate answers
 - where the same evidence category appears across separate answers
+- where the same subject is accompanied by both agency and friction in different answers
 
 STRUCTURE:
 
@@ -148,6 +150,7 @@ SECTION RULES:
 - Use proportionate language.
 - Reveal rather than interpret beyond the evidence.
 - Cross-answer recurrence can strengthen the recognition when the surrounding answers support the same reading.
+- A supported tension may be named when both sides are clearly present in the participant's own words.
 
 "What seems to matter"
 - Notice what receives repeated attention, specificity, energy, choice, or care.
@@ -165,6 +168,47 @@ SECTION RULES:
 - Keep the opening voluntary.
 - Do not prescribe an action.
 - Do not manufacture a problem that has not appeared.
+
+TENSION AND CONTRADICTION RULES:
+
+A tension can contain two things that are both true at once.
+Do not flatten a tension by deciding which side is correct.
+Do not describe the participant as inconsistent, conflicted, avoidant, resistant, self-sabotaging, or contradictory unless their own explicit statements support that exact description.
+Use language such as "there appears to be a pull between..." or "both of these seem present..." when the evidence supports it.
+Only use the word contradiction when two explicit participant statements cannot reasonably both be true in the same sense at the same time.
+
+SUPPORTED CROSS-ANSWER TENSIONS:
+
+The following candidates are mechanically grounded.
+Each candidate exists because the same literal term appears inside agency evidence in one answer and objection evidence in another answer.
+This establishes a supported pull around the same subject. It does not establish motive, diagnosis, or contradiction.
+Use a candidate only when the full answers preserve the same tension.
+
+${
+  perception.supportedTensions.length > 0
+    ? perception.supportedTensions
+        .map(
+          (item) => `
+Possible tension around "${item.term}":
+Agency-side evidence:
+${item.agencyEvidence
+  .map(
+    (evidence) =>
+      `- [${evidence.questionKey}] ${evidence.type}: ${evidence.content}`,
+  )
+  .join("\n")}
+Friction-side evidence:
+${item.frictionEvidence
+  .map(
+    (evidence) =>
+      `- [${evidence.questionKey}] ${evidence.type}: ${evidence.content}`,
+  )
+  .join("\n")}
+`,
+        )
+        .join("\n")
+    : "- No supported cross-answer tension detected."
+}
 
 CROSS-ANSWER LITERAL LANGUAGE:
 
@@ -384,6 +428,7 @@ export async function generateRecognition(params: {
   if (!output) return null;
 
   const questions = extractQuestionsFromOutput(output);
+  const tensionsDetected = perception.supportedTensions.map((item) => item.term);
 
   const saved = await prisma.entry_mirror_outputs.create({
     data: {
@@ -391,7 +436,7 @@ export async function generateRecognition(params: {
       output,
       questions,
       themes_detected: [],
-      tensions_detected: [],
+      tensions_detected: tensionsDetected,
       input_snapshot: {
         entryType,
         leadId: session.lead_id,
@@ -400,6 +445,7 @@ export async function generateRecognition(params: {
         questionTexts: cleanResponses.map((item) => item.questionText),
         recurringLanguage: perception.recurringLanguage,
         recurringObservations: perception.recurringObservations,
+        supportedTensions: perception.supportedTensions,
       },
     },
     select: {
