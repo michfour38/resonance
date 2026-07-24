@@ -6,6 +6,12 @@ import {
   type RecognitionClarityMap,
 } from "@/src/lib/recognition/recognition-clarity";
 import {
+  buildRecognitionParticipantSignalMap,
+  type RecognitionParticipantSignalContext,
+  type RecognitionParticipantSignalLink,
+  type RecognitionParticipantSignalMap,
+} from "@/src/lib/recognition/recognition-participant-signals";
+import {
   buildRecognitionPerception,
   type RecognitionPerceptionSummary,
 } from "@/src/lib/recognition/recognition-perception";
@@ -40,6 +46,7 @@ function buildRecognitionPrompt(params: {
   responses: RecognitionPromptResponse[];
   perception: RecognitionPerceptionSummary;
   clarityMap: RecognitionClarityMap;
+  participantSignals: RecognitionParticipantSignalMap;
 }) {
   const {
     firstName,
@@ -48,6 +55,7 @@ function buildRecognitionPrompt(params: {
     responses,
     perception,
     clarityMap,
+    participantSignals,
   } = params;
 
   return `
@@ -107,6 +115,17 @@ The final recognition answer shows what became newly visible through the reflect
 Explicit uncertainty is present only where the participant's own language states uncertainty.
 Clarity and uncertainty can both be present in different parts of the same reality.
 
+PARTICIPANT SIGNAL PRINCIPLES:
+
+The Recognition sequence also provides participant-owned signals for attention, recurrence, participation, and weight.
+The attention answer identifies what has been occupying attention. Attention does not automatically establish importance, agreement, responsibility, or value.
+The returning answer records what the participant themselves notices recurring across what they wrote.
+The participation answer records where the participant sees themselves repeatedly appearing inside the situation. Treat this descriptively. It may reflect care, labour, protection, contribution, choice, attention, habit, responsibility, or another role supported by their words.
+The weight answer is the primary source for what the participant says carries the most weight. Give this answer priority over mechanical recurrence when describing importance.
+Literal overlap across answers can strengthen convergence, but frequency does not outrank participant-stated weight.
+A subject may hold attention without carrying the most weight, carry weight without being the most repeated, and involve the participant without making them responsible for everything around it.
+Preserve all of these distinctions when more than one is true at the same time.
+
 VOICE:
 
 - grounded
@@ -127,14 +146,17 @@ Reflect what their words make visible while leaving ownership of meaning with th
 WHAT TO NOTICE:
 
 - what the participant names directly
+- what has been taking up their attention
+- what they themselves identify as returning
+- where they see themselves repeatedly participating
+- what they explicitly say carries the most weight
+- where those signals converge and where they remain distinct
 - what becomes more specific across their answers
-- where their own words carry particular weight
 - what they explicitly state as clear
 - what they distinguish into clearer parts
 - what conditions affect their ability to remain with that clarity
 - what remains explicitly uncertain in their own language
 - what becomes newly visible when their answers are considered together
-- what matters enough to keep returning
 - where language recurs across separate answers
 - where evidence categories recur across separate answers
 - where a recurring subject carries a coherent thread across several answers
@@ -162,10 +184,13 @@ SECTION RULES:
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
 - A supported tension may be named when the relevant truths are clearly present in the participant's own words.
 - Treat newly visible material as emerging recognition rather than a fixed identity claim.
+- Participation may reveal where the participant repeatedly appears inside the situation without assigning responsibility beyond what they actually named.
 
 "What seems to matter"
-- Notice what receives repeated attention, specificity, energy, choice, or care.
+- Begin with what the participant explicitly says carries the most weight when that answer is available.
+- Use attention and returning as additional participant-owned signals rather than substitutes for weight.
 - A supported theme candidate can strengthen this section when its separate contexts form a coherent thread.
+- Distinguish sustained attention from stated importance when the answers make that distinction available.
 - Name a value or concern only when the answers support it.
 - Keep ownership with the participant.
 
@@ -177,7 +202,7 @@ SECTION RULES:
 - Keep clarity distinct from instruction.
 
 "What remains available to notice"
-- Use explicit uncertainty, newly visible material, unresolved complexity, or a supported tension as an opening when the evidence supports it.
+- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
 - Leave one precise opening for further recognition.
 - Keep the opening voluntary and grounded in what is already present.
 
@@ -189,6 +214,10 @@ Preserve the full set that the participant's answers support rather than reducin
 An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
 Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
 Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+PARTICIPANT-OWNED SIGNAL MAP:
+
+${renderParticipantSignalMap(participantSignals)}
 
 PARTICIPANT-OWNED CLARITY MAP:
 
@@ -243,6 +272,93 @@ USER RESPONSES:
 
 ${renderResponses(responses)}
 `;
+}
+
+function renderParticipantSignalMap(
+  signals: RecognitionParticipantSignalMap,
+): string {
+  return `
+Initial attention:
+${renderParticipantSignalContexts(
+  signals.attention,
+  "The participant did not provide a separate attention response.",
+)}
+
+What the participant identifies as returning:
+${renderParticipantSignalContexts(
+  signals.returning,
+  "The participant did not provide a separate returning response.",
+)}
+
+Where the participant sees their own participation:
+${renderParticipantSignalContexts(
+  signals.participation,
+  "The participant did not provide a separate participation response.",
+)}
+
+What the participant says carries the most weight:
+${renderParticipantSignalContexts(
+  signals.weight,
+  "The participant did not provide a separate weight response.",
+)}
+
+Literal recurrence linked to attention:
+${renderParticipantSignalLinks(signals.attentionAcrossAnswers)}
+
+Literal recurrence linked to the participant's returning answer:
+${renderParticipantSignalLinks(signals.returningAcrossAnswers)}
+
+Literal recurrence linked to participation:
+${renderParticipantSignalLinks(signals.participationAcrossAnswers)}
+
+Literal recurrence linked to participant-stated weight:
+${renderParticipantSignalLinks(signals.weightAcrossAnswers)}
+
+Supported theme candidates that also appear in the weight answer:
+${
+  signals.weightedThemes.length > 0
+    ? signals.weightedThemes
+        .map(
+          (theme) =>
+            `- "${theme.term}" appears across ${theme.answerCount} answers: ${theme.questionKeys.join(", ")}`,
+        )
+        .join("\n")
+    : "- No supported theme candidate has a literal overlap with the weight answer."
+}
+`;
+}
+
+function renderParticipantSignalContexts(
+  contexts: RecognitionParticipantSignalContext[],
+  emptyMessage: string,
+): string {
+  if (contexts.length === 0) return `- ${emptyMessage}`;
+
+  return contexts
+    .map((context) => {
+      const evidenceLabel =
+        context.evidenceTypes.length > 0
+          ? ` [EL: ${context.evidenceTypes.join(", ")}]`
+          : "";
+
+      return `- [${context.questionKey}]${evidenceLabel} ${context.content}`;
+    })
+    .join("\n");
+}
+
+function renderParticipantSignalLinks(
+  links: RecognitionParticipantSignalLink[],
+): string {
+  if (links.length === 0) {
+    return "- No qualifying literal cross-answer recurrence linked to this response.";
+  }
+
+  return links
+    .map(
+      (link) =>
+        `- "${link.term}" also appears in: ${link.otherQuestionKeys.join(", ")} (${link.answerCount} answers total)`,
+    )
+    .join("\n");
 }
 
 function renderClarityMap(clarityMap: RecognitionClarityMap) {
@@ -546,6 +662,11 @@ export async function generateRecognition(params: {
     })),
     perception.supportedTensions.map((item) => item.term),
   );
+  const participantSignals = buildRecognitionParticipantSignalMap(
+    perception.answers,
+    perception.recurringLanguage,
+    perception.supportedThemes,
+  );
 
   const prompt = buildRecognitionPrompt({
     firstName: session.entry_leads.first_name,
@@ -554,6 +675,7 @@ export async function generateRecognition(params: {
     responses: cleanResponses,
     perception,
     clarityMap,
+    participantSignals,
   });
 
   const output = await generateAI({
@@ -586,6 +708,7 @@ export async function generateRecognition(params: {
         supportedThemes: perception.supportedThemes,
         supportedTensions: perception.supportedTensions,
         clarityMap,
+        participantSignals,
       },
     },
     select: {
