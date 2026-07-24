@@ -64,8 +64,9 @@ const DRIFT_PATTERNS: Array<{
   },
   {
     kind: "losing_sight",
-    marker: "forget",
-    pattern: /\b(?:forget|forgetting|forgot)\b/i,
+    marker: "forget what I know or want",
+    pattern:
+      /\b(?:forget|forgetting|forgot)\b[^.!?]{0,45}\b(?:what\s+i\s+(?:know|want|decided|saw|see)|why\s+i|my\s+clarity|what\s+matters)\b/i,
   },
   {
     kind: "second_guessing",
@@ -89,8 +90,8 @@ const DRIFT_PATTERNS: Array<{
   },
   {
     kind: "pulled_away",
-    marker: "distracted",
-    pattern: /\b(?:distract|distracted|distracting|distraction)\b/i,
+    marker: "distracted from",
+    pattern: /\b(?:distract|distracted|distracting|distraction)\b[^.!?]{0,30}\b(?:from|away)\b/i,
   },
   {
     kind: "difficulty_staying_with_clarity",
