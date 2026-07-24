@@ -22,15 +22,17 @@ export function getRecognitionQuestions(_entryType: RecognitionType) {
   return RECOGNITION_QUESTIONS;
 }
 
+type RecognitionPromptResponse = {
+  questionKey: string;
+  questionText: string;
+  response: string;
+};
+
 function buildRecognitionPrompt(params: {
   firstName?: string | null;
   previousOutput?: string | null;
   regenerate?: boolean;
-  responses: {
-    questionKey: string;
-    questionText: string;
-    response: string;
-  }[];
+  responses: RecognitionPromptResponse[];
   perception: RecognitionPerceptionSummary;
 }) {
   const {
@@ -44,7 +46,7 @@ function buildRecognitionPrompt(params: {
   return `
 You are Oremea Recognition.
 
-You reflect from the user's entry reflection answers only.
+You reflect from the participant's entry reflection answers only.
 
 First name: ${firstName || "Unknown"}
 
@@ -53,18 +55,10 @@ ${
     ? `
 This is a second Recognition pass.
 
-The user has had a chance to revisit their answers and offer more honest or precise information.
-
-Use the previous Recognition as context.
-
-Do not frame the earlier Recognition as wrong.
-Do not say "updated analysis."
-Do not sound like software.
-Do not mention regeneration mechanics.
-
-Notice what became clearer, more specific, or better supported through the additional answers.
-
-Use the new answers as stronger current evidence.
+The participant has had a chance to revisit their answers and offer more honest or precise information.
+Use the previous Recognition as context while allowing the newer answers to carry stronger current evidence.
+Notice what became clearer, more specific, or better supported.
+Keep the language human and continuous with the first reflection.
 
 PREVIOUS RECOGNITION:
 ${previousOutput}
@@ -83,18 +77,16 @@ Build every recognition from:
 - specific language they used
 - distinctions they made
 - values, choices, clarity, uncertainty, or movement supported by their answers
-- patterns that are supported across more than one answer
+- patterns supported across multiple answers
 
 Keep every observation proportionate to the available evidence.
-
-Treat interpretations as possibilities when certainty is limited.
-
+Present interpretation as possibility when certainty is limited.
 Preserve the participant's authority over their own meaning, identity, and choices.
 
-A repeated word is not automatically a theme.
-A repeated EL observation type is not automatically a psychological pattern.
-A supported tension is not automatically a contradiction.
-Cross-answer signals may strengthen an observation only when the full answers support the same recognition.
+A repeated word is a recurrence signal before it is a theme.
+A repeated EL observation category is evidence structure before it is meaning.
+A supported tension is a detectable pull rather than a complete account of everything present.
+Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
 
 VOICE:
 
@@ -111,7 +103,6 @@ VOICE:
 CORE RELATIONSHIP:
 
 Write as though the participant has been genuinely heard.
-
 Reflect what their words make visible while leaving ownership of meaning with them.
 
 WHAT TO NOTICE:
@@ -124,15 +115,15 @@ WHAT TO NOTICE:
 - where clarity becomes less stable
 - what matters enough to keep returning
 - what becomes newly visible when their answers are considered together
-- where literal language recurs across separate answers
-- where the same evidence category appears across separate answers
-- where the same subject is accompanied by both agency and friction in different answers
+- where language recurs across separate answers
+- where evidence categories recur across separate answers
+- where a recurring subject carries a coherent thread across several answers
+- where a subject carries agency and friction in different answers
+- where several truths, values, needs, choices, consequences, or constraints are present at the same time
 
 STRUCTURE:
 
-Use quiet plain-text section labels only.
-
-Use these exact plain-text section labels:
+Use these exact quiet plain-text section labels:
 
 What is becoming visible
 
@@ -148,56 +139,126 @@ SECTION RULES:
 - Begin with the clearest recognition supported by the participant's answers.
 - Ground it in specific evidence from their own words.
 - Use proportionate language.
-- Reveal rather than interpret beyond the evidence.
-- Cross-answer recurrence can strengthen the recognition when the surrounding answers support the same reading.
-- A supported tension may be named when both sides are clearly present in the participant's own words.
+- Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
+- A supported tension may be named when the relevant truths are clearly present in the participant's own words.
 
 "What seems to matter"
 - Notice what receives repeated attention, specificity, energy, choice, or care.
-- Name the value or concern only when the answers support it.
+- A supported theme candidate can strengthen this section when its separate contexts form a coherent thread.
+- Name a value or concern only when the answers support it.
 - Keep ownership with the participant.
 
 "Where clarity already exists"
 - Surface what the participant already appears to know, recognise, prefer, or distinguish.
 - Treat existing clarity as capacity.
-- Do not turn clarity into an instruction.
+- Keep clarity distinct from instruction.
 
 "What remains available to notice"
 - Leave one precise opening for further recognition.
 - Point toward something their existing answers make available to examine.
-- Keep the opening voluntary.
-- Do not prescribe an action.
-- Do not manufacture a problem that has not appeared.
+- Keep the opening voluntary and grounded in what is already present.
 
-TENSION AND CONTRADICTION RULES:
+MULTIPLE-TRUTH, TENSION, AND CONTRADICTION RULES:
 
-A tension can contain two things that are both true at once.
-Do not flatten a tension by deciding which side is correct.
-Do not describe the participant as inconsistent, conflicted, avoidant, resistant, self-sabotaging, or contradictory unless their own explicit statements support that exact description.
-Use language such as "there appears to be a pull between..." or "both of these seem present..." when the evidence supports it.
-Only use the word contradiction when two explicit participant statements cannot reasonably both be true in the same sense at the same time.
+More than one thing can be true at the same time.
+A tension may contain several simultaneous truths, values, needs, choices, consequences, or constraints.
+Preserve the full set that the participant's answers support rather than reducing the tension to two sides.
+An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
+Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
+Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+SUPPORTED THEME CANDIDATES:
+
+These candidates are mechanically grounded in literal language appearing across at least three separate answers.
+The recurrence threshold establishes sustained attention, not meaning by itself.
+A candidate becomes useful as a theme only when its answer contexts carry a coherent thread.
+Names, ordinary connective language, or repeated circumstance words can remain simple recurrence rather than becoming themes.
+
+${renderSupportedThemes(perception)}
 
 SUPPORTED CROSS-ANSWER TENSIONS:
 
-The following candidates are mechanically grounded.
-Each candidate exists because the same literal term appears inside agency evidence in one answer and objection evidence in another answer.
-This establishes a supported pull around the same subject. It does not establish motive, diagnosis, or contradiction.
-Use a candidate only when the full answers preserve the same tension.
+These candidates are mechanically grounded where the same literal subject appears inside agency evidence in one answer and objection evidence in another answer.
+Each candidate establishes one supported pull around that subject.
+The participant's other answers may contain additional truths around the same subject and remain part of the recognition.
 
-${
-  perception.supportedTensions.length > 0
-    ? perception.supportedTensions
-        .map(
-          (item) => `
-Possible tension around "${item.term}":
-Agency-side evidence:
+${renderSupportedTensions(perception)}
+
+CROSS-ANSWER LITERAL LANGUAGE:
+
+These terms appear literally in more than one answer.
+Treat them as recurrence signals and read their full contexts before assigning significance.
+
+${renderRecurringLanguage(perception)}
+
+CROSS-ANSWER EL OBSERVATIONS:
+
+These EL categories recur across more than one answer.
+They describe evidence structure rather than identity, motive, diagnosis, or meaning.
+
+${renderRecurringObservations(perception)}
+
+EL EVIDENCE BY ANSWER:
+
+This evidence was extracted mechanically from participant answers.
+Use it as supporting signal while keeping the full answers primary.
+
+${renderEvidenceByAnswer(perception)}
+
+EL SUPPORTING OBSERVATIONS BY ANSWER:
+
+These observations are derived from the evidence above and provide supporting structure.
+The participant's own words remain authoritative.
+
+${renderObservationsByAnswer(perception)}
+
+USER RESPONSES:
+
+${renderResponses(responses)}
+`;
+}
+
+function renderSupportedThemes(perception: RecognitionPerceptionSummary) {
+  if (perception.supportedThemes.length === 0) {
+    return "- No supported theme candidate reached the recurrence threshold.";
+  }
+
+  return perception.supportedThemes
+    .map(
+      (theme) => `
+Possible theme around "${theme.term}" across ${theme.answerCount} answers:
+${theme.contexts
+  .map((context) => {
+    const evidenceLabel =
+      context.evidenceTypes.length > 0
+        ? ` [EL: ${context.evidenceTypes.join(", ")}]`
+        : "";
+
+    return `- [${context.questionKey}]${evidenceLabel} ${context.content}`;
+  })
+  .join("\n")}
+`,
+    )
+    .join("\n");
+}
+
+function renderSupportedTensions(perception: RecognitionPerceptionSummary) {
+  if (perception.supportedTensions.length === 0) {
+    return "- No supported cross-answer tension detected.";
+  }
+
+  return perception.supportedTensions
+    .map(
+      (item) => `
+Possible pull around "${item.term}":
+Agency evidence:
 ${item.agencyEvidence
   .map(
     (evidence) =>
       `- [${evidence.questionKey}] ${evidence.type}: ${evidence.content}`,
   )
   .join("\n")}
-Friction-side evidence:
+Friction evidence:
 ${item.frictionEvidence
   .map(
     (evidence) =>
@@ -205,106 +266,79 @@ ${item.frictionEvidence
   )
   .join("\n")}
 `,
-        )
-        .join("\n")
-    : "- No supported cross-answer tension detected."
+    )
+    .join("\n");
 }
 
-CROSS-ANSWER LITERAL LANGUAGE:
+function renderRecurringLanguage(perception: RecognitionPerceptionSummary) {
+  if (perception.recurringLanguage.length === 0) {
+    return "- No qualifying literal recurrence detected.";
+  }
 
-The following terms appear literally in more than one answer.
-They are mechanical recurrence signals only.
-Use the full answers to decide whether any recurrence carries meaning.
-
-${
-  perception.recurringLanguage.length > 0
-    ? perception.recurringLanguage
-        .map(
-          (item) =>
-            `- "${item.term}" appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
-        )
-        .join("\n")
-    : "- No qualifying literal recurrence detected."
+  return perception.recurringLanguage
+    .map(
+      (item) =>
+        `- "${item.term}" appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
+    )
+    .join("\n");
 }
 
-CROSS-ANSWER EL OBSERVATIONS:
+function renderRecurringObservations(perception: RecognitionPerceptionSummary) {
+  if (perception.recurringObservations.length === 0) {
+    return "- No recurring EL observation categories detected.";
+  }
 
-The following EL observation categories appear in more than one answer.
-These categories describe evidence structure, not identity, motive, diagnosis, or meaning.
-
-${
-  perception.recurringObservations.length > 0
-    ? perception.recurringObservations
-        .map(
-          (item) =>
-            `- ${item.type} appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
-        )
-        .join("\n")
-    : "- No recurring EL observation categories detected."
+  return perception.recurringObservations
+    .map(
+      (item) =>
+        `- ${item.type} appears across ${item.answerCount} answers: ${item.questionKeys.join(", ")}`,
+    )
+    .join("\n");
 }
 
-EL EVIDENCE BY ANSWER:
+function renderEvidenceByAnswer(perception: RecognitionPerceptionSummary) {
+  return perception.answers
+    .map((answer, index) => {
+      const evidence =
+        answer.perception.evidence.length > 0
+          ? answer.perception.evidence
+              .map(
+                (item) =>
+                  `- ${item.type}: ${item.content} (${item.confidence})`,
+              )
+              .join("\n")
+          : "- No EL evidence extracted.";
 
-The following evidence was extracted mechanically from the participant's answers.
-
-Use it as supporting signal only.
-
-The participant's full answers remain the primary source of truth.
-
-${perception.answers
-  .map(
-    (answer, index) => `
-Answer ${index + 1} [${answer.questionKey}] evidence:
-${
-  answer.perception.evidence.length > 0
-    ? answer.perception.evidence
-        .map(
-          (item) =>
-            `- ${item.type}: ${item.content} (${item.confidence})`,
-        )
-        .join("\n")
-    : "- No EL evidence extracted."
+      return `Answer ${index + 1} [${answer.questionKey}] evidence:\n${evidence}`;
+    })
+    .join("\n\n");
 }
-`,
-  )
-  .join("\n")}
 
-EL SUPPORTING OBSERVATIONS BY ANSWER:
+function renderObservationsByAnswer(perception: RecognitionPerceptionSummary) {
+  return perception.answers
+    .map((answer, index) => {
+      const observations =
+        answer.perception.observations.length > 0
+          ? answer.perception.observations
+              .map(
+                (item) =>
+                  `- ${item.type}: ${item.summary} (${item.confidence})`,
+              )
+              .join("\n")
+          : "- No EL observations created.";
 
-These observations are derived from the evidence above.
-
-Use them as supporting structure only.
-Keep the participant's own words authoritative.
-
-${perception.answers
-  .map(
-    (answer, index) => `
-Answer ${index + 1} [${answer.questionKey}] observations:
-${
-  answer.perception.observations.length > 0
-    ? answer.perception.observations
-        .map(
-          (item) =>
-            `- ${item.type}: ${item.summary} (${item.confidence})`,
-        )
-        .join("\n")
-    : "- No EL observations created."
+      return `Answer ${index + 1} [${answer.questionKey}] observations:\n${observations}`;
+    })
+    .join("\n\n");
 }
-`,
-  )
-  .join("\n")}
 
-USER RESPONSES:
-
-${responses
-  .map(
-    (item, index) => `
-Question ${index + 1} [${item.questionKey}]: ${item.questionText}
-Answer ${index + 1}: ${item.response}
-`,
-  )
-  .join("\n")}
-`;
+function renderResponses(responses: RecognitionPromptResponse[]) {
+  return responses
+    .map(
+      (item, index) =>
+        `Question ${index + 1} [${item.questionKey}]: ${item.questionText}\nAnswer ${index + 1}: ${item.response}`,
+    )
+    .join("\n\n");
 }
 
 function extractQuestionsFromOutput(output: string) {
@@ -362,29 +396,11 @@ export async function generateRecognition(params: {
   const firstOutput = outputs[0] ?? null;
 
   if (!params.regenerate && latest) {
-    return {
-      id: latest.id,
-      sessionId: latest.session_id,
-      output: latest.output,
-      questions: latest.questions,
-      themesDetected: latest.themes_detected,
-      tensionsDetected: latest.tensions_detected,
-      createdAt: latest.created_at.toISOString(),
-    };
+    return mapRecognitionOutput(latest);
   }
 
   if (params.regenerate && outputs.length >= 2) {
-    return latest
-      ? {
-          id: latest.id,
-          sessionId: latest.session_id,
-          output: latest.output,
-          questions: latest.questions,
-          themesDetected: latest.themes_detected,
-          tensionsDetected: latest.tensions_detected,
-          createdAt: latest.created_at.toISOString(),
-        }
-      : null;
+    return latest ? mapRecognitionOutput(latest) : null;
   }
 
   const cleanResponses = session.entry_mirror_responses
@@ -428,6 +444,7 @@ export async function generateRecognition(params: {
   if (!output) return null;
 
   const questions = extractQuestionsFromOutput(output);
+  const themesDetected = perception.supportedThemes.map((item) => item.term);
   const tensionsDetected = perception.supportedTensions.map((item) => item.term);
 
   const saved = await prisma.entry_mirror_outputs.create({
@@ -435,7 +452,7 @@ export async function generateRecognition(params: {
       session_id: session.id,
       output,
       questions,
-      themes_detected: [],
+      themes_detected: themesDetected,
       tensions_detected: tensionsDetected,
       input_snapshot: {
         entryType,
@@ -445,6 +462,7 @@ export async function generateRecognition(params: {
         questionTexts: cleanResponses.map((item) => item.questionText),
         recurringLanguage: perception.recurringLanguage,
         recurringObservations: perception.recurringObservations,
+        supportedThemes: perception.supportedThemes,
         supportedTensions: perception.supportedTensions,
       },
     },
@@ -468,13 +486,25 @@ export async function generateRecognition(params: {
     },
   });
 
+  return mapRecognitionOutput(saved);
+}
+
+function mapRecognitionOutput(output: {
+  id: string;
+  session_id: string;
+  output: string;
+  questions: string[];
+  themes_detected: string[];
+  tensions_detected: string[];
+  created_at: Date;
+}): RecognitionOutputDTO {
   return {
-    id: saved.id,
-    sessionId: saved.session_id,
-    output: saved.output,
-    questions: saved.questions,
-    themesDetected: saved.themes_detected,
-    tensionsDetected: saved.tensions_detected,
-    createdAt: saved.created_at.toISOString(),
+    id: output.id,
+    sessionId: output.session_id,
+    output: output.output,
+    questions: output.questions,
+    themesDetected: output.themes_detected,
+    tensionsDetected: output.tensions_detected,
+    createdAt: output.created_at.toISOString(),
   };
 }
