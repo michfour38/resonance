@@ -6,6 +6,10 @@ import {
   type RecognitionClarityMap,
 } from "@/src/lib/recognition/recognition-clarity";
 import {
+  buildRecognitionEvidenceCalibrationMap,
+  type RecognitionEvidenceCalibrationMap,
+} from "@/src/lib/recognition/recognition-evidence-strength";
+import {
   buildRecognitionMovementMap,
   type RecognitionMovementContext,
   type RecognitionMovementMap,
@@ -58,6 +62,7 @@ function buildRecognitionPrompt(params: {
   participantSignals: RecognitionParticipantSignalMap;
   relationshipMap: RecognitionRelationshipMap;
   movementMap: RecognitionMovementMap;
+  evidenceCalibration: RecognitionEvidenceCalibrationMap;
 }) {
   const {
     firstName,
@@ -69,6 +74,7 @@ function buildRecognitionPrompt(params: {
     participantSignals,
     relationshipMap,
     movementMap,
+    evidenceCalibration,
   } = params;
 
   return `
@@ -120,6 +126,18 @@ A relationship marker identifies a connection the participant wrote; the full se
 A continuing reflection thread identifies a subject that remains present from earlier to later stages; its significance comes from the participant's full contexts.
 Cross-answer signals strengthen a recognition only when the surrounding answers support the same reading.
 
+EVIDENCE STRENGTH AND DEPTH PRINCIPLES:
+
+Evidence strength regulates how far Recognition may connect what it sees.
+A single mechanical signal remains at opening-only depth. It can support a cautious possibility or a precise opening for further noticing.
+A direct participant statement may be reflected plainly within the domain the question asked about.
+Participant-stated importance has authority about what matters most to them. Participant-stated clarity has authority about what they say they know clearly. Participant-stated distinction has authority about what they can now separate. Final recognition has authority about what they say became newly visible.
+A repeated subject across separate answers supports connected reflection when the raw contexts carry the same thread.
+Several independent support forms can make a subject a central reflection candidate when the raw contexts cohere.
+Convergence increases permission to connect evidence across the reflection. It does not convert interpretation into fact or create authority over identity, motive, diagnosis, causation, or future action.
+Mechanical frequency never outranks a participant-owned direct statement inside that statement's domain.
+A central reflection candidate may anchor a section when the participant's raw contexts support a coherent recognition. It remains a candidate rather than a required conclusion.
+
 LANGUAGE TOLERANCE PRINCIPLES:
 
 The participant's original wording remains the authoritative language of the reflection.
@@ -146,9 +164,9 @@ The Recognition sequence also provides participant-owned signals for attention, 
 The attention answer identifies what has been occupying attention. Importance, agreement, responsibility, and value remain separate signals unless the participant links them.
 The returning answer records what the participant themselves notices recurring across what they wrote.
 The participation answer records where the participant sees themselves repeatedly appearing inside the situation. Treat this descriptively. It may reflect care, labour, protection, contribution, choice, attention, habit, responsibility, or another role supported by their words.
-The weight answer is the primary source for what the participant says carries the most weight. Give this answer priority over mechanical recurrence when describing importance.
-Spelling-tolerant recurrence across answers can strengthen convergence. Participant-stated weight remains primary when describing importance.
-A subject may hold attention while another carries the most weight, carry weight with little repetition, and involve the participant while responsibility remains limited to what they themselves name.
+The weight answer is the primary source for what the participant says matters most. Give this answer priority over mechanical recurrence when describing importance.
+Spelling-tolerant recurrence across answers can strengthen convergence. Participant-stated importance remains primary when describing what matters most.
+A subject may hold attention while another matters most, matter deeply with little repetition, and involve the participant while responsibility remains limited to what they themselves name.
 Preserve all of these distinctions when more than one is true at the same time.
 
 RELATIONSHIP AND DEPENDENCY PRINCIPLES:
@@ -204,7 +222,7 @@ WHAT TO NOTICE:
 - what has been taking up their attention
 - what they themselves identify as returning
 - where they see themselves repeatedly participating
-- what they explicitly say carries the most weight
+- what they explicitly say matters most
 - where those signals converge and where they remain distinct
 - what becomes more specific across their answers
 - what they explicitly state as clear
@@ -221,6 +239,8 @@ WHAT TO NOTICE:
 - where the participant's description of the same subject becomes more specific or differently framed across the sequence
 - where a subject carries agency and friction in different answers
 - where several truths, values, needs, choices, consequences, or constraints are present at the same time
+- which observations are single signals, direct participant statements, supported patterns, or converging structures
+- how much reflective depth the evidence calibration permits for each subject
 
 STRUCTURE:
 
@@ -240,6 +260,7 @@ SECTION RULES:
 - Begin with the clearest recognition supported by the participant's answers.
 - Ground it in specific evidence from their own words.
 - Use proportionate language.
+- Use the evidence calibration to regulate depth: opening-only signals stay brief; supported patterns may connect contexts; converging structures may anchor the section when the raw contexts cohere.
 - Let cross-answer recurrence strengthen a recognition when the surrounding answers support the same reading.
 - Let participant-stated relationships reveal structure when the wording clearly links conditions, explanations, dependencies, or consequences.
 - Keep temporal or conditional links distinct from causal claims.
@@ -250,8 +271,9 @@ SECTION RULES:
 - Participation may reveal where the participant repeatedly appears inside the situation while responsibility stays limited to what they actually name.
 
 "What seems to matter"
-- Begin with what the participant explicitly says carries the most weight when that answer is available.
-- Use attention and returning as additional participant-owned signals rather than substitutes for weight.
+- Begin with what the participant explicitly says matters most when that answer is available.
+- Use attention and returning as additional participant-owned signals rather than substitutes for stated importance.
+- Mechanical recurrence may strengthen context while participant-stated importance retains authority over what matters most.
 - A supported theme candidate can strengthen this section when its separate contexts form a coherent thread.
 - Distinguish sustained attention from stated importance when the answers make that distinction available.
 - Name a value or concern only when the answers support it.
@@ -262,11 +284,12 @@ SECTION RULES:
 - Treat existing clarity as capacity.
 - Preserve clarity even when the clarity-holding answer names difficult conditions around it.
 - Use final recognition as additional evidence of what the participant can now see when it aligns with their stated clarity.
+- Direct participant clarity outranks mechanically inferred confidence about the same subject.
 - More than one truth can sit beside the clarity without cancelling it.
 - Keep clarity distinct from instruction.
 
 "What remains available to notice"
-- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, a participant-stated relationship, a continuing reflection thread, or a meaningful distinction among attention, recurrence, participation, and weight as an opening when the evidence supports it.
+- Use explicit uncertainty, newly visible material, unresolved complexity, a supported tension, a participant-stated relationship, a continuing reflection thread, a single opening-only signal, or a meaningful distinction among attention, recurrence, participation, and importance as an opening when the evidence supports it.
 - Leave one precise opening for further recognition.
 - Keep the opening voluntary and grounded in what is already present.
 
@@ -278,6 +301,10 @@ Preserve the full set that the participant's answers support rather than reducin
 An agency/friction candidate below identifies one detectable pull around a subject; it is not the complete shape of that subject.
 Use language such as "several things appear to be present at once" or "there appears to be a pull around..." when the evidence supports it.
 Reserve the word contradiction for explicit participant statements that cannot reasonably both be true in the same sense at the same time.
+
+EVIDENCE STRENGTH AND DEPTH MAP:
+
+${renderEvidenceCalibrationMap(evidenceCalibration)}
 
 REFLECTION MOVEMENT MAP:
 
@@ -346,6 +373,47 @@ ${renderResponses(responses)}
 `;
 }
 
+function renderEvidenceCalibrationMap(
+  map: RecognitionEvidenceCalibrationMap,
+): string {
+  const directAuthorities =
+    map.directAuthorities.length > 0
+      ? map.directAuthorities
+          .map(
+            (item) =>
+              `- [${item.questionKey}] ${item.domain}: ${item.level} → ${item.reflectionDepth}: ${item.content}`,
+          )
+          .join("\n")
+      : "- No participant-owned direct authority response is available.";
+
+  const subjectCalibrations =
+    map.subjectCalibrations.length > 0
+      ? map.subjectCalibrations
+          .map(
+            (item) => `
+Subject "${item.term}": ${item.level} → ${item.reflectionDepth}
+- answers: ${item.answerCount} (${item.questionKeys.join(", ")})
+- support forms: ${item.supportForms.join(", ")}
+- basis: ${item.basis}
+${item.rawContexts
+  .map((context) => `- [${context.questionKey}] ${context.content}`)
+  .join("\n")}`,
+          )
+          .join("\n")
+      : "- No cross-answer subject reached supported-pattern depth.";
+
+  return `
+Single mechanical signal baseline:
+- ${map.singleSignalPolicy.level} → ${map.singleSignalPolicy.reflectionDepth}
+
+Participant-owned direct statements:
+${directAuthorities}
+
+Cross-answer subject calibration:
+${subjectCalibrations}
+`;
+}
+
 function renderMovementMap(map: RecognitionMovementMap): string {
   const continuingThreads =
     map.continuingThreads.length > 0
@@ -373,7 +441,7 @@ ${renderMovementContexts(map.participantNoticedRecurrence)}
 Self-observed participation:
 ${renderMovementContexts(map.selfParticipation)}
 
-Participant-stated weight:
+Participant-stated importance:
 ${renderMovementContexts(map.statedWeight)}
 
 Distinctions that became available:
@@ -467,10 +535,10 @@ ${renderParticipantSignalContexts(
   "The participant provided no separate participation response.",
 )}
 
-What the participant says carries the most weight:
+What the participant says matters most:
 ${renderParticipantSignalContexts(
   signals.weight,
-  "The participant provided no separate weight response.",
+  "The participant provided no separate importance response.",
 )}
 
 Cross-answer recurrence linked to attention:
@@ -482,10 +550,10 @@ ${renderParticipantSignalLinks(signals.returningAcrossAnswers)}
 Cross-answer recurrence linked to participation:
 ${renderParticipantSignalLinks(signals.participationAcrossAnswers)}
 
-Cross-answer recurrence linked to participant-stated weight:
+Cross-answer recurrence linked to participant-stated importance:
 ${renderParticipantSignalLinks(signals.weightAcrossAnswers)}
 
-Supported theme candidates that also appear in the weight answer:
+Supported theme candidates that also appear in the importance answer:
 ${
   signals.weightedThemes.length > 0
     ? signals.weightedThemes
@@ -494,7 +562,7 @@ ${
             `- "${theme.term}" appears across ${theme.answerCount} answers: ${theme.questionKeys.join(", ")}`,
         )
         .join("\n")
-    : "- No supported theme candidate overlaps the weight answer."
+    : "- No supported theme candidate overlaps the importance answer."
 }
 `;
 }
@@ -842,6 +910,13 @@ export async function generateRecognition(params: {
     perception.answers,
     perception.recurringLanguage,
   );
+  const evidenceCalibration = buildRecognitionEvidenceCalibrationMap({
+    perception,
+    clarityMap,
+    participantSignals,
+    relationshipMap,
+    movementMap,
+  });
 
   const prompt = buildRecognitionPrompt({
     firstName: session.entry_leads.first_name,
@@ -853,6 +928,7 @@ export async function generateRecognition(params: {
     participantSignals,
     relationshipMap,
     movementMap,
+    evidenceCalibration,
   });
 
   const output = await generateAI({
@@ -893,6 +969,7 @@ export async function generateRecognition(params: {
         participantSignals,
         relationshipMap,
         movementMap,
+        evidenceCalibration,
       },
     },
     select: {
